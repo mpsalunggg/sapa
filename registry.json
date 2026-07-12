@@ -1,0 +1,348 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "sapa",
+  "homepage": "https://sapa.example.com",
+  "items": [
+    {
+      "name": "theme",
+      "type": "registry:style",
+      "description": "Sapa design tokens (light/dark) incl. semantic toast rich colors + progress keyframes.",
+      "dependencies": [
+        "tailwindcss",
+        "tw-animate-css"
+      ],
+      "cssVars": {
+        "theme": {
+          "--color-sapa-success": "var(--sapa-success)",
+          "--color-sapa-success-foreground": "var(--sapa-success-foreground)",
+          "--color-sapa-error": "var(--sapa-error)",
+          "--color-sapa-error-foreground": "var(--sapa-error-foreground)",
+          "--color-sapa-warning": "var(--sapa-warning)",
+          "--color-sapa-warning-foreground": "var(--sapa-warning-foreground)",
+          "--color-sapa-info": "var(--sapa-info)",
+          "--color-sapa-info-foreground": "var(--sapa-info-foreground)"
+        },
+        "light": {
+          "sapa-success": "oklch(0.62 0.17 149)",
+          "sapa-success-foreground": "oklch(0.98 0.02 150)",
+          "sapa-error": "oklch(0.58 0.22 27)",
+          "sapa-error-foreground": "oklch(0.98 0.02 20)",
+          "sapa-warning": "oklch(0.75 0.16 78)",
+          "sapa-warning-foreground": "oklch(0.28 0.07 70)",
+          "sapa-info": "oklch(0.6 0.13 240)",
+          "sapa-info-foreground": "oklch(0.98 0.02 240)"
+        },
+        "dark": {
+          "sapa-success": "oklch(0.7 0.16 150)",
+          "sapa-success-foreground": "oklch(0.16 0.03 150)",
+          "sapa-error": "oklch(0.7 0.19 22)",
+          "sapa-error-foreground": "oklch(0.16 0.04 20)",
+          "sapa-warning": "oklch(0.82 0.16 82)",
+          "sapa-warning-foreground": "oklch(0.2 0.06 70)",
+          "sapa-info": "oklch(0.68 0.14 240)",
+          "sapa-info-foreground": "oklch(0.16 0.03 240)"
+        }
+      },
+      "css": {
+        "@keyframes sapa-toast-progress": {
+          "from": {
+            "transform": "scaleX(1)"
+          },
+          "to": {
+            "transform": "scaleX(0)"
+          }
+        }
+      }
+    },
+    {
+      "name": "react/utils",
+      "type": "registry:lib",
+      "dependencies": [
+        "clsx",
+        "tailwind-merge"
+      ],
+      "files": [
+        {
+          "path": "utils.ts",
+          "type": "registry:lib",
+          "src": "registry/react/lib/utils.ts"
+        }
+      ]
+    },
+    {
+      "name": "react/toaster",
+      "type": "registry:ui",
+      "title": "Toaster (React)",
+      "description": "Custom-built toast system: store + <Toaster/> + <Toast/>. No sonner.",
+      "dependencies": [
+        "lucide-react",
+        "clsx",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [
+        "theme",
+        "react/utils"
+      ],
+      "files": [
+        {
+          "path": "toast-store.ts",
+          "type": "registry:ui",
+          "src": "registry/react/ui/toast-store.ts"
+        },
+        {
+          "path": "toast.tsx",
+          "type": "registry:ui",
+          "src": "registry/react/ui/toast.tsx"
+        },
+        {
+          "path": "toaster.tsx",
+          "type": "registry:ui",
+          "src": "registry/react/ui/toaster.tsx"
+        }
+      ]
+    },
+    {
+      "name": "react/toast-default",
+      "type": "registry:example",
+      "registryDependencies": [
+        "react/toaster"
+      ],
+      "files": [
+        {
+          "path": "toast-default.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-default.tsx"
+        }
+      ]
+    },
+    {
+      "name": "react/toast-types",
+      "type": "registry:example",
+      "registryDependencies": [
+        "react/toaster"
+      ],
+      "files": [
+        {
+          "path": "toast-types.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-types.tsx"
+        }
+      ]
+    },
+    {
+      "name": "react/toast-description",
+      "type": "registry:example",
+      "registryDependencies": [
+        "react/toaster"
+      ],
+      "files": [
+        {
+          "path": "toast-description.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-description.tsx"
+        }
+      ]
+    },
+    {
+      "name": "react/toast-action",
+      "type": "registry:example",
+      "registryDependencies": [
+        "react/toaster"
+      ],
+      "files": [
+        {
+          "path": "toast-action.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-action.tsx"
+        }
+      ]
+    },
+    {
+      "name": "react/toast-promise",
+      "type": "registry:example",
+      "registryDependencies": [
+        "react/toaster"
+      ],
+      "files": [
+        {
+          "path": "toast-promise.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-promise.tsx"
+        }
+      ]
+    },
+    {
+      "name": "react/toast-custom",
+      "type": "registry:example",
+      "registryDependencies": [
+        "react/toaster"
+      ],
+      "files": [
+        {
+          "path": "toast-custom.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-custom.tsx"
+        }
+      ]
+    },
+    {
+      "name": "react/toast-positions",
+      "type": "registry:example",
+      "registryDependencies": [
+        "react/toaster"
+      ],
+      "files": [
+        {
+          "path": "toast-positions.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-positions.tsx"
+        }
+      ]
+    },
+    {
+      "name": "vue/utils",
+      "type": "registry:lib",
+      "dependencies": [
+        "clsx",
+        "tailwind-merge"
+      ],
+      "files": [
+        {
+          "path": "utils.ts",
+          "type": "registry:lib",
+          "src": "registry/vue/lib/utils.ts"
+        }
+      ]
+    },
+    {
+      "name": "vue/toaster",
+      "type": "registry:ui",
+      "title": "Toaster (Vue)",
+      "description": "Custom-built toast system: reactive store + Toaster.vue + Toast.vue. No vue-sonner.",
+      "dependencies": [
+        "@lucide/vue",
+        "clsx",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [
+        "theme",
+        "vue/utils"
+      ],
+      "files": [
+        {
+          "path": "useToast.ts",
+          "type": "registry:ui",
+          "src": "registry/vue/ui/useToast.ts"
+        },
+        {
+          "path": "Toast.vue",
+          "type": "registry:ui",
+          "src": "registry/vue/ui/Toast.vue"
+        },
+        {
+          "path": "Toaster.vue",
+          "type": "registry:ui",
+          "src": "registry/vue/ui/Toaster.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-default",
+      "type": "registry:example",
+      "registryDependencies": [
+        "vue/toaster"
+      ],
+      "files": [
+        {
+          "path": "ToastDefault.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastDefault.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-types",
+      "type": "registry:example",
+      "registryDependencies": [
+        "vue/toaster"
+      ],
+      "files": [
+        {
+          "path": "ToastTypes.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastTypes.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-description",
+      "type": "registry:example",
+      "registryDependencies": [
+        "vue/toaster"
+      ],
+      "files": [
+        {
+          "path": "ToastDescription.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastDescription.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-action",
+      "type": "registry:example",
+      "registryDependencies": [
+        "vue/toaster"
+      ],
+      "files": [
+        {
+          "path": "ToastAction.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastAction.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-promise",
+      "type": "registry:example",
+      "registryDependencies": [
+        "vue/toaster"
+      ],
+      "files": [
+        {
+          "path": "ToastPromise.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastPromise.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-custom",
+      "type": "registry:example",
+      "registryDependencies": [
+        "vue/toaster"
+      ],
+      "files": [
+        {
+          "path": "ToastCustom.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastCustom.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-positions",
+      "type": "registry:example",
+      "registryDependencies": [
+        "vue/toaster"
+      ],
+      "files": [
+        {
+          "path": "ToastPositions.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastPositions.vue"
+        }
+      ]
+    }
+  ]
+}

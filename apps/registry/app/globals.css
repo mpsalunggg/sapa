@@ -1,0 +1,24 @@
+/* Import the shared Sapa tokens (which also pulls in Tailwind + tw-animate-css). */
+@import "../../../registry/theme/globals.css";
+
+/* Make sure Tailwind scans the registry component sources and the app itself. */
+@source "../../../registry/react";
+@source "../";
+
+/* Wire the next/font families into Tailwind's font-sans / font-mono utilities. */
+@theme inline {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", Menlo,
+    monospace;
+}
+
+/* Nicer default rhythm for the showcase. */
+body {
+  letter-spacing: -0.011em;
+}
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}

@@ -1,0 +1,27 @@
+{
+  "name": "sapa",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Sapa — your own cross-framework (React + Vue) component registry. v1: a custom-built, variated toast system.",
+  "type": "module",
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "registry:build": "node scripts/build-registry.mjs",
+    "dev": "pnpm --filter registry dev",
+    "sandbox": "pnpm --filter vue-sandbox dev"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.544.0",
+    "@lucide/vue": "^1.24.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.3.1",
+    "vue": "^3.5.39"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

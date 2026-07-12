@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "jsx": "preserve",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/components/ui/*": ["ui/*"],
+      "@/lib/*": ["lib/*"],
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.vue", "env.d.ts"]
+}
