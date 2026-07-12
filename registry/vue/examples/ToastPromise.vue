@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toast } from "@/components/ui/useToast"
+import { toast } from "@/components/ui/sapa-toast/useToast"
 
 function fakeUpload(): Promise<{ name: string }> {
   return new Promise((resolve, reject) =>

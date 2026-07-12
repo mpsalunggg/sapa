@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineComponent, h } from "vue"
 
-import { toast } from "@/components/ui/useToast"
+import { toast } from "@/components/ui/sapa-toast/useToast"
 
 const FriendRequest = defineComponent(() => () =>
   h("div", { class: "flex items-center gap-3" }, [

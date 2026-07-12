@@ -1,7 +1,7 @@
 "use client"
 
-import { toast } from "@/components/ui/toaster"
-import type { ToastPosition } from "@/components/ui/toast-store"
+import { toast } from "@/components/ui/sapa-toast/toaster"
+import type { ToastPosition } from "@/components/ui/sapa-toast/toast-store"
 
 const POSITIONS: ToastPosition[] = [
   "top-left",

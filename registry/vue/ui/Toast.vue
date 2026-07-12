@@ -10,7 +10,7 @@ import {
 } from "@lucide/vue"
 
 import { cn } from "@/lib/utils"
-import { dismiss, type ToastData, type ToastType } from "@/components/ui/useToast"
+import { dismiss, type ToastData, type ToastType } from "./useToast"
 
 const props = defineProps<{ toast: ToastData }>()
 

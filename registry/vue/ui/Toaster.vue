@@ -2,8 +2,8 @@
 import { computed } from "vue"
 
 import { cn } from "@/lib/utils"
-import Toast from "@/components/ui/Toast.vue"
-import { toasts, type ToastData, type ToastPosition } from "@/components/ui/useToast"
+import Toast from "./Toast.vue"
+import { toasts, type ToastData, type ToastPosition } from "./useToast"
 
 const props = withDefaults(
   defineProps<{ position?: ToastPosition; richColors?: boolean }>(),

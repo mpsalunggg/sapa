@@ -1,6 +1,6 @@
 "use client"
 
-import { toast } from "@/components/ui/toaster"
+import { toast } from "@/components/ui/sapa-toast/toaster"
 
 const btn =
   "inline-flex h-9 items-center rounded-md border bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-muted"

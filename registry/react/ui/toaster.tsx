@@ -4,12 +4,12 @@ import * as React from "react"
 import { createPortal } from "react-dom"
 
 import { cn } from "@/lib/utils"
-import { Toast } from "@/components/ui/toast"
+import { Toast } from "./toast"
 import {
   toastStore,
   type ToastData,
   type ToastPosition,
-} from "@/components/ui/toast-store"
+} from "./toast-store"
 
 // Stable reference for SSR: getServerSnapshot must return the same value every
 // call, otherwise useSyncExternalStore re-renders forever.
@@ -77,4 +77,4 @@ export function Toaster({
   )
 }
 
-export { toast } from "@/components/ui/toast-store"
+export { toast } from "./toast-store"

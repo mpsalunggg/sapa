@@ -10,6 +10,12 @@ export default defineConfig({
     // Order matters: the most specific aliases must come first.
     alias: [
       {
+        find: "@/components/ui/sapa-toast",
+        replacement: fileURLToPath(
+          new URL("../../registry/vue/ui", import.meta.url)
+        ),
+      },
+      {
         find: "@/components/ui",
         replacement: fileURLToPath(
           new URL("../../registry/vue/ui", import.meta.url)

@@ -1,6 +1,6 @@
 "use client"
 
-import { toast } from "@/components/ui/toaster"
+import { toast } from "@/components/ui/sapa-toast/toaster"
 
 export default function ToastCustom() {
   return (

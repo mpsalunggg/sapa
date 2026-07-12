@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { toastStore, type ToastData, type ToastType } from "@/components/ui/toast-store"
+import { toastStore, type ToastData, type ToastType } from "./toast-store"
 
 const ICONS: Record<ToastType, React.ReactNode> = {
   default: null,

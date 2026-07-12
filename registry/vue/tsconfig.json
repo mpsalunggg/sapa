@@ -9,6 +9,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@/components/ui/sapa-toast/*": ["ui/*"],
       "@/components/ui/*": ["ui/*"],
       "@/lib/*": ["lib/*"],
       "@/*": ["./*"]

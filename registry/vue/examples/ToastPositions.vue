@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toast, type ToastPosition } from "@/components/ui/useToast"
+import { toast, type ToastPosition } from "@/components/ui/sapa-toast/useToast"
 
 const positions: ToastPosition[] = [
   "top-left",

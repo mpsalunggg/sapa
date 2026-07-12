@@ -87,17 +87,20 @@
         {
           "path": "toast-store.ts",
           "type": "registry:ui",
-          "src": "registry/react/ui/toast-store.ts"
+          "src": "registry/react/ui/toast-store.ts",
+          "target": "components/ui/sapa-toast/toast-store.ts"
         },
         {
           "path": "toast.tsx",
           "type": "registry:ui",
-          "src": "registry/react/ui/toast.tsx"
+          "src": "registry/react/ui/toast.tsx",
+          "target": "components/ui/sapa-toast/toast.tsx"
         },
         {
           "path": "toaster.tsx",
           "type": "registry:ui",
-          "src": "registry/react/ui/toaster.tsx"
+          "src": "registry/react/ui/toaster.tsx",
+          "target": "components/ui/sapa-toast/toaster.tsx"
         }
       ]
     },
@@ -230,17 +233,17 @@
       ],
       "files": [
         {
-          "path": "useToast.ts",
+          "path": "sapa-toast/useToast.ts",
           "type": "registry:ui",
           "src": "registry/vue/ui/useToast.ts"
         },
         {
-          "path": "Toast.vue",
+          "path": "sapa-toast/Toast.vue",
           "type": "registry:ui",
           "src": "registry/vue/ui/Toast.vue"
         },
         {
-          "path": "Toaster.vue",
+          "path": "sapa-toast/Toaster.vue",
           "type": "registry:ui",
           "src": "registry/vue/ui/Toaster.vue"
         }

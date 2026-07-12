@@ -23,6 +23,9 @@
       }
     ],
     "paths": {
+      "@/components/ui/sapa-toast/*": [
+        "../../registry/react/ui/*"
+      ],
       "@/components/ui/*": [
         "../../registry/react/ui/*"
       ],

@@ -13,6 +13,7 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
+      "@/components/ui/sapa-toast/*": ["../../registry/vue/ui/*"],
       "@/components/ui/*": ["../../registry/vue/ui/*"],
       "@/lib/*": ["../../registry/vue/lib/*"],
       "@/*": ["./src/*"]
