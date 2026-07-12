@@ -82,7 +82,7 @@ export default async function Home() {
             <span className="text-xl font-extrabold tracking-tight">Sapa.</span>
             <div className="flex items-center gap-2">
               <a
-                href="https://github.com"
+                href="https://github.com/mpsalunggg/sapa"
                 className="inline-flex size-9 items-center justify-center rounded-md border bg-background text-foreground shadow-sm transition-colors hover:bg-muted"
                 aria-label="GitHub"
               >
