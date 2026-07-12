@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import {
   Check,
   CircleAlert,
@@ -7,12 +7,12 @@ import {
   Loader2,
   TriangleAlert,
   X,
-} from "@lucide/vue"
+} from "@lucide/vue";
 
-import { cn } from "@/lib/utils"
-import { dismiss, type ToastData, type ToastType } from "./useToast"
+import { cn } from "@/lib/utils";
+import { dismiss, type ToastData, type ToastType } from "./useToast";
 
-const props = defineProps<{ toast: ToastData }>()
+const props = defineProps<{ toast: ToastData }>();
 
 const ICONS: Record<ToastType, unknown> = {
   default: null,
@@ -21,7 +21,7 @@ const ICONS: Record<ToastType, unknown> = {
   warning: TriangleAlert,
   info: Info,
   loading: Loader2,
-}
+};
 
 // Colored "outline" treatment (richColors): tinted border + title + soft glow
 // over a light surface — matches the pill reference design.
@@ -32,7 +32,7 @@ const RICH_COLORS: Record<ToastType, string> = {
   warning: "border-sapa-warning/50 shadow-lg shadow-sapa-warning/10",
   info: "border-sapa-info/50 shadow-lg shadow-sapa-info/10",
   loading: "",
-}
+};
 
 // Title text color when richColors is on.
 const RICH_TEXT: Record<ToastType, string> = {
@@ -42,7 +42,7 @@ const RICH_TEXT: Record<ToastType, string> = {
   warning: "text-sapa-warning",
   info: "text-sapa-info",
   loading: "",
-}
+};
 
 // Solid colored icon circle (white glyph) per type.
 const CHIP: Record<ToastType, string> = {
@@ -52,9 +52,9 @@ const CHIP: Record<ToastType, string> = {
   warning: "bg-sapa-warning text-white",
   info: "bg-sapa-info text-white",
   loading: "bg-muted text-muted-foreground",
-}
+};
 
-const SWIPE_THRESHOLD = 80
+const SWIPE_THRESHOLD = 80;
 
 // A "compact" toast (title only, no description/actions) centers its content
 // vertically against the icon; richer toasts top-align.
@@ -63,93 +63,104 @@ const compact = computed(
     !props.toast.component &&
     !props.toast.description &&
     !props.toast.action &&
-    !props.toast.cancel
-)
+    !props.toast.cancel,
+);
 
-const duration = computed(() => props.toast.duration ?? 4000)
-const iconComp = computed(() => props.toast.icon ?? ICONS[props.toast.type])
+const duration = computed(() => props.toast.duration ?? 4000);
+const iconComp = computed(() => props.toast.icon ?? ICONS[props.toast.type]);
 const showProgress = computed(
   () =>
     Number.isFinite(duration.value) &&
     props.toast.type !== "loading" &&
-    !compact.value
-)
+    !compact.value,
+);
 
-const paused = ref(false)
-const offset = ref(0)
-const dragging = ref(false)
-let startX = 0
-let remaining = duration.value
-let startedAt = Date.now()
-let timer: ReturnType<typeof setTimeout> | null = null
+// Centered top/bottom toasts are swiped vertically; others horizontally.
+const vertical = computed(
+  () =>
+    props.toast.position === "top-center" ||
+    props.toast.position === "bottom-center",
+);
+
+const paused = ref(false);
+const offset = ref(0);
+const dragging = ref(false);
+let startX = 0;
+let startY = 0;
+let remaining = duration.value;
+let startedAt = Date.now();
+let timer: ReturnType<typeof setTimeout> | null = null;
 
 function clearTimer() {
   if (timer) {
-    clearTimeout(timer)
-    timer = null
+    clearTimeout(timer);
+    timer = null;
   }
 }
 
 function close() {
-  props.toast.onAutoClose?.(props.toast)
-  dismiss(props.toast.id)
+  props.toast.onAutoClose?.(props.toast);
+  dismiss(props.toast.id);
 }
 
 function startTimer() {
-  if (!Number.isFinite(remaining)) return
-  startedAt = Date.now()
-  clearTimer()
-  timer = setTimeout(close, remaining)
+  if (!Number.isFinite(remaining)) return;
+  startedAt = Date.now();
+  clearTimer();
+  timer = setTimeout(close, remaining);
 }
 
 function pause() {
-  paused.value = true
-  if (!Number.isFinite(remaining)) return
-  clearTimer()
-  remaining -= Date.now() - startedAt
+  paused.value = true;
+  if (!Number.isFinite(remaining)) return;
+  clearTimer();
+  remaining -= Date.now() - startedAt;
 }
 
 function resume() {
-  paused.value = false
-  startTimer()
+  paused.value = false;
+  startTimer();
 }
 
 function onPointerDown(e: PointerEvent) {
-  if ((e.target as HTMLElement).closest("button")) return
-  dragging.value = true
-  startX = e.clientX
-  ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
-  pause()
+  if ((e.target as HTMLElement).closest("button")) return;
+  dragging.value = true;
+  startX = e.clientX;
+  startY = e.clientY;
+  (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  pause();
 }
 function onPointerMove(e: PointerEvent) {
-  if (!dragging.value) return
-  offset.value = e.clientX - startX
+  if (!dragging.value) return;
+  offset.value = vertical.value ? e.clientY - startY : e.clientX - startX;
 }
 function onPointerUp() {
-  if (!dragging.value) return
-  dragging.value = false
+  if (!dragging.value) return;
+  dragging.value = false;
   if (Math.abs(offset.value) > SWIPE_THRESHOLD) {
-    close()
+    // Clear inline transform so the TransitionGroup leave class controls the exit.
+    offset.value = 0;
+    close();
   } else {
-    offset.value = 0
-    resume()
+    offset.value = 0;
+    resume();
   }
 }
 
 function runAction() {
-  props.toast.action?.onClick?.()
-  close()
+  props.toast.action?.onClick?.();
+  close();
 }
 function runCancel() {
-  props.toast.cancel?.onClick?.()
-  close()
+  props.toast.cancel?.onClick?.();
+  close();
 }
 
 onMounted(() => {
-  remaining = duration.value
-  startTimer()
-})
-onBeforeUnmount(clearTimer)
+  remaining = duration.value;
+  startTimer();
+});
+onBeforeUnmount(clearTimer);
 </script>
 
 <template>
@@ -159,16 +170,20 @@ onBeforeUnmount(clearTimer)
     aria-atomic="true"
     :data-type="toast.type"
     :style="{
-      transform: offset ? `translateX(${offset}px)` : undefined,
+      transform: offset
+        ? vertical
+          ? `translateY(${offset}px)`
+          : `translateX(${offset}px)`
+        : undefined,
       opacity: dragging ? Math.max(0, 1 - Math.abs(offset) / 200) : undefined,
-      touchAction: 'pan-y',
+      touchAction: vertical ? 'pan-x' : 'pan-y',
     }"
     :class="
       cn(
         'group pointer-events-auto relative flex w-full gap-3 overflow-hidden border bg-popover/95 p-4 pr-10 text-popover-foreground shadow-xl shadow-black/5 backdrop-blur',
         compact ? 'items-center rounded-full' : 'items-start rounded-3xl',
         !dragging && 'cursor-grab active:cursor-grabbing',
-        toast.richColors && RICH_COLORS[toast.type]
+        toast.richColors && RICH_COLORS[toast.type],
       )
     "
     @mouseenter="pause"
@@ -186,7 +201,7 @@ onBeforeUnmount(clearTimer)
           cn(
             'flex size-8 shrink-0 items-center justify-center rounded-full',
             !compact && 'mt-0.5',
-            CHIP[toast.type]
+            CHIP[toast.type],
           )
         "
       >
@@ -199,7 +214,12 @@ onBeforeUnmount(clearTimer)
       <div class="flex-1 space-y-1">
         <div
           v-if="toast.title != null"
-          :class="cn('text-sm font-semibold leading-tight', toast.richColors && RICH_TEXT[toast.type])"
+          :class="
+            cn(
+              'text-sm font-semibold leading-tight',
+              toast.richColors && RICH_TEXT[toast.type],
+            )
+          "
         >
           {{ toast.title }}
         </div>
