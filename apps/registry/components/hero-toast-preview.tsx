@@ -33,7 +33,7 @@ const TOASTS = [
 
 export function HeroToastPreview() {
   return (
-    <div className="ml-auto w-full max-w-xs space-y-2.5">
+    <div className="mx-auto w-full max-w-xs space-y-2.5 lg:ml-auto lg:mr-0">
       {TOASTS.map(({ Icon, label, chip, text, ring }, i) => (
         <div
           key={label}

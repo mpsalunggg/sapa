@@ -77,7 +77,7 @@ export default async function Home() {
     <>
       <div className="relative overflow-hidden">
         <HeroWaves />
-        <div className="relative z-10 mx-auto max-w-5xl px-4 pb-16 pt-10">
+        <div className="relative z-10 mx-auto max-w-5xl px-4 pb-12 pt-8 sm:pb-16 sm:pt-10">
           <header className="mb-12 flex items-center justify-between">
             <span className="text-2xl font-extrabold tracking-tight rounded-xl">
               Sapa
@@ -98,8 +98,8 @@ export default async function Home() {
           </header>
 
           <section>
-            <div className="grid items-center gap-10 lg:grid-cols-2">
-              <div>
+            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
+              <div className="min-w-0">
                 <div className="inline-flex items-center gap-2 rounded-full border bg-background py-1 pl-1.5 pr-3 text-xs font-medium">
                   <span className="flex items-center -space-x-1.5">
                     <span className="flex size-6 items-center justify-center rounded-full border bg-background">
@@ -113,7 +113,7 @@ export default async function Home() {
                   <span className="text-muted-foreground">&</span> Vue
                 </div>
 
-                <h1 className="mt-5 max-w-4xl text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
+                <h1 className="mt-5 max-w-4xl text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
                   A toast system you{" "}
                   <span className="bg-linear-to-br from-sapa-warning to-sapa-error bg-clip-text text-transparent">
                     own
@@ -139,7 +139,7 @@ export default async function Home() {
                 </div>
               </div>
 
-              <div className="hidden lg:block">
+              <div className="hidden sm:block">
                 <HeroToastPreview />
               </div>
             </div>
