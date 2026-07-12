@@ -22,3 +22,19 @@ h2,
 h3 {
   text-wrap: balance;
 }
+
+@keyframes sapa-wave-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sapa-wave {
+    animation: none !important;
+  }
+}
