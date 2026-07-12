@@ -79,7 +79,12 @@ export default async function Home() {
         <HeroWaves />
         <div className="relative z-10 mx-auto max-w-5xl px-4 pb-16 pt-10">
           <header className="mb-12 flex items-center justify-between">
-            <span className="text-xl font-extrabold tracking-tight">Sapa.</span>
+            <span className="text-2xl font-extrabold tracking-tight rounded-xl">
+              Sapa
+              <span className="bg-linear-to-br from-sapa-warning to-sapa-error bg-clip-text text-transparent">
+                .
+              </span>
+            </span>
             <div className="flex items-center gap-2">
               <a
                 href="https://github.com/mpsalunggg/sapa"
