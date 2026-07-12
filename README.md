@@ -1,8 +1,70 @@
-# Sapa
+# Sapa.
 
-Your own cross-framework component **registry** — shadcn-style, installable with a
-single command in **React** _and_ **Vue**. v1 ships a **custom-built toast system**
-(no `sonner` / `vue-sonner` — written from scratch on framework primitives).
+Your own cross-framework component **registry** — a custom-built toast you install into **React** & **Vue** with one command.
+
+_Copy, paste, own it. Same design, two frameworks._
+
+![Sapa — a toast system you own, for React and Vue](assets/web.png)
+
+---
+
+## Features
+
+- **Cross-framework** — one registry, two authored sources (`.tsx` + `.vue`).
+- **Custom-built** — written from scratch on framework primitives (no `sonner` / `vue-sonner`).
+- **Rich colors** — semantic success / error / warning / info with a pill design.
+- **Directional motion** — toasts exit toward their anchor; swipe to dismiss (sideways for corners, up/down for centered).
+- **Variants** — default, types, description, action, promise, custom content, positions.
+- **Theme-aware** — light & dark via CSS variables.
+
+## Install into your project
+
+The registry is served as JSON. Add it with the shadcn CLI:
+
+```bash
+# React
+npx shadcn@latest add https://sapa-registry.vercel.app/r/react/toaster.json
+
+# Vue
+npx shadcn-vue@latest add https://sapa-registry.vercel.app/r/vue/toaster.json
+```
+
+Files land in `components/ui/sapa-toast/`. Optional demo variants:
+`.../r/react/toast-types.json`, `toast-promise.json`, `toast-positions.json`, …
+
+Mount the toaster once, then call the API anywhere:
+
+```tsx
+// React — e.g. app/layout.tsx
+import { Toaster, toast } from "@/components/ui/sapa-toast/toaster";
+
+// <Toaster richColors position="bottom-right" />
+toast.success("Saved", { description: "All changes stored." });
+```
+
+```vue
+<!-- Vue — e.g. App.vue -->
+<script setup>
+import Toaster from "@/components/ui/sapa-toast/Toaster.vue";
+import { toast } from "@/components/ui/sapa-toast/useToast";
+</script>
+
+<template>
+  <Toaster rich-colors position="bottom-right" />
+</template>
+<!-- toast.success("Saved", { description: "All changes stored." }) -->
+```
+
+## Toast API (identical in both frameworks)
+
+`toast(msg, opts)` · `toast.success / error / warning / info(msg, opts)` ·
+`toast.loading` · `toast.promise(p, { loading, success, error })` ·
+`toast.custom(node/component)` · `toast.dismiss(id?)`
+
+**Options:** `title`, `description`, `duration` (`Infinity` to persist), `position`,
+`richColors`, `action`, `cancel`, `icon`.
+
+## Repository layout
 
 ```
 sapa/
@@ -21,60 +83,7 @@ sapa/
 
 ```bash
 pnpm install
-pnpm registry:build        # generate apps/registry/public/r/*.json
-pnpm dev                   # Next.js showcase → http://localhost:3000
-pnpm sandbox               # Vue sandbox     → http://localhost:5174
-```
-
-`pnpm dev` runs `registry:build` automatically (via the app's `predev` hook).
-
-## Consume the registry
-
-Serve the built JSON (locally the Next app serves `public/r/*`), then:
-
-```bash
-# React
-npx shadcn@latest add http://localhost:3000/r/react/toaster.json
-npx shadcn@latest add http://localhost:3000/r/react/toast-types.json
-
-# Vue
-npx shadcn-vue@latest add http://localhost:3000/r/vue/toaster.json
-npx shadcn-vue@latest add http://localhost:3000/r/vue/toast-types.json
-```
-
-Then mount the toaster once and call the API anywhere:
-
-```tsx
-// React
-import { Toaster, toast } from "@/components/ui/toaster"
-// <Toaster richColors />
-toast.success("Saved", { description: "All changes stored." })
-```
-
-```vue
-<!-- Vue -->
-<script setup>
-import Toaster from "@/components/ui/Toaster.vue"
-import { toast } from "@/components/ui/useToast"
-</script>
-<template><Toaster rich-colors /></template>
-<!-- toast.success("Saved", { description: "All changes stored." }) -->
-```
-
-## Toast API (identical in both frameworks)
-
-`toast(msg, opts)` · `toast.success/error/warning/info(msg, opts)` ·
-`toast.loading` · `toast.promise(p, { loading, success, error })` ·
-`toast.custom(node/component)` · `toast.dismiss(id?)`
-
-Options: `title`, `description`, `duration` (`Infinity` to persist), `position`,
-`richColors`, `action`, `cancel`, `icon`.
-
-## Deploy
-
-Set `SAPA_BASE_URL` to your public origin before building so registry URLs and
-install commands point at production:
-
-```bash
-SAPA_BASE_URL=https://your-domain.com pnpm registry:build
+pnpm dev            # Next.js showcase → http://localhost:3000  (auto-runs registry:build)
+pnpm sandbox        # Vue sandbox      → http://localhost:5174
+pnpm registry:build # regenerate apps/registry/public/r/*.json
 ```
