@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/copy-button"
 import { FrameworkTabs } from "@/components/framework-tabs"
 
-function Code({ code }: { code: string }) {
+function Code({ code, html }: { code: string; html: string }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="min-w-0 overflow-hidden rounded-lg border bg-muted/40">
@@ -20,14 +20,13 @@ function Code({ code }: { code: string }) {
         </button>
         <CopyButton value={code} />
       </div>
-      <pre
+      <div
         className={cn(
-          "overflow-x-auto p-3 font-mono text-xs leading-relaxed",
+          "shiki-code overflow-x-auto p-3 font-mono text-xs leading-relaxed",
           !open && "max-h-40 overflow-y-hidden opacity-70"
         )}
-      >
-        <code>{code}</code>
-      </pre>
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     </div>
   )
 }
@@ -35,14 +34,18 @@ function Code({ code }: { code: string }) {
 export function CodeTabs({
   reactCode,
   vueCode,
+  reactHtml,
+  vueHtml,
 }: {
   reactCode: string
   vueCode: string
+  reactHtml: string
+  vueHtml: string
 }) {
   return (
     <FrameworkTabs
-      react={<Code code={reactCode} />}
-      vue={<Code code={vueCode} />}
+      react={<Code code={reactCode} html={reactHtml} />}
+      vue={<Code code={vueCode} html={vueHtml} />}
     />
   )
 }

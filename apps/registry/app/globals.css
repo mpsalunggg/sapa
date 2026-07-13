@@ -23,6 +23,19 @@ h3 {
   text-wrap: balance;
 }
 
+.shiki-code .shiki,
+.shiki-code .shiki span {
+  color: var(--shiki-light);
+  background-color: transparent !important;
+}
+.dark .shiki-code .shiki,
+.dark .shiki-code .shiki span {
+  color: var(--shiki-dark);
+}
+.shiki-code .shiki {
+  margin: 0;
+}
+
 @keyframes sapa-wave-bob {
   0%,
   100% {

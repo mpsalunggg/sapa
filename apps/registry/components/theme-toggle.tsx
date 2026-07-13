@@ -16,12 +16,12 @@ export function ThemeToggle() {
       type="button"
       aria-label="Toggle theme"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="inline-flex size-9 items-center justify-center rounded-md border bg-background text-foreground shadow-sm transition-colors hover:bg-muted"
+      className="group inline-flex size-9 items-center justify-center rounded-md border bg-background text-muted-foreground shadow-lg transition-all hover:-translate-y-0.5 hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:shadow-xl"
     >
       {mounted && isDark ? (
-        <Sun className="size-4" />
+        <Sun className="size-4 transition-colors group-hover:text-sapa-warning" />
       ) : (
-        <Moon className="size-4" />
+        <Moon className="size-4 transition-colors group-hover:text-sapa-info" />
       )}
     </button>
   )

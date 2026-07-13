@@ -1,8 +1,10 @@
 import { Github } from "lucide-react";
 
 import { BASE_URL, getSource, itemUrl } from "@/lib/registry";
+import { highlight } from "@/lib/highlight";
 import { CodeTabs } from "@/components/code-tabs";
 import { InstallCommand } from "@/components/install-command";
+import { FrameworkProvider } from "@/components/framework-context";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ReactLogo, VueLogo } from "@/components/logos";
 import { VariantNav } from "@/components/variant-nav";
@@ -65,16 +67,22 @@ const VARIANTS = [
 
 export default async function Home() {
   const sources = await Promise.all(
-    VARIANTS.map(async (v) => ({
-      key: v.key,
-      react: await getSource(`react/toast-${v.key}`),
-      vue: await getSource(`vue/toast-${v.key}`),
-    })),
+    VARIANTS.map(async (v) => {
+      const react = await getSource(`react/toast-${v.key}`);
+      const vue = await getSource(`vue/toast-${v.key}`);
+      return {
+        key: v.key,
+        react,
+        vue,
+        reactHtml: await highlight(react, "tsx"),
+        vueHtml: await highlight(vue, "vue"),
+      };
+    }),
   );
   const sourceMap = Object.fromEntries(sources.map((s) => [s.key, s]));
 
   return (
-    <>
+    <FrameworkProvider>
       <div className="relative overflow-hidden">
         <HeroWaves />
         <div className="relative z-10 mx-auto max-w-5xl px-4 pb-12 pt-8 sm:pb-16 sm:pt-10">
@@ -88,7 +96,7 @@ export default async function Home() {
             <div className="flex items-center gap-2">
               <a
                 href="https://github.com/mpsalunggg/sapa"
-                className="inline-flex size-9 items-center justify-center rounded-md border bg-background text-foreground shadow-sm transition-colors hover:bg-muted"
+                className="group inline-flex size-9 items-center justify-center rounded-md border bg-background text-muted-foreground shadow-lg transition-all hover:-translate-y-0.5 hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground hover:shadow-xl"
                 aria-label="GitHub"
               >
                 <Github className="size-4" />
@@ -156,32 +164,36 @@ export default async function Home() {
               />
             </aside>
 
-            <div className="flex min-w-0 flex-1 flex-col gap-6">
-              {VARIANTS.map(({ key, title, description, Preview }) => (
-                <div
-                  key={key}
-                  id={key}
-                  className="flex min-w-0 scroll-mt-6 flex-col gap-4 overflow-hidden rounded-2xl border bg-card p-5 transition-all duration-200 hover:border-foreground/20 hover:shadow-md"
-                >
-                  <div>
-                    <h3 className="font-semibold">{title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {description}
-                    </p>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <div className="flex min-w-0 flex-col divide-y divide-border">
+                {VARIANTS.map(({ key, title, description, Preview }) => (
+                  <div
+                    key={key}
+                    id={key}
+                    className="flex min-w-0 scroll-mt-6 flex-col gap-4 py-8 first:pt-0"
+                  >
+                    <div>
+                      <h3 className="font-semibold">{title}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {description}
+                      </p>
+                    </div>
+                    <div className="flex min-h-28 items-center justify-center rounded-xl border border-dashed bg-linear-to-b from-muted/50 to-muted/20 p-4">
+                      <Preview />
+                    </div>
+                    <InstallCommand
+                      reactUrl={itemUrl(`react/toast-${key}`)}
+                      vueUrl={itemUrl(`vue/toast-${key}`)}
+                    />
+                    <CodeTabs
+                      reactCode={sourceMap[key].react}
+                      vueCode={sourceMap[key].vue}
+                      reactHtml={sourceMap[key].reactHtml}
+                      vueHtml={sourceMap[key].vueHtml}
+                    />
                   </div>
-                  <div className="flex min-h-28 items-center justify-center rounded-xl border border-dashed bg-gradient-to-b from-muted/50 to-muted/20 p-4">
-                    <Preview />
-                  </div>
-                  <InstallCommand
-                    reactUrl={itemUrl(`react/toast-${key}`)}
-                    vueUrl={itemUrl(`vue/toast-${key}`)}
-                  />
-                  <CodeTabs
-                    reactCode={sourceMap[key].react}
-                    vueCode={sourceMap[key].vue}
-                  />
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -191,6 +203,6 @@ export default async function Home() {
           <code className="text-xs">{BASE_URL}/r</code>
         </footer>
       </div>
-    </>
+    </FrameworkProvider>
   );
 }
