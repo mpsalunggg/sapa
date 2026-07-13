@@ -4,14 +4,16 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "prebuild": "node ../../scripts/build-registry.mjs",
-    "predev": "node ../../scripts/build-registry.mjs",
+    "build:preview-css": "tailwindcss -i ./styles/preview-input.css -o ./public/toast-preview.css --minify",
+    "prebuild": "node ../../scripts/build-registry.mjs && pnpm build:preview-css",
+    "predev": "node ../../scripts/build-registry.mjs && pnpm build:preview-css",
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
     "registry:build": "node ../../scripts/build-registry.mjs"
   },
   "dependencies": {
+    "@codesandbox/sandpack-react": "^2.20.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",
     "next": "^16.2.10",
@@ -22,6 +24,7 @@
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.3.2",
     "@tailwindcss/postcss": "^4.1.16",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",

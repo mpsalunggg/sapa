@@ -1,4 +1,5 @@
-import { Github } from "lucide-react";
+import Link from "next/link";
+import { Github, Play } from "lucide-react";
 
 import { BASE_URL, getSource, itemUrl } from "@/lib/registry";
 import { highlight } from "@/lib/highlight";
@@ -94,6 +95,13 @@ export default async function Home() {
               </span>
             </span>
             <div className="flex items-center gap-2">
+              <Link
+                href="/playground"
+                className="group inline-flex h-9 items-center gap-1.5 rounded-md bg-linear-to-br from-sapa-warning via-sapa-error to-sapa-info bg-size-[200%_200%] bg-left px-3.5 text-sm font-semibold text-white shadow-lg shadow-sapa-error/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-right hover:shadow-xl hover:shadow-sapa-error/40"
+              >
+                <Play className="size-3.5" />
+                Playground
+              </Link>
               <a
                 href="https://github.com/mpsalunggg/sapa"
                 className="group inline-flex size-9 items-center justify-center rounded-md border bg-background text-muted-foreground shadow-lg transition-all hover:-translate-y-0.5 hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground hover:shadow-xl"
