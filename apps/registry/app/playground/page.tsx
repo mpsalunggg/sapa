@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, BookOpen } from "lucide-react"
 
 import { BASE_URL, getSource, getItemFiles, getPreviewCss } from "@/lib/registry"
 import { Playground } from "@/components/playground"
@@ -49,7 +49,7 @@ export default async function PlaygroundPage() {
             <ArrowLeft className="size-4" />
           </Link>
           <div>
-            <h1 className="text-lg font-extrabold tracking-tight">
+            <h1 className="font-display text-2xl font-semibold tracking-tight">
               Playground
               <span className="bg-linear-to-br from-sapa-warning to-sapa-error bg-clip-text text-transparent">
                 .
@@ -60,7 +60,16 @@ export default async function PlaygroundPage() {
             </p>
           </div>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <Link
+            href="/docs"
+            className="group inline-flex h-9 items-center gap-1.5 rounded-md border bg-background px-3.5 text-sm font-medium text-muted-foreground shadow-lg transition-all hover:-translate-y-0.5 hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground hover:shadow-xl"
+          >
+            <BookOpen className="size-3.5" />
+            Docs
+          </Link>
+          <ThemeToggle />
+        </div>
       </header>
 
       <Playground

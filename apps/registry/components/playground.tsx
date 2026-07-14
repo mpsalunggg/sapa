@@ -134,7 +134,7 @@ export function Playground({
     <div className="flex flex-col gap-6 lg:flex-row">
       <aside className="lg:w-56 lg:shrink-0">
         {/* Framework switch — React active, Vue "coming soon" */}
-        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 px-3 font-display text-[0.95rem] italic text-muted-foreground">
           Framework
         </p>
         <div className="mb-6 inline-flex rounded-md border bg-muted/50 p-0.5 text-xs">
@@ -161,7 +161,7 @@ export function Playground({
         </div>
 
         {/* Layout switch — stack (default) vs flat list */}
-        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 px-3 font-display text-[0.95rem] italic text-muted-foreground">
           Layout
         </p>
         <div className="mb-6 inline-flex rounded-md border bg-muted/50 p-0.5 text-xs">
@@ -183,7 +183,7 @@ export function Playground({
         </div>
 
         {/* Variant picker */}
-        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 px-3 font-display text-[0.95rem] italic text-muted-foreground">
           Variants
         </p>
         <ul className="flex flex-row flex-wrap gap-1 lg:flex-col">

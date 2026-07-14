@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google"
+import { Fraunces, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google"
 
 import "./globals.css"
 import { SapaToaster } from "@/components/sapa-toaster"
@@ -17,6 +17,13 @@ const fontMono = JetBrains_Mono({
   display: "swap",
 })
 
+const fontDisplay = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  display: "swap",
+  style: ["normal", "italic"],
+})
+
 export const metadata: Metadata = {
   title: "Sapa — Toast Registry",
   description:
@@ -31,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`scroll-smooth ${fontSans.variable} ${fontMono.variable}`}
+      className={`scroll-smooth ${fontSans.variable} ${fontMono.variable} ${fontDisplay.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-svh font-sans antialiased [text-rendering:optimizeLegibility]">

@@ -11,6 +11,8 @@
     "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", Menlo,
     monospace;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, "Times New Roman",
+    serif;
 }
 
 /* Nicer default rhythm for the showcase. */
