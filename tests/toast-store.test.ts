@@ -52,6 +52,47 @@ describe("toast.loading", () => {
   });
 });
 
+describe("toast.progress", () => {
+  it("creates a persistent default toast with the given value", () => {
+    const id = toast.progress("Uploading…", { value: 25 });
+
+    expect(byId(id)).toMatchObject({
+      type: "default",
+      duration: Infinity,
+      progress: 25,
+    });
+  });
+
+  it("defaults the value to 0 when omitted", () => {
+    const id = toast.progress("Uploading…");
+
+    expect(byId(id)?.progress).toBe(0);
+  });
+
+  it("updates the value in place when re-called with the same id", () => {
+    const id = toast.progress("Uploading…", { value: 10 });
+    toast.progress("Uploading…", { id, value: 80 });
+
+    expect(snap()).toHaveLength(1);
+    expect(byId(id)?.progress).toBe(80);
+  });
+
+  it("can finish by transitioning the same toast to success", () => {
+    const id = toast.progress("Uploading…", { value: 90 });
+    toast.success("Uploaded", { id });
+
+    expect(snap()).toHaveLength(1);
+    expect(byId(id)).toMatchObject({ type: "success", title: "Uploaded" });
+  });
+
+  it("removes the bar when the finishing update clears progress explicitly", () => {
+    const id = toast.progress("Uploading…", { value: 100 });
+    toast.success("Uploaded", { id, progress: undefined });
+
+    expect(byId(id)?.progress).toBeUndefined();
+  });
+});
+
 describe("toast.custom", () => {
   it("stores the custom node under jsx", () => {
     const id = toast.custom("raw node");

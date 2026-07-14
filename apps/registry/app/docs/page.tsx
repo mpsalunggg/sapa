@@ -17,6 +17,7 @@ import ToastTypes from "@/registry/react/examples/toast-types";
 import ToastDescription from "@/registry/react/examples/toast-description";
 import ToastAction from "@/registry/react/examples/toast-action";
 import ToastPromise from "@/registry/react/examples/toast-promise";
+import ToastProgress from "@/registry/react/examples/toast-progress";
 import ToastCustom from "@/registry/react/examples/toast-custom";
 import ToastPositions from "@/registry/react/examples/toast-positions";
 import ToastStack from "@/registry/react/examples/toast-stack";
@@ -53,6 +54,13 @@ const EXAMPLES = [
     title: "Promise",
     description: "Drive one toast through loading → success/error.",
     Preview: ToastPromise,
+  },
+  {
+    key: "progress",
+    title: "Progress",
+    description:
+      "A determinate progress bar — update it in place, then finish as success.",
+    Preview: ToastProgress,
   },
   {
     key: "custom",
@@ -171,6 +179,11 @@ const OPTIONS: { name: string; type: string; desc: string }[] = [
     name: "icon",
     type: "ReactNode",
     desc: "Custom leading icon; falls back to the type's default.",
+  },
+  {
+    name: "progress",
+    type: "number",
+    desc: "0–100 — renders a determinate progress bar (see toast.progress).",
   },
   {
     name: "action",

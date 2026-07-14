@@ -96,7 +96,12 @@ export function Toast({
 
   // A "compact" toast (title only, no description/actions) centers its content
   // vertically against the icon; richer toasts top-align.
-  const compact = !jsx && !toast.description && !toast.action && !toast.cancel;
+  const compact =
+    !jsx &&
+    !toast.description &&
+    !toast.action &&
+    !toast.cancel &&
+    toast.progress == null;
 
   const [state, setState] = React.useState<"open" | "closing">("open");
   const [shown, setShown] = React.useState(false);
@@ -315,6 +320,22 @@ export function Toast({
             )}
             {toast.description != null && (
               <div className="text-sm opacity-90">{toast.description}</div>
+            )}
+            {toast.progress != null && (
+              <div
+                role="progressbar"
+                aria-valuenow={Math.min(100, Math.max(0, toast.progress))}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                className="bg-muted mt-2 h-1.5 w-full overflow-hidden rounded-full"
+              >
+                <div
+                  className="from-sapa-warning to-sapa-error bg-linear-to-r h-full rounded-full transition-[width] duration-300 ease-out"
+                  style={{
+                    width: `${Math.min(100, Math.max(0, toast.progress))}%`,
+                  }}
+                />
+              </div>
             )}
             {(toast.action || toast.cancel) && (
               <div className="mt-2 flex gap-2">

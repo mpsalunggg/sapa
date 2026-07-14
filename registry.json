@@ -152,6 +152,18 @@
       ]
     },
     {
+      "name": "react/toast-progress",
+      "type": "registry:example",
+      "registryDependencies": ["react/toaster"],
+      "files": [
+        {
+          "path": "toast-progress.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-progress.tsx"
+        }
+      ]
+    },
+    {
       "name": "react/toast-custom",
       "type": "registry:example",
       "registryDependencies": ["react/toaster"],
@@ -281,6 +293,18 @@
           "path": "ToastPromise.vue",
           "type": "registry:example",
           "src": "registry/vue/examples/ToastPromise.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-progress",
+      "type": "registry:example",
+      "registryDependencies": ["vue/toaster"],
+      "files": [
+        {
+          "path": "ToastProgress.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastProgress.vue"
         }
       ]
     },

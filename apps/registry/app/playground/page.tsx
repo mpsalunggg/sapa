@@ -35,6 +35,11 @@ const VARIANTS = [
   },
   { key: "promise", title: "Promise", description: "Loading → success/error." },
   {
+    key: "progress",
+    title: "Progress",
+    description: "Determinate progress bar.",
+  },
+  {
     key: "custom",
     title: "Custom content",
     description: "Any JSX inside the toast.",

@@ -14,7 +14,7 @@ _Copy, paste, own it. Same design, two frameworks._
 - **Custom-built** — written from scratch on framework primitives (no `sonner` / `vue-sonner`).
 - **Rich colors** — semantic success / error / warning / info with a pill design.
 - **Directional motion** — toasts exit toward their anchor; swipe to dismiss (sideways for corners, up/down for centered).
-- **Variants** — default, types, description, action, promise, custom content, positions.
+- **Variants** — default, types, description, action, promise, progress, custom content, positions.
 - **Theme-aware** — light & dark via CSS variables.
 
 ## Install into your project
@@ -58,11 +58,12 @@ import { toast } from "@/components/ui/sapa-toast/useToast";
 ## Toast API (identical in both frameworks)
 
 `toast(msg, opts)` · `toast.success / error / warning / info(msg, opts)` ·
-`toast.loading` · `toast.promise(p, { loading, success, error })` ·
+`toast.loading` · `toast.progress(msg, { value })` ·
+`toast.promise(p, { loading, success, error })` ·
 `toast.custom(node/component)` · `toast.dismiss(id?)`
 
 **Options:** `title`, `description`, `duration` (`Infinity` to persist), `position`,
-`richColors`, `action`, `cancel`, `icon`.
+`richColors`, `action`, `cancel`, `icon`, `progress` (0–100).
 
 ## Repository layout
 

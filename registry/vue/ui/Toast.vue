@@ -89,7 +89,15 @@ const compact = computed(
     !props.toast.component &&
     !props.toast.description &&
     !props.toast.action &&
-    !props.toast.cancel,
+    !props.toast.cancel &&
+    props.toast.progress == null,
+);
+
+/** Clamped determinate progress (toast.progress), or null when not a progress toast. */
+const progressValue = computed(() =>
+  props.toast.progress == null
+    ? null
+    : Math.min(100, Math.max(0, props.toast.progress)),
 );
 
 const duration = computed(() => props.toast.duration ?? 4000);
@@ -304,6 +312,19 @@ onBeforeUnmount(() => {
         </div>
         <div v-if="toast.description != null" class="text-sm opacity-90">
           {{ toast.description }}
+        </div>
+        <div
+          v-if="progressValue != null"
+          role="progressbar"
+          :aria-valuenow="progressValue"
+          :aria-valuemin="0"
+          :aria-valuemax="100"
+          class="bg-muted mt-2 h-1.5 w-full overflow-hidden rounded-full"
+        >
+          <div
+            class="from-sapa-warning to-sapa-error bg-linear-to-r h-full rounded-full transition-[width] duration-300 ease-out"
+            :style="{ width: `${progressValue}%` }"
+          />
         </div>
         <div v-if="toast.action || toast.cancel" class="mt-2 flex gap-2">
           <button

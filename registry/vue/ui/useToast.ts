@@ -33,6 +33,8 @@ export interface ToastOptions {
   icon?: Component;
   /** Fully custom content — a Vue component rendered instead of title/description. */
   component?: Component;
+  /** 0–100 — renders a determinate progress bar under the content. */
+  progress?: number;
   onDismiss?: (toast: ToastData) => void;
   onAutoClose?: (toast: ToastData) => void;
 }
@@ -113,6 +115,16 @@ export const toast = Object.assign(
     info: make("info"),
     loading: (title: string, options?: ToastOptions) =>
       add({ duration: Infinity, ...options, title, type: "loading" }),
+    /** Determinate progress toast — re-call with the same `id` to update `value`. */
+    progress: (title: string, options?: ToastOptions & { value?: number }) => {
+      const { value, ...rest } = options ?? {};
+      return add({
+        duration: Infinity,
+        ...rest,
+        title,
+        progress: value ?? rest.progress ?? 0,
+      });
+    },
     custom: (component: Component, options?: ToastOptions) =>
       add({ ...options, component }),
     dismiss,

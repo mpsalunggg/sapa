@@ -31,6 +31,8 @@ export interface ToastOptions {
   cancel?: ToastAction;
   /** Fully custom content — bypasses title/description rendering. */
   jsx?: ReactNode;
+  /** 0–100 — renders a determinate progress bar under the content. */
+  progress?: number;
   onDismiss?: (toast: ToastData) => void;
   onAutoClose?: (toast: ToastData) => void;
 }
@@ -123,6 +125,11 @@ interface ToastApi extends ToastFn {
   warning: ToastFn;
   info: ToastFn;
   loading: ToastFn;
+  /** Determinate progress toast — re-call with the same `id` to update `value`. */
+  progress: (
+    title: ReactNode,
+    options?: ToastOptions & { value?: number },
+  ) => string | number;
   custom: (jsx: ReactNode, options?: ToastOptions) => string | number;
   dismiss: (id?: string | number) => void;
   promise: <T>(
@@ -151,6 +158,18 @@ export const toast: ToastApi = Object.assign(
         title,
         type: "loading",
       }),
+    progress: (
+      title: ReactNode,
+      options?: ToastOptions & { value?: number },
+    ) => {
+      const { value, ...rest } = options ?? {};
+      return toastStore.add({
+        duration: Infinity,
+        ...rest,
+        title,
+        progress: value ?? rest.progress ?? 0,
+      });
+    },
     custom: (jsx: ReactNode, options?: ToastOptions) =>
       toastStore.add({ ...options, jsx }),
     dismiss: (id?: string | number) => toastStore.dismiss(id),
