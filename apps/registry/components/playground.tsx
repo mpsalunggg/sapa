@@ -96,6 +96,7 @@ export function Playground({
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
   const [active, setActive] = useState(variants[0]?.key ?? "default")
+  const [layout, setLayout] = useState<"stack" | "list">("stack")
   const containerRef = useRef<HTMLDivElement>(null)
 
   const isDarkRef = useRef(isDark)
@@ -109,8 +110,9 @@ export function Playground({
         utilsFiles,
         previewCss,
         isDark: isDarkRef.current,
+        expand: layout === "list",
       }),
-    [active, examples, toasterFiles, utilsFiles, previewCss]
+    [active, examples, toasterFiles, utilsFiles, previewCss, layout]
   )
 
   // Keep the preview iframe's `.dark` class in sync when the site theme toggles,
@@ -158,6 +160,28 @@ export function Playground({
           ))}
         </div>
 
+        {/* Layout switch — stack (default) vs flat list */}
+        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Layout
+        </p>
+        <div className="mb-6 inline-flex rounded-md border bg-muted/50 p-0.5 text-xs">
+          {(["stack", "list"] as const).map((l) => (
+            <button
+              key={l}
+              type="button"
+              onClick={() => setLayout(l)}
+              className={cn(
+                "rounded px-2.5 py-1 font-medium capitalize transition-colors",
+                layout === l
+                  ? "bg-linear-to-br from-sapa-warning to-sapa-error text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+
         {/* Variant picker */}
         <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Variants
@@ -190,7 +214,7 @@ export function Playground({
 
       <div ref={containerRef} className="min-w-0 flex-1">
         <SandpackProvider
-          key={active}
+          key={`${active}-${layout}`}
           template="react-ts"
           theme={isDark ? "dark" : "light"}
           files={built.files}

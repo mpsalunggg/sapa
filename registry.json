@@ -203,6 +203,20 @@
       ]
     },
     {
+      "name": "react/toast-stack",
+      "type": "registry:example",
+      "registryDependencies": [
+        "react/toaster"
+      ],
+      "files": [
+        {
+          "path": "toast-stack.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-stack.tsx"
+        }
+      ]
+    },
+    {
       "name": "vue/utils",
       "type": "registry:lib",
       "dependencies": [
@@ -344,6 +358,20 @@
           "path": "ToastPositions.vue",
           "type": "registry:example",
           "src": "registry/vue/examples/ToastPositions.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-stack",
+      "type": "registry:example",
+      "registryDependencies": [
+        "vue/toaster"
+      ],
+      "files": [
+        {
+          "path": "ToastStack.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastStack.vue"
         }
       ]
     }

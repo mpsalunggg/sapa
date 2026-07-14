@@ -19,6 +19,7 @@ const VARIANTS = [
   { key: "promise", title: "Promise", description: "Loading → success/error." },
   { key: "custom", title: "Custom content", description: "Any JSX inside the toast." },
   { key: "positions", title: "Positions", description: "Six anchor positions." },
+  { key: "stack", title: "Stack", description: "Collapsible stack; hover to expand." },
 ] as const
 
 export default async function PlaygroundPage() {

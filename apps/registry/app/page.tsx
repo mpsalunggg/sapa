@@ -19,6 +19,7 @@ import ToastAction from "@/registry/react/examples/toast-action";
 import ToastPromise from "@/registry/react/examples/toast-promise";
 import ToastCustom from "@/registry/react/examples/toast-custom";
 import ToastPositions from "@/registry/react/examples/toast-positions";
+import ToastStack from "@/registry/react/examples/toast-stack";
 
 const VARIANTS = [
   {
@@ -63,6 +64,13 @@ const VARIANTS = [
     title: "Positions",
     description: "Six anchor positions, per-toast.",
     Preview: ToastPositions,
+  },
+  {
+    key: "stack",
+    title: "Stack",
+    description:
+      "Toasts collapse into a pile; hover to expand. Keeps things short.",
+    Preview: ToastStack,
   },
 ] as const;
 

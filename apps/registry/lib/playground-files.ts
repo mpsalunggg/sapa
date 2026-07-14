@@ -25,18 +25,20 @@ function rewriteImports(src: string): string {
     .replace(/^\n+/, "")
 }
 
-const APP_TSX = `import { Toaster } from "./toaster";
+function appTsx(expand: boolean): string {
+  return `import { Toaster } from "./toaster";
 import Example from "./Example";
 
 export default function App() {
   return (
     <div className="grid min-h-screen place-items-center p-6">
       <Example />
-      <Toaster position="bottom-right" />
+      <Toaster position="bottom-right"${expand ? " expand" : ""} />
     </div>
   );
 }
 `
+}
 
 /** Bundled entry: applies the initial theme and listens for live theme changes
  *  posted by the parent (playground.tsx), then renders <App/>. Runs in-bundle,
@@ -79,6 +81,8 @@ interface BuildInput {
   /** Precompiled preview CSS (public/toast-preview.css contents). */
   previewCss: string
   isDark: boolean
+  /** Flat-list layout instead of the collapsible stack. */
+  expand: boolean
 }
 
 interface PlaygroundFiles {
@@ -94,6 +98,7 @@ export function buildReactFiles({
   utilsFiles,
   previewCss,
   isDark,
+  expand,
 }: BuildInput): PlaygroundFiles {
   const lib: PlaygroundFiles["files"] = {}
   for (const f of [...toasterFiles, ...utilsFiles]) {
@@ -105,7 +110,7 @@ export function buildReactFiles({
   return {
     files: {
       "/index.tsx": { code: indexTsx(isDark), readOnly: true },
-      "/App.tsx": { code: APP_TSX, readOnly: true },
+      "/App.tsx": { code: appTsx(expand), readOnly: true },
       "/Example.tsx": { code: rewriteImports(example), active: true },
       "/styles.css": { code: previewCss, readOnly: true },
       ...lib,

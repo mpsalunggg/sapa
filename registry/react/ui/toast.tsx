@@ -70,9 +70,28 @@ function dirTransform(position: ToastPosition = "bottom-right"): string {
 
 export interface ToastProps {
   toast: ToastData;
+  /** Stacking layout (Sonner-style), driven by <Toaster>. */
+  stacked?: boolean;
+  expanded?: boolean;
+  anchorBottom?: boolean;
+  stackY?: number;
+  stackScale?: number;
+  stackOpacity?: number;
+  stackZ?: number;
+  onHeight?: (id: string | number, height: number) => void;
 }
 
-export function Toast({ toast }: ToastProps) {
+export function Toast({
+  toast,
+  stacked = false,
+  expanded = false,
+  anchorBottom = true,
+  stackY = 0,
+  stackScale = 1,
+  stackOpacity = 1,
+  stackZ = 1,
+  onHeight,
+}: ToastProps) {
   const { id, type, duration = 4000, richColors, icon, jsx } = toast;
 
   // A "compact" toast (title only, no description/actions) centers its content
@@ -89,6 +108,7 @@ export function Toast({ toast }: ToastProps) {
   const remaining = React.useRef(duration);
   const startedAt = React.useRef(Date.now());
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rootRef = React.useRef<HTMLLIElement>(null);
 
   const dir = dirTransform(toast.position);
   const exit = React.useRef(dir);
@@ -118,6 +138,18 @@ export function Toast({ toast }: ToastProps) {
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  // Report the measured height so the Toaster can lay out the stack.
+  React.useEffect(() => {
+    if (!stacked || !onHeight) return;
+    const el = rootRef.current;
+    if (!el) return;
+    const report = () => onHeight(id, el.offsetHeight);
+    report();
+    const ro = new ResizeObserver(report);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [stacked, onHeight, id]);
+
   const clearTimer = React.useCallback(() => {
     if (timer.current) {
       clearTimeout(timer.current);
@@ -139,17 +171,24 @@ export function Toast({ toast }: ToastProps) {
     // Re-arm when the duration changes (e.g. promise resolves).
   }, [duration, startTimer, clearTimer]);
 
-  const pause = () => {
+  const pause = React.useCallback(() => {
     setPaused(true);
     if (!Number.isFinite(remaining.current)) return;
     clearTimer();
     remaining.current -= Date.now() - startedAt.current;
-  };
+  }, [clearTimer]);
 
-  const resume = () => {
+  const resume = React.useCallback(() => {
     setPaused(false);
     startTimer();
-  };
+  }, [startTimer]);
+
+  // Pause every toast in the group while the stack is expanded (hovered).
+  React.useEffect(() => {
+    if (!stacked) return;
+    if (expanded) pause();
+    else resume();
+  }, [expanded, stacked, pause, resume]);
 
   // --- swipe / drag to dismiss ---
   const onPointerDown = (e: React.PointerEvent) => {
@@ -181,14 +220,30 @@ export function Toast({ toast }: ToastProps) {
   const showProgress =
     Number.isFinite(duration) && type !== "loading" && !compact;
 
-  // Directional enter/exit + swipe, driven by inline transform + transition.
   const dragged = dragging.current && offset !== 0;
   const style: React.CSSProperties = {
     touchAction: vertical ? "pan-x" : "pan-y",
     transition: dragged
       ? "none"
       : "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease",
-    transform:
+  };
+
+  if (stacked) {
+    style.zIndex = stackZ;
+    if (state === "closing") {
+      style.transform = exit.current;
+      style.opacity = 0;
+    } else if (dragged) {
+      style.transform = vertical
+        ? `translateY(${offset}px)`
+        : `translateX(${offset}px)`;
+      style.opacity = Math.max(0, 1 - Math.abs(offset) / 200);
+    } else {
+      style.transform = `translateY(${stackY}px) scale(${shown ? stackScale : 0.9})`;
+      style.opacity = shown ? stackOpacity : 0;
+    }
+  } else {
+    style.transform =
       state === "closing"
         ? exit.current // directional slide-out (by position / swipe)
         : dragged
@@ -197,19 +252,20 @@ export function Toast({ toast }: ToastProps) {
             : `translateX(${offset}px)`
           : shown
             ? undefined
-            : "scale(0.96)", // neutral pop-in on enter
-    opacity:
+            : "scale(0.96)"; // neutral pop-in on enter
+    style.opacity =
       state === "closing"
         ? 0
         : dragged
           ? Math.max(0, 1 - Math.abs(offset) / 200)
           : shown
             ? 1
-            : 0,
-  };
+            : 0;
+  }
 
   return (
     <li
+      ref={rootRef}
       role="status"
       aria-live={type === "error" ? "assertive" : "polite"}
       aria-atomic="true"
@@ -222,7 +278,10 @@ export function Toast({ toast }: ToastProps) {
       onPointerUp={onPointerUp}
       style={style}
       className={cn(
-        "group pointer-events-auto relative flex w-full gap-3 overflow-hidden border bg-popover/95 p-4 pr-10 text-popover-foreground shadow-xl shadow-black/5 backdrop-blur",
+        "group pointer-events-auto flex w-full gap-3 overflow-hidden border bg-popover/95 p-4 pr-10 text-popover-foreground shadow-xl shadow-black/5 backdrop-blur",
+        stacked
+          ? cn("absolute inset-x-0", anchorBottom ? "bottom-0" : "top-0")
+          : "relative",
         compact ? "items-center rounded-full" : "items-start rounded-3xl",
         !dragging.current && "cursor-grab active:cursor-grabbing",
         richColors && RICH_COLORS[type],

@@ -46,7 +46,7 @@ export function FrameworkSwitch({ className }: { className?: string }) {
           className={cn(
             "rounded px-2.5 py-1 font-medium capitalize transition-colors",
             framework === key
-              ? "bg-background text-foreground shadow-sm"
+              ? "bg-linear-to-br from-sapa-warning to-sapa-error text-white shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           )}
         >

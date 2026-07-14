@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google"
 
 import "./globals.css"
-import { Toaster } from "@/components/ui/toaster"
+import { SapaToaster } from "@/components/sapa-toaster"
 import { Providers } from "./providers"
 
 const fontSans = Plus_Jakarta_Sans({
@@ -37,7 +37,7 @@ export default function RootLayout({
       <body className="min-h-svh font-sans antialiased [text-rendering:optimizeLegibility]">
         <Providers>
           {children}
-          <Toaster position="bottom-right" />
+          <SapaToaster />
         </Providers>
       </body>
     </html>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { FrameworkSwitch } from "@/components/framework-context";
+import { ToastLayoutToggle } from "@/components/toast-layout-toggle";
 
 export function VariantNav({
   items,
@@ -37,6 +38,14 @@ export function VariantNav({
         </p>
         <div className="px-3">
           <FrameworkSwitch />
+        </div>
+      </div>
+      <div className="mb-4">
+        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Toast layout
+        </p>
+        <div className="px-3">
+          <ToastLayoutToggle />
         </div>
       </div>
       <p className="mb-2 flex items-center gap-1.5 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">

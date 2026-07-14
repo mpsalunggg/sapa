@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+  type CSSProperties,
+} from "vue";
 import {
   Check,
   CircleAlert,
@@ -12,7 +19,28 @@ import {
 import { cn } from "@/lib/utils";
 import { dismiss, type ToastData, type ToastType } from "./useToast";
 
-const props = defineProps<{ toast: ToastData }>();
+const props = withDefaults(
+  defineProps<{
+    toast: ToastData;
+    stacked?: boolean;
+    expanded?: boolean;
+    anchorBottom?: boolean;
+    stackY?: number;
+    stackScale?: number;
+    stackOpacity?: number;
+    stackZ?: number;
+    reportHeight?: (id: string | number, height: number) => void;
+  }>(),
+  {
+    stacked: false,
+    expanded: false,
+    anchorBottom: true,
+    stackY: 0,
+    stackScale: 1,
+    stackOpacity: 1,
+    stackZ: 1,
+  },
+);
 
 const ICONS: Record<ToastType, unknown> = {
   default: null,
@@ -56,8 +84,6 @@ const CHIP: Record<ToastType, string> = {
 
 const SWIPE_THRESHOLD = 80;
 
-// A "compact" toast (title only, no description/actions) centers its content
-// vertically against the icon; richer toasts top-align.
 const compact = computed(
   () =>
     !props.toast.component &&
@@ -75,13 +101,14 @@ const showProgress = computed(
     !compact.value,
 );
 
-// Centered top/bottom toasts are swiped vertically; others horizontally.
 const vertical = computed(
   () =>
     props.toast.position === "top-center" ||
     props.toast.position === "bottom-center",
 );
 
+const rootEl = ref<HTMLLIElement | null>(null);
+const shown = ref(false);
 const paused = ref(false);
 const offset = ref(0);
 const dragging = ref(false);
@@ -90,6 +117,7 @@ let startY = 0;
 let remaining = duration.value;
 let startedAt = Date.now();
 let timer: ReturnType<typeof setTimeout> | null = null;
+let ro: ResizeObserver | null = null;
 
 function clearTimer() {
   if (timer) {
@@ -122,6 +150,16 @@ function resume() {
   startTimer();
 }
 
+// Pause the whole group while the stack is expanded (hovered).
+watch(
+  () => props.expanded,
+  (val) => {
+    if (!props.stacked) return;
+    if (val) pause();
+    else resume();
+  },
+);
+
 function onPointerDown(e: PointerEvent) {
   if ((e.target as HTMLElement).closest("button")) return;
   dragging.value = true;
@@ -138,7 +176,6 @@ function onPointerUp() {
   if (!dragging.value) return;
   dragging.value = false;
   if (Math.abs(offset.value) > SWIPE_THRESHOLD) {
-    // Clear inline transform so the TransitionGroup leave class controls the exit.
     offset.value = 0;
     close();
   } else {
@@ -156,31 +193,73 @@ function runCancel() {
   close();
 }
 
+// Combined transform/opacity — stack layout merged with drag + enter.
+const stackStyle = computed(() => {
+  if (!props.stacked) {
+    return {
+      transform: offset.value
+        ? vertical.value
+          ? `translateY(${offset.value}px)`
+          : `translateX(${offset.value}px)`
+        : undefined,
+      opacity: dragging.value
+        ? Math.max(0, 1 - Math.abs(offset.value) / 200)
+        : undefined,
+      touchAction: vertical.value ? "pan-x" : "pan-y",
+    } as CSSProperties;
+  }
+  const dragged = dragging.value && offset.value !== 0;
+  return {
+    zIndex: props.stackZ,
+    touchAction: vertical.value ? "pan-x" : "pan-y",
+    transition: dragged
+      ? "none"
+      : "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease",
+    transform: dragged
+      ? vertical.value
+        ? `translateY(${offset.value}px)`
+        : `translateX(${offset.value}px)`
+      : `translateY(${props.stackY}px) scale(${shown.value ? props.stackScale : 0.9})`,
+    opacity: dragged
+      ? Math.max(0, 1 - Math.abs(offset.value) / 200)
+      : shown.value
+        ? props.stackOpacity
+        : 0,
+  } as CSSProperties;
+});
+
 onMounted(() => {
   remaining = duration.value;
   startTimer();
+  requestAnimationFrame(() => (shown.value = true));
+  if (props.stacked && props.reportHeight && rootEl.value) {
+    const el = rootEl.value;
+    const report = () => props.reportHeight!(props.toast.id, el.offsetHeight);
+    report();
+    ro = new ResizeObserver(report);
+    ro.observe(el);
+  }
 });
-onBeforeUnmount(clearTimer);
+onBeforeUnmount(() => {
+  clearTimer();
+  ro?.disconnect();
+});
 </script>
 
 <template>
   <li
+    ref="rootEl"
     role="status"
     :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
     aria-atomic="true"
     :data-type="toast.type"
-    :style="{
-      transform: offset
-        ? vertical
-          ? `translateY(${offset}px)`
-          : `translateX(${offset}px)`
-        : undefined,
-      opacity: dragging ? Math.max(0, 1 - Math.abs(offset) / 200) : undefined,
-      touchAction: vertical ? 'pan-x' : 'pan-y',
-    }"
+    :style="stackStyle"
     :class="
       cn(
-        'group pointer-events-auto relative flex w-full gap-3 overflow-hidden border bg-popover/95 p-4 pr-10 text-popover-foreground shadow-xl shadow-black/5 backdrop-blur',
+        'group pointer-events-auto flex w-full gap-3 overflow-hidden border bg-popover/95 p-4 pr-10 text-popover-foreground shadow-xl shadow-black/5 backdrop-blur',
+        stacked
+          ? cn('absolute inset-x-0', anchorBottom ? 'bottom-0' : 'top-0')
+          : 'relative',
         compact ? 'items-center rounded-full' : 'items-start rounded-3xl',
         !dragging && 'cursor-grab active:cursor-grabbing',
         toast.richColors && RICH_COLORS[toast.type],

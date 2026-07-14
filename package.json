@@ -8,6 +8,8 @@
   "scripts": {
     "registry:build": "node scripts/build-registry.mjs",
     "dev": "pnpm --filter registry dev",
+    "build": "pnpm --filter registry build",
+    "start": "pnpm --filter registry start",
     "sandbox": "pnpm --filter vue-sandbox dev"
   },
   "dependencies": {
