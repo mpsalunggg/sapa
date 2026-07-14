@@ -328,6 +328,7 @@ export default async function DocsPage() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px] overflow-hidden">
           <HeroWaves />
         </div>
+
         <div className="relative z-10 mx-auto max-w-5xl px-4 py-8">
           <header className="mb-8 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -495,7 +496,7 @@ export default async function DocsPage() {
               </section>
 
               {/* Toaster props */}
-              <section id="toaster-props" className="scroll-mt-6 py-8">
+              <section id="toaster-props" className="scroll-mt-6 pb-96 pt-8">
                 <h2 className="text-xl font-bold tracking-tight">
                   &lt;Toaster&gt; props
                 </h2>
