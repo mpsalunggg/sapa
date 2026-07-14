@@ -278,7 +278,7 @@ export function Toast({
       onPointerUp={onPointerUp}
       style={style}
       className={cn(
-        "group pointer-events-auto flex w-full gap-3 overflow-hidden border bg-popover/95 p-4 pr-10 text-popover-foreground shadow-xl shadow-black/5 backdrop-blur",
+        "bg-popover/95 text-popover-foreground group pointer-events-auto flex w-full gap-3 overflow-hidden border p-4 pr-10 shadow-xl shadow-black/5 backdrop-blur",
         stacked
           ? cn("absolute inset-x-0", anchorBottom ? "bottom-0" : "top-0")
           : "relative",
@@ -325,7 +325,7 @@ export function Toast({
                       toast.action?.onClick?.();
                       close();
                     }}
-                    className="inline-flex h-7 items-center rounded-md bg-foreground px-2.5 text-xs font-medium text-background transition-opacity hover:opacity-90"
+                    className="bg-foreground text-background inline-flex h-7 items-center rounded-md px-2.5 text-xs font-medium transition-opacity hover:opacity-90"
                   >
                     {toast.action.label}
                   </button>
@@ -337,7 +337,7 @@ export function Toast({
                       toast.cancel?.onClick?.();
                       close();
                     }}
-                    className="inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors hover:bg-muted"
+                    className="hover:bg-muted inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors"
                   >
                     {toast.cancel.label}
                   </button>

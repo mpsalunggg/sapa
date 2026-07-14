@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { onMounted, ref } from "vue";
 
-import Toaster from "@/components/ui/Toaster.vue"
-import ToastDefault from "../../../registry/vue/examples/ToastDefault.vue"
-import ToastTypes from "../../../registry/vue/examples/ToastTypes.vue"
-import ToastDescription from "../../../registry/vue/examples/ToastDescription.vue"
-import ToastAction from "../../../registry/vue/examples/ToastAction.vue"
-import ToastPromise from "../../../registry/vue/examples/ToastPromise.vue"
-import ToastCustom from "../../../registry/vue/examples/ToastCustom.vue"
-import ToastPositions from "../../../registry/vue/examples/ToastPositions.vue"
+import Toaster from "@/components/ui/Toaster.vue";
+import ToastDefault from "../../../registry/vue/examples/ToastDefault.vue";
+import ToastTypes from "../../../registry/vue/examples/ToastTypes.vue";
+import ToastDescription from "../../../registry/vue/examples/ToastDescription.vue";
+import ToastAction from "../../../registry/vue/examples/ToastAction.vue";
+import ToastPromise from "../../../registry/vue/examples/ToastPromise.vue";
+import ToastCustom from "../../../registry/vue/examples/ToastCustom.vue";
+import ToastPositions from "../../../registry/vue/examples/ToastPositions.vue";
 
-const dark = ref(false)
+const dark = ref(false);
 function toggle() {
-  dark.value = !dark.value
-  document.documentElement.classList.toggle("dark", dark.value)
+  dark.value = !dark.value;
+  document.documentElement.classList.toggle("dark", dark.value);
 }
 onMounted(() => {
-  dark.value = window.matchMedia("(prefers-color-scheme: dark)").matches
-  document.documentElement.classList.toggle("dark", dark.value)
-})
+  dark.value = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.classList.toggle("dark", dark.value);
+});
 
 const variants = [
   { title: "Default", comp: ToastDefault },
@@ -28,7 +28,7 @@ const variants = [
   { title: "Promise", comp: ToastPromise },
   { title: "Custom content", comp: ToastCustom },
   { title: "Positions", comp: ToastPositions },
-]
+];
 </script>
 
 <template>
@@ -37,7 +37,7 @@ const variants = [
       <h1 class="text-2xl font-bold tracking-tight">Sapa — Vue sandbox</h1>
       <button
         type="button"
-        class="inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium shadow-sm hover:bg-muted"
+        class="bg-background hover:bg-muted inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium shadow-sm"
         @click="toggle"
       >
         {{ dark ? "Light" : "Dark" }}
@@ -48,11 +48,11 @@ const variants = [
       <div
         v-for="v in variants"
         :key="v.title"
-        class="flex flex-col gap-3 rounded-xl border bg-card p-5"
+        class="bg-card flex flex-col gap-3 rounded-xl border p-5"
       >
         <h3 class="font-semibold">{{ v.title }}</h3>
         <div
-          class="flex min-h-20 items-center justify-center rounded-lg border border-dashed bg-muted/30 p-4"
+          class="bg-muted/30 flex min-h-20 items-center justify-center rounded-lg border border-dashed p-4"
         >
           <component :is="v.comp" />
         </div>

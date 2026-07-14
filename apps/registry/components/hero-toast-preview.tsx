@@ -38,7 +38,7 @@ export function HeroToastPreview() {
         <div
           key={label}
           style={{ animationDelay: `${i * 90}ms` }}
-          className={`flex items-center gap-2.5 rounded-full border bg-popover/95 p-2 pr-3.5 shadow-lg shadow-black/5 backdrop-blur duration-500 animate-in fade-in slide-in-from-bottom-3 fill-mode-both ${ring}`}
+          className={`bg-popover/95 animate-in fade-in slide-in-from-bottom-3 fill-mode-both flex items-center gap-2.5 rounded-full border p-2 pr-3.5 shadow-lg shadow-black/5 backdrop-blur duration-500 ${ring}`}
         >
           <span
             className={`flex size-7 shrink-0 items-center justify-center rounded-full text-white ${chip}`}
@@ -48,7 +48,7 @@ export function HeroToastPreview() {
           <span className={`truncate text-[13px] font-semibold ${text}`}>
             {label}
           </span>
-          <X className="ml-auto size-3.5 shrink-0 text-muted-foreground/60" />
+          <X className="text-muted-foreground/60 ml-auto size-3.5 shrink-0" />
         </div>
       ))}
     </div>

@@ -256,7 +256,7 @@ onBeforeUnmount(() => {
     :style="stackStyle"
     :class="
       cn(
-        'group pointer-events-auto flex w-full gap-3 overflow-hidden border bg-popover/95 p-4 pr-10 text-popover-foreground shadow-xl shadow-black/5 backdrop-blur',
+        'bg-popover/95 text-popover-foreground group pointer-events-auto flex w-full gap-3 overflow-hidden border p-4 pr-10 shadow-xl shadow-black/5 backdrop-blur',
         stacked
           ? cn('absolute inset-x-0', anchorBottom ? 'bottom-0' : 'top-0')
           : 'relative',
@@ -309,7 +309,7 @@ onBeforeUnmount(() => {
           <button
             v-if="toast.action"
             type="button"
-            class="inline-flex h-7 items-center rounded-md bg-foreground px-2.5 text-xs font-medium text-background transition-opacity hover:opacity-90"
+            class="bg-foreground text-background inline-flex h-7 items-center rounded-md px-2.5 text-xs font-medium transition-opacity hover:opacity-90"
             @click="runAction"
           >
             {{ toast.action.label }}
@@ -317,7 +317,7 @@ onBeforeUnmount(() => {
           <button
             v-if="toast.cancel"
             type="button"
-            class="inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors hover:bg-muted"
+            class="hover:bg-muted inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors"
             @click="runCancel"
           >
             {{ toast.cancel.label }}

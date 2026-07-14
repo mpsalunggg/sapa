@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { toast } from "@/components/ui/sapa-toast/useToast"
+import { toast } from "@/components/ui/sapa-toast/useToast";
 
 const btn =
-  "inline-flex h-9 items-center rounded-md border bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-muted"
+  "inline-flex h-9 items-center rounded-md border bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-muted";
 </script>
 
 <template>
@@ -24,7 +24,9 @@ const btn =
     <button
       type="button"
       :class="btn"
-      @click="toast.warning('Your session is about to expire', { richColors: true })"
+      @click="
+        toast.warning('Your session is about to expire', { richColors: true })
+      "
     >
       Warning
     </button>

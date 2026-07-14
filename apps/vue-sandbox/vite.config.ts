@@ -1,8 +1,8 @@
-import { fileURLToPath, URL } from "node:url"
+import { fileURLToPath, URL } from "node:url";
 
-import tailwindcss from "@tailwindcss/vite"
-import vue from "@vitejs/plugin-vue"
-import { defineConfig } from "vite"
+import tailwindcss from "@tailwindcss/vite";
+import vue from "@vitejs/plugin-vue";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
@@ -12,19 +12,19 @@ export default defineConfig({
       {
         find: "@/components/ui/sapa-toast",
         replacement: fileURLToPath(
-          new URL("../../registry/vue/ui", import.meta.url)
+          new URL("../../registry/vue/ui", import.meta.url),
         ),
       },
       {
         find: "@/components/ui",
         replacement: fileURLToPath(
-          new URL("../../registry/vue/ui", import.meta.url)
+          new URL("../../registry/vue/ui", import.meta.url),
         ),
       },
       {
         find: "@/lib",
         replacement: fileURLToPath(
-          new URL("../../registry/vue/lib", import.meta.url)
+          new URL("../../registry/vue/lib", import.meta.url),
         ),
       },
       {
@@ -34,4 +34,4 @@ export default defineConfig({
     ],
   },
   server: { port: 5174 },
-})
+});

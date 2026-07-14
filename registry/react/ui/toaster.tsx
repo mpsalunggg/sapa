@@ -49,22 +49,21 @@ export function Toaster({
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
 
-  const [heights, setHeights] = React.useState<
-    Record<string | number, number>
-  >({});
-  const [expandedMap, setExpandedMap] = React.useState<
-    Record<string, boolean>
-  >({});
-
-  const reportHeight = React.useCallback(
-    (id: string | number, h: number) => {
-      setHeights((prev) => (prev[id] === h ? prev : { ...prev, [id]: h }));
-    },
-    [],
+  const [heights, setHeights] = React.useState<Record<string | number, number>>(
+    {},
+  );
+  const [expandedMap, setExpandedMap] = React.useState<Record<string, boolean>>(
+    {},
   );
 
+  const reportHeight = React.useCallback((id: string | number, h: number) => {
+    setHeights((prev) => (prev[id] === h ? prev : { ...prev, [id]: h }));
+  }, []);
+
   const setGroupExpanded = React.useCallback((pos: string, val: boolean) => {
-    setExpandedMap((prev) => (prev[pos] === val ? prev : { ...prev, [pos]: val }));
+    setExpandedMap((prev) =>
+      prev[pos] === val ? prev : { ...prev, [pos]: val },
+    );
   }, []);
 
   if (!mounted) return null;
@@ -131,10 +130,17 @@ export function Toaster({
             >
               {items.map((t, i) => {
                 let expandedOffset = 0;
-                for (let k = 0; k < i; k++) expandedOffset += h(items[k].id) + GAP;
-                const stackY = groupExpanded ? dir * expandedOffset : dir * i * PEEK;
+                for (let k = 0; k < i; k++)
+                  expandedOffset += h(items[k].id) + GAP;
+                const stackY = groupExpanded
+                  ? dir * expandedOffset
+                  : dir * i * PEEK;
                 const stackScale = groupExpanded ? 1 : 1 - i * SCALE_STEP;
-                const stackOpacity = groupExpanded ? 1 : i < MAX_VISIBLE ? 1 : 0;
+                const stackOpacity = groupExpanded
+                  ? 1
+                  : i < MAX_VISIBLE
+                    ? 1
+                    : 0;
                 return (
                   <Toast
                     key={t.id}

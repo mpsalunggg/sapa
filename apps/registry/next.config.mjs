@@ -7,6 +7,6 @@ const nextConfig = {
   // Keep shiki out of the server webpack bundle — bundling breaks its dynamic
   // grammar loading, which silently falls back to plaintext (no highlighting).
   serverExternalPackages: ["shiki"],
-}
+};
 
-export default nextConfig
+export default nextConfig;

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { toast } from "@/components/ui/sapa-toast/toaster"
+import { toast } from "@/components/ui/sapa-toast/toaster";
 
 export function TryToasts() {
   return (
@@ -17,9 +17,9 @@ export function TryToasts() {
       >
         👋
       </button>
-      <span className="font-display text-lg italic text-muted-foreground">
+      <span className="font-display text-muted-foreground text-lg italic">
         click the wave to say hi
       </span>
     </div>
-  )
+  );
 }

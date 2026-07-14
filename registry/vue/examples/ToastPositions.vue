@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toast, type ToastPosition } from "@/components/ui/sapa-toast/useToast"
+import { toast, type ToastPosition } from "@/components/ui/sapa-toast/useToast";
 
 const positions: ToastPosition[] = [
   "top-left",
@@ -8,7 +8,7 @@ const positions: ToastPosition[] = [
   "bottom-left",
   "bottom-center",
   "bottom-right",
-]
+];
 </script>
 
 <template>
@@ -17,7 +17,7 @@ const positions: ToastPosition[] = [
       v-for="position in positions"
       :key="position"
       type="button"
-      class="inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-xs font-medium shadow-sm transition-colors hover:bg-muted"
+      class="bg-background hover:bg-muted inline-flex h-9 items-center justify-center rounded-md border px-3 text-xs font-medium shadow-sm transition-colors"
       @click="toast(position, { position, richColors: true, type: 'info' })"
     >
       {{ position }}

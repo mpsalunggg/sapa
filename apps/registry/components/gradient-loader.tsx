@@ -1,20 +1,20 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 export function GradientLoader({
   label = "Loading playground…",
   className,
 }: {
-  label?: string
-  className?: string
+  label?: string;
+  className?: string;
 }) {
   return (
     <div
       className={cn(
         "flex flex-col items-center justify-center gap-4",
-        className
+        className,
       )}
     >
-      <div className="relative size-12 overflow-hidden bg-gray-100 rounded-full ring-1 ring-inset ring-white/10">
+      <div className="relative size-12 overflow-hidden rounded-full bg-gray-100 ring-1 ring-inset ring-white/10">
         <svg
           className="absolute inset-0 h-full w-full"
           viewBox="0 0 100 100"
@@ -32,7 +32,10 @@ export function GradientLoader({
           </defs>
 
           {/* wave belakang, lebih lambat */}
-          <g className="animate-loader-wave" style={{ animationDuration: "3.2s" }}>
+          <g
+            className="animate-loader-wave"
+            style={{ animationDuration: "3.2s" }}
+          >
             <path
               d="M0,58 C25,48 25,68 50,58 C75,48 75,68 100,58 C125,48 125,68 150,58 C175,48 175,68 200,58 L200,100 L0,100 Z"
               fill="url(#loader-wave-back)"
@@ -41,7 +44,10 @@ export function GradientLoader({
           </g>
 
           {/* wave depan, lebih cepat & fase berbeda */}
-          <g className="animate-loader-wave" style={{ animationDuration: "1.8s" }}>
+          <g
+            className="animate-loader-wave"
+            style={{ animationDuration: "1.8s" }}
+          >
             <path
               d="M0,66 C25,76 25,56 50,66 C75,76 75,56 100,66 C125,76 125,56 150,66 C175,76 175,56 200,66 L200,100 L0,100 Z"
               fill="url(#loader-wave-front)"
@@ -54,7 +60,7 @@ export function GradientLoader({
         <div className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]" />
       </div>
 
-      <span className="animate-pulse bg-linear-to-r from-sapa-warning to-sapa-error bg-clip-text text-sm font-medium text-transparent">
+      <span className="bg-linear-to-r from-sapa-warning to-sapa-error animate-pulse bg-clip-text text-sm font-medium text-transparent">
         {label}
       </span>
 
@@ -70,5 +76,5 @@ export function GradientLoader({
         }
       `}</style>
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { toast } from "@/components/ui/sapa-toast/toaster"
+import { toast } from "@/components/ui/sapa-toast/toaster";
 
 export default function ToastDescription() {
   return (
@@ -12,9 +12,9 @@ export default function ToastDescription() {
           richColors: true,
         })
       }
-      className="inline-flex h-9 items-center rounded-md border bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-muted"
+      className="bg-background hover:bg-muted inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium shadow-sm transition-colors"
     >
       With description
     </button>
-  )
+  );
 }

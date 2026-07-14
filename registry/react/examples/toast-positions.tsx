@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { toast } from "@/components/ui/sapa-toast/toaster"
-import type { ToastPosition } from "@/components/ui/sapa-toast/toast-store"
+import { toast } from "@/components/ui/sapa-toast/toaster";
+import type { ToastPosition } from "@/components/ui/sapa-toast/toast-store";
 
 const POSITIONS: ToastPosition[] = [
   "top-left",
@@ -10,7 +10,7 @@ const POSITIONS: ToastPosition[] = [
   "bottom-left",
   "bottom-center",
   "bottom-right",
-]
+];
 
 export default function ToastPositions() {
   return (
@@ -19,12 +19,14 @@ export default function ToastPositions() {
         <button
           key={position}
           type="button"
-          onClick={() => toast(position, { position, richColors: true, type: "info" })}
-          className="inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-xs font-medium shadow-sm transition-colors hover:bg-muted"
+          onClick={() =>
+            toast(position, { position, richColors: true, type: "info" })
+          }
+          className="bg-background hover:bg-muted inline-flex h-9 items-center justify-center rounded-md border px-3 text-xs font-medium shadow-sm transition-colors"
         >
           {position}
         </button>
       ))}
     </div>
-  )
+  );
 }

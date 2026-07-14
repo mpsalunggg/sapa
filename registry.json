@@ -7,10 +7,7 @@
       "name": "theme",
       "type": "registry:style",
       "description": "Sapa design tokens (light/dark) incl. semantic toast rich colors + progress keyframes.",
-      "dependencies": [
-        "tailwindcss",
-        "tw-animate-css"
-      ],
+      "dependencies": ["tailwindcss", "tw-animate-css"],
       "cssVars": {
         "theme": {
           "--color-sapa-success": "var(--sapa-success)",
@@ -57,10 +54,7 @@
     {
       "name": "react/utils",
       "type": "registry:lib",
-      "dependencies": [
-        "clsx",
-        "tailwind-merge"
-      ],
+      "dependencies": ["clsx", "tailwind-merge"],
       "files": [
         {
           "path": "utils.ts",
@@ -74,15 +68,8 @@
       "type": "registry:ui",
       "title": "Toaster (React)",
       "description": "Custom-built toast system: store + <Toaster/> + <Toast/>. No sonner.",
-      "dependencies": [
-        "lucide-react",
-        "clsx",
-        "tailwind-merge"
-      ],
-      "registryDependencies": [
-        "theme",
-        "react/utils"
-      ],
+      "dependencies": ["lucide-react", "clsx", "tailwind-merge"],
+      "registryDependencies": ["theme", "react/utils"],
       "files": [
         {
           "path": "toast-store.ts",
@@ -107,9 +94,7 @@
     {
       "name": "react/toast-default",
       "type": "registry:example",
-      "registryDependencies": [
-        "react/toaster"
-      ],
+      "registryDependencies": ["react/toaster"],
       "files": [
         {
           "path": "toast-default.tsx",
@@ -121,9 +106,7 @@
     {
       "name": "react/toast-types",
       "type": "registry:example",
-      "registryDependencies": [
-        "react/toaster"
-      ],
+      "registryDependencies": ["react/toaster"],
       "files": [
         {
           "path": "toast-types.tsx",
@@ -135,9 +118,7 @@
     {
       "name": "react/toast-description",
       "type": "registry:example",
-      "registryDependencies": [
-        "react/toaster"
-      ],
+      "registryDependencies": ["react/toaster"],
       "files": [
         {
           "path": "toast-description.tsx",
@@ -149,9 +130,7 @@
     {
       "name": "react/toast-action",
       "type": "registry:example",
-      "registryDependencies": [
-        "react/toaster"
-      ],
+      "registryDependencies": ["react/toaster"],
       "files": [
         {
           "path": "toast-action.tsx",
@@ -163,9 +142,7 @@
     {
       "name": "react/toast-promise",
       "type": "registry:example",
-      "registryDependencies": [
-        "react/toaster"
-      ],
+      "registryDependencies": ["react/toaster"],
       "files": [
         {
           "path": "toast-promise.tsx",
@@ -177,9 +154,7 @@
     {
       "name": "react/toast-custom",
       "type": "registry:example",
-      "registryDependencies": [
-        "react/toaster"
-      ],
+      "registryDependencies": ["react/toaster"],
       "files": [
         {
           "path": "toast-custom.tsx",
@@ -191,9 +166,7 @@
     {
       "name": "react/toast-positions",
       "type": "registry:example",
-      "registryDependencies": [
-        "react/toaster"
-      ],
+      "registryDependencies": ["react/toaster"],
       "files": [
         {
           "path": "toast-positions.tsx",
@@ -205,9 +178,7 @@
     {
       "name": "react/toast-stack",
       "type": "registry:example",
-      "registryDependencies": [
-        "react/toaster"
-      ],
+      "registryDependencies": ["react/toaster"],
       "files": [
         {
           "path": "toast-stack.tsx",
@@ -219,10 +190,7 @@
     {
       "name": "vue/utils",
       "type": "registry:lib",
-      "dependencies": [
-        "clsx",
-        "tailwind-merge"
-      ],
+      "dependencies": ["clsx", "tailwind-merge"],
       "files": [
         {
           "path": "utils.ts",
@@ -236,15 +204,8 @@
       "type": "registry:ui",
       "title": "Toaster (Vue)",
       "description": "Custom-built toast system: reactive store + Toaster.vue + Toast.vue. No vue-sonner.",
-      "dependencies": [
-        "@lucide/vue",
-        "clsx",
-        "tailwind-merge"
-      ],
-      "registryDependencies": [
-        "theme",
-        "vue/utils"
-      ],
+      "dependencies": ["@lucide/vue", "clsx", "tailwind-merge"],
+      "registryDependencies": ["theme", "vue/utils"],
       "files": [
         {
           "path": "sapa-toast/useToast.ts",
@@ -266,9 +227,7 @@
     {
       "name": "vue/toast-default",
       "type": "registry:example",
-      "registryDependencies": [
-        "vue/toaster"
-      ],
+      "registryDependencies": ["vue/toaster"],
       "files": [
         {
           "path": "ToastDefault.vue",
@@ -280,9 +239,7 @@
     {
       "name": "vue/toast-types",
       "type": "registry:example",
-      "registryDependencies": [
-        "vue/toaster"
-      ],
+      "registryDependencies": ["vue/toaster"],
       "files": [
         {
           "path": "ToastTypes.vue",
@@ -294,9 +251,7 @@
     {
       "name": "vue/toast-description",
       "type": "registry:example",
-      "registryDependencies": [
-        "vue/toaster"
-      ],
+      "registryDependencies": ["vue/toaster"],
       "files": [
         {
           "path": "ToastDescription.vue",
@@ -308,9 +263,7 @@
     {
       "name": "vue/toast-action",
       "type": "registry:example",
-      "registryDependencies": [
-        "vue/toaster"
-      ],
+      "registryDependencies": ["vue/toaster"],
       "files": [
         {
           "path": "ToastAction.vue",
@@ -322,9 +275,7 @@
     {
       "name": "vue/toast-promise",
       "type": "registry:example",
-      "registryDependencies": [
-        "vue/toaster"
-      ],
+      "registryDependencies": ["vue/toaster"],
       "files": [
         {
           "path": "ToastPromise.vue",
@@ -336,9 +287,7 @@
     {
       "name": "vue/toast-custom",
       "type": "registry:example",
-      "registryDependencies": [
-        "vue/toaster"
-      ],
+      "registryDependencies": ["vue/toaster"],
       "files": [
         {
           "path": "ToastCustom.vue",
@@ -350,9 +299,7 @@
     {
       "name": "vue/toast-positions",
       "type": "registry:example",
-      "registryDependencies": [
-        "vue/toaster"
-      ],
+      "registryDependencies": ["vue/toaster"],
       "files": [
         {
           "path": "ToastPositions.vue",
@@ -364,9 +311,7 @@
     {
       "name": "vue/toast-stack",
       "type": "registry:example",
-      "registryDependencies": [
-        "vue/toaster"
-      ],
+      "registryDependencies": ["vue/toaster"],
       "files": [
         {
           "path": "ToastStack.vue",

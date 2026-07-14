@@ -33,7 +33,7 @@ export function VariantNav({
   return (
     <nav className="lg:sticky lg:top-6">
       <div className="mb-4">
-        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="text-muted-foreground mb-2 px-3 text-xs font-semibold uppercase tracking-wide">
           Framework
         </p>
         <div className="px-3">
@@ -41,18 +41,18 @@ export function VariantNav({
         </div>
       </div>
       <div className="mb-4">
-        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="text-muted-foreground mb-2 px-3 text-xs font-semibold uppercase tracking-wide">
           Toast layout
         </p>
         <div className="px-3">
           <ToastLayoutToggle />
         </div>
       </div>
-      <p className="mb-2 flex items-center gap-1.5 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className="text-muted-foreground mb-2 flex items-center gap-1.5 px-3 text-xs font-semibold uppercase tracking-wide">
         On this page
         <span
           aria-hidden
-          className="size-1.5 rounded-full bg-linear-to-br from-sapa-warning to-sapa-error"
+          className="bg-linear-to-br from-sapa-warning to-sapa-error size-1.5 rounded-full"
         />
       </p>
       <ul className="flex flex-row flex-wrap gap-1 lg:flex-col">
@@ -63,14 +63,14 @@ export function VariantNav({
               className={cn(
                 "relative block rounded-md px-3 py-1.5 text-sm transition-colors",
                 active === it.key
-                  ? "bg-linear-to-r from-sapa-warning/15 to-sapa-error/10 font-medium text-foreground"
+                  ? "bg-linear-to-r from-sapa-warning/15 to-sapa-error/10 text-foreground font-medium"
                   : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
               )}
             >
               {active === it.key && (
                 <span
                   aria-hidden
-                  className="absolute inset-y-1 left-0 hidden w-0.5 rounded-full bg-linear-to-b from-sapa-warning to-sapa-error lg:block"
+                  className="bg-linear-to-b from-sapa-warning to-sapa-error absolute inset-y-1 left-0 hidden w-0.5 rounded-full lg:block"
                 />
               )}
               {it.title}

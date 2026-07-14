@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toast } from "@/components/ui/sapa-toast/useToast"
+import { toast } from "@/components/ui/sapa-toast/useToast";
 
 function showToast() {
   toast("File deleted", {
@@ -7,14 +7,14 @@ function showToast() {
     duration: 8000,
     action: { label: "Undo", onClick: () => toast.success("Restored") },
     cancel: { label: "Dismiss" },
-  })
+  });
 }
 </script>
 
 <template>
   <button
     type="button"
-    class="inline-flex h-9 items-center rounded-md border bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-muted"
+    class="bg-background hover:bg-muted inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium shadow-sm transition-colors"
     @click="showToast"
   >
     With action

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { toast } from "@/components/ui/sapa-toast/toaster"
+import { toast } from "@/components/ui/sapa-toast/toaster";
 
 export default function ToastCustom() {
   return (
@@ -16,24 +16,24 @@ export default function ToastCustom() {
             />
             <div className="space-y-0.5">
               <p className="text-sm font-medium">Olivia Martin</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 sent you a friend request
               </p>
             </div>
             <button
               type="button"
-              className="ml-2 inline-flex h-7 items-center rounded-md bg-foreground px-2.5 text-xs font-medium text-background"
+              className="bg-foreground text-background ml-2 inline-flex h-7 items-center rounded-md px-2.5 text-xs font-medium"
               onClick={() => toast.success("Accepted")}
             >
               Accept
             </button>
           </div>,
-          { duration: 6000 }
+          { duration: 6000 },
         )
       }
-      className="inline-flex h-9 items-center rounded-md border bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-muted"
+      className="bg-background hover:bg-muted inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium shadow-sm transition-colors"
     >
       Custom content
     </button>
-  )
+  );
 }

@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { cn } from "@/lib/utils"
-import { CopyButton } from "@/components/copy-button"
-import { FrameworkTabs } from "@/components/framework-tabs"
+import { cn } from "@/lib/utils";
+import { CopyButton } from "@/components/copy-button";
+import { FrameworkTabs } from "@/components/framework-tabs";
 
 function Code({
   code,
   html,
   filename,
 }: {
-  code: string
-  html: string
-  filename?: string
+  code: string;
+  html: string;
+  filename?: string;
 }) {
   return (
-    <div className="min-w-0 overflow-hidden rounded-lg border bg-muted/40">
+    <div className="bg-muted/40 min-w-0 overflow-hidden rounded-lg border">
       <div className="flex items-center justify-between border-b px-3 py-1.5">
-        <span className="font-mono text-xs text-muted-foreground">
+        <span className="text-muted-foreground font-mono text-xs">
           {filename ?? ""}
         </span>
         <CopyButton value={code} />
@@ -28,7 +28,7 @@ function Code({
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>
-  )
+  );
 }
 
 export function DocCode({
@@ -39,12 +39,12 @@ export function DocCode({
   reactFilename,
   vueFilename,
 }: {
-  reactCode: string
-  vueCode: string
-  reactHtml: string
-  vueHtml: string
-  reactFilename?: string
-  vueFilename?: string
+  reactCode: string;
+  vueCode: string;
+  reactHtml: string;
+  vueHtml: string;
+  reactFilename?: string;
+  vueFilename?: string;
 }) {
   return (
     <FrameworkTabs
@@ -53,5 +53,5 @@ export function DocCode({
       }
       vue={<Code code={vueCode} html={vueHtml} filename={vueFilename} />}
     />
-  )
+  );
 }

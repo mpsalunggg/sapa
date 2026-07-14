@@ -10,8 +10,8 @@
  */
 
 export interface RegistryFile {
-  path: string
-  content: string
+  path: string;
+  content: string;
 }
 
 /** Rewrite the repo's `@/…` alias specifiers to the flat relative paths we use
@@ -22,7 +22,7 @@ function rewriteImports(src: string): string {
     .replaceAll("@/components/ui/sapa-toast/toaster", "./toaster")
     .replaceAll("@/components/ui/sapa-toast/toast-store", "./toast-store")
     .replaceAll("@/lib/utils", "./utils")
-    .replace(/^\n+/, "")
+    .replace(/^\n+/, "");
 }
 
 function appTsx(expand: boolean): string {
@@ -37,7 +37,7 @@ export default function App() {
     </div>
   );
 }
-`
+`;
 }
 
 /** Bundled entry: applies the initial theme and listens for live theme changes
@@ -62,33 +62,33 @@ root.render(
     <App />
   </StrictMode>
 );
-`
+`;
 }
 
 export const REACT_DEPENDENCIES: Record<string, string> = {
   "lucide-react": "latest",
   clsx: "latest",
   "tailwind-merge": "latest",
-}
+};
 
 interface BuildInput {
   /** Selected example source (the react/toast-<key> file content). */
-  example: string
+  example: string;
   /** The react/toaster item files (toast-store.ts, toast.tsx, toaster.tsx). */
-  toasterFiles: RegistryFile[]
+  toasterFiles: RegistryFile[];
   /** The react/utils item files (utils.ts). */
-  utilsFiles: RegistryFile[]
+  utilsFiles: RegistryFile[];
   /** Precompiled preview CSS (public/toast-preview.css contents). */
-  previewCss: string
-  isDark: boolean
+  previewCss: string;
+  isDark: boolean;
   /** Flat-list layout instead of the collapsible stack. */
-  expand: boolean
+  expand: boolean;
 }
 
 interface PlaygroundFiles {
-  files: Record<string, { code: string; readOnly?: boolean; active?: boolean }>
-  activeFile: string
-  visibleFiles: string[]
+  files: Record<string, { code: string; readOnly?: boolean; active?: boolean }>;
+  activeFile: string;
+  visibleFiles: string[];
 }
 
 /** Assemble the Sandpack file map for the React playground. */
@@ -100,11 +100,11 @@ export function buildReactFiles({
   isDark,
   expand,
 }: BuildInput): PlaygroundFiles {
-  const lib: PlaygroundFiles["files"] = {}
+  const lib: PlaygroundFiles["files"] = {};
   for (const f of [...toasterFiles, ...utilsFiles]) {
     // Built paths are like "toast-store.ts" / "utils.ts" → flat at root.
-    const name = f.path.split("/").pop() as string
-    lib[`/${name}`] = { code: rewriteImports(f.content), readOnly: true }
+    const name = f.path.split("/").pop() as string;
+    lib[`/${name}`] = { code: rewriteImports(f.content), readOnly: true };
   }
 
   return {
@@ -117,5 +117,5 @@ export function buildReactFiles({
     },
     activeFile: "/Example.tsx",
     visibleFiles: ["/Example.tsx"],
-  }
+  };
 }

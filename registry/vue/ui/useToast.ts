@@ -1,13 +1,8 @@
-import { reactive } from "vue"
-import type { Component } from "vue"
+import { reactive } from "vue";
+import type { Component } from "vue";
 
 export type ToastType =
-  | "default"
-  | "success"
-  | "error"
-  | "warning"
-  | "info"
-  | "loading"
+  "default" | "success" | "error" | "warning" | "info" | "loading";
 
 export type ToastPosition =
   | "top-left"
@@ -15,47 +10,47 @@ export type ToastPosition =
   | "top-right"
   | "bottom-left"
   | "bottom-center"
-  | "bottom-right"
+  | "bottom-right";
 
 export interface ToastAction {
-  label: string
-  onClick?: () => void
+  label: string;
+  onClick?: () => void;
 }
 
 export interface ToastOptions {
-  id?: string | number
-  type?: ToastType
-  title?: string
-  description?: string
+  id?: string | number;
+  type?: ToastType;
+  title?: string;
+  description?: string;
   /** Auto-dismiss delay in ms. Use `Infinity` to keep it until dismissed. */
-  duration?: number
-  position?: ToastPosition
+  duration?: number;
+  position?: ToastPosition;
   /** Use the semantic --sapa-* colors instead of the neutral surface. */
-  richColors?: boolean
-  action?: ToastAction
-  cancel?: ToastAction
+  richColors?: boolean;
+  action?: ToastAction;
+  cancel?: ToastAction;
   /** Override the leading icon with a custom component. */
-  icon?: Component
+  icon?: Component;
   /** Fully custom content — a Vue component rendered instead of title/description. */
-  component?: Component
-  onDismiss?: (toast: ToastData) => void
-  onAutoClose?: (toast: ToastData) => void
+  component?: Component;
+  onDismiss?: (toast: ToastData) => void;
+  onAutoClose?: (toast: ToastData) => void;
 }
 
 export interface ToastData extends Omit<ToastOptions, "id" | "type"> {
-  id: string | number
-  type: ToastType
-  createdAt: number
+  id: string | number;
+  type: ToastType;
+  createdAt: number;
 }
 
-const DEFAULT_DURATION = 4000
+const DEFAULT_DURATION = 4000;
 
-export const toasts = reactive<ToastData[]>([])
-let counter = 0
+export const toasts = reactive<ToastData[]>([]);
+let counter = 0;
 
 function add(options: ToastOptions): string | number {
-  const id = options.id ?? ++counter
-  const existing = toasts.findIndex((t) => t.id === id)
+  const id = options.id ?? ++counter;
+  const existing = toasts.findIndex((t) => t.id === id);
 
   const data: ToastData = {
     duration: DEFAULT_DURATION,
@@ -63,50 +58,53 @@ function add(options: ToastOptions): string | number {
     type: options.type ?? "default",
     id,
     createdAt: Date.now(),
-  }
+  };
 
   if (existing > -1) {
-    toasts[existing] = { ...toasts[existing], ...data }
+    toasts[existing] = { ...toasts[existing], ...data };
   } else {
-    toasts.unshift(data)
+    toasts.unshift(data);
   }
-  return id
+  return id;
 }
 
 export function dismiss(id?: string | number) {
   if (id == null) {
-    for (const t of toasts) t.onDismiss?.(t)
-    toasts.splice(0, toasts.length)
-    return
+    for (const t of toasts) t.onDismiss?.(t);
+    toasts.splice(0, toasts.length);
+    return;
   }
-  const index = toasts.findIndex((t) => t.id === id)
+  const index = toasts.findIndex((t) => t.id === id);
   if (index > -1) {
-    toasts[index].onDismiss?.(toasts[index])
-    toasts.splice(index, 1)
+    toasts[index].onDismiss?.(toasts[index]);
+    toasts.splice(index, 1);
   }
 }
 
 export interface PromiseMessages<T> {
-  loading: string
-  success: string | ((data: T) => string)
-  error: string | ((error: unknown) => string)
+  loading: string;
+  success: string | ((data: T) => string);
+  error: string | ((error: unknown) => string);
 }
 
 function resolveMessage<T>(
   value: string | ((arg: T) => string),
-  arg: T
+  arg: T,
 ): string {
-  return typeof value === "function" ? (value as (arg: T) => string)(arg) : value
+  return typeof value === "function"
+    ? (value as (arg: T) => string)(arg)
+    : value;
 }
 
-type ToastFn = (title: string, options?: ToastOptions) => string | number
+type ToastFn = (title: string, options?: ToastOptions) => string | number;
 
 function make(type: ToastType): ToastFn {
-  return (title, options) => add({ ...options, title, type })
+  return (title, options) => add({ ...options, title, type });
 }
 
 export const toast = Object.assign(
-  ((title: string, options?: ToastOptions) => add({ ...options, title })) as ToastFn,
+  ((title: string, options?: ToastOptions) =>
+    add({ ...options, title })) as ToastFn,
   {
     message: make("default"),
     success: make("success"),
@@ -121,14 +119,14 @@ export const toast = Object.assign(
     promise: <T>(
       promise: Promise<T>,
       messages: PromiseMessages<T>,
-      options?: ToastOptions
+      options?: ToastOptions,
     ) => {
       const id = add({
         ...options,
         title: messages.loading,
         type: "loading",
         duration: Infinity,
-      })
+      });
       promise
         .then((data) =>
           add({
@@ -137,7 +135,7 @@ export const toast = Object.assign(
             title: resolveMessage(messages.success, data),
             type: "success",
             duration: options?.duration ?? DEFAULT_DURATION,
-          })
+          }),
         )
         .catch((error) =>
           add({
@@ -146,14 +144,14 @@ export const toast = Object.assign(
             title: resolveMessage(messages.error, error),
             type: "error",
             duration: options?.duration ?? DEFAULT_DURATION,
-          })
-        )
-      return id
+          }),
+        );
+      return id;
     },
-  }
-)
+  },
+);
 
 /** Optional composable form, mirroring the React import ergonomics. */
 export function useToast() {
-  return { toast, toasts, dismiss }
+  return { toast, toasts, dismiss };
 }

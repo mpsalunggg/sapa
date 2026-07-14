@@ -22,7 +22,7 @@ export default function Home() {
         </div>
         <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8">
           <header className="mb-12 flex items-center justify-between">
-            <span className="font-display text-3xl font-semibold tracking-tight rounded-xl">
+            <span className="font-display rounded-xl text-3xl font-semibold tracking-tight">
               Sapa
               <span className="bg-linear-to-br from-sapa-warning to-sapa-error bg-clip-text text-transparent">
                 .
@@ -31,21 +31,21 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <Link
                 href="/docs"
-                className="group inline-flex h-9 items-center gap-1.5 rounded-md border bg-background px-3.5 text-sm font-medium text-muted-foreground shadow-lg transition-all hover:-translate-y-0.5 hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground hover:shadow-xl"
+                className="bg-background text-muted-foreground hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground group inline-flex h-9 items-center gap-1.5 rounded-md border px-3.5 text-sm font-medium shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
               >
                 <BookOpen className="size-3.5" />
                 Docs
               </Link>
               <Link
                 href="/playground"
-                className="group inline-flex h-9 items-center gap-1.5 rounded-md bg-linear-to-br from-sapa-warning via-sapa-error to-sapa-info bg-size-[200%_200%] bg-left px-3.5 text-sm font-semibold text-white shadow-lg shadow-sapa-error/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-right hover:shadow-xl hover:shadow-sapa-error/40"
+                className="bg-linear-to-br from-sapa-warning via-sapa-error to-sapa-info bg-size-[200%_200%] shadow-sapa-error/25 hover:shadow-sapa-error/40 group inline-flex h-9 items-center gap-1.5 rounded-md bg-left px-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-right hover:shadow-xl"
               >
                 <Play className="size-3.5" />
                 Playground
               </Link>
               <a
                 href="https://github.com/mpsalunggg/sapa"
-                className="group inline-flex size-9 items-center justify-center rounded-md border bg-background text-muted-foreground shadow-lg transition-all hover:-translate-y-0.5 hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground hover:shadow-xl"
+                className="bg-background text-muted-foreground hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground group inline-flex size-9 items-center justify-center rounded-md border shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
                 aria-label="GitHub"
               >
                 <Github className="size-4" />
@@ -57,12 +57,12 @@ export default function Home() {
           <section className="flex flex-1 items-center">
             <div className="grid w-full grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-2 rounded-full border bg-background py-1 pl-1.5 pr-3 text-xs font-medium">
+                <div className="bg-background inline-flex items-center gap-2 rounded-full border py-1 pl-1.5 pr-3 text-xs font-medium">
                   <span className="flex items-center -space-x-1.5">
-                    <span className="flex size-6 items-center justify-center rounded-full border bg-background">
+                    <span className="bg-background flex size-6 items-center justify-center rounded-full border">
                       <ReactLogo className="size-3.5" />
                     </span>
-                    <span className="flex size-6 items-center justify-center rounded-full border bg-background">
+                    <span className="bg-background flex size-6 items-center justify-center rounded-full border">
                       <VueLogo className="size-3" />
                     </span>
                   </span>
@@ -77,11 +77,11 @@ export default function Home() {
                   </span>
                   .
                 </h1>
-                <p className="mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
+                <p className="text-muted-foreground mt-4 max-w-xl text-pretty text-lg leading-relaxed">
                   Hand-built toasts you actually own — no black boxes. One
                   command drops the source straight into your{" "}
-                  <span className="font-semibold text-foreground">React</span>{" "}
-                  or <span className="font-semibold text-foreground">Vue</span>{" "}
+                  <span className="text-foreground font-semibold">React</span>{" "}
+                  or <span className="text-foreground font-semibold">Vue</span>{" "}
                   app. One design, both frameworks.
                 </p>
 
@@ -105,7 +105,7 @@ export default function Home() {
             </div>
           </section>
 
-          <footer className="mt-8 border-t pt-6 text-sm text-muted-foreground">
+          <footer className="text-muted-foreground mt-8 border-t pt-6 text-sm">
             Sapa · registry served from{" "}
             <code className="text-xs">{BASE_URL}/r</code>
           </footer>

@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 
-import { cn } from "@/lib/utils"
-import { CopyButton } from "@/components/copy-button"
-import { FrameworkTabs } from "@/components/framework-tabs"
+import { cn } from "@/lib/utils";
+import { CopyButton } from "@/components/copy-button";
+import { FrameworkTabs } from "@/components/framework-tabs";
 
 function Code({ code, html }: { code: string; html: string }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
   return (
-    <div className="min-w-0 overflow-hidden rounded-lg border bg-muted/40">
+    <div className="bg-muted/40 min-w-0 overflow-hidden rounded-lg border">
       <div className="flex items-center justify-between border-b px-3 py-1.5">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="text-xs font-medium text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground text-xs font-medium"
         >
           {open ? "Hide code" : "Show code"}
         </button>
@@ -23,12 +23,12 @@ function Code({ code, html }: { code: string; html: string }) {
       <div
         className={cn(
           "shiki-code overflow-x-auto p-3 font-mono text-xs leading-relaxed",
-          !open && "max-h-40 overflow-y-hidden opacity-70"
+          !open && "max-h-40 overflow-y-hidden opacity-70",
         )}
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>
-  )
+  );
 }
 
 export function CodeTabs({
@@ -37,15 +37,15 @@ export function CodeTabs({
   reactHtml,
   vueHtml,
 }: {
-  reactCode: string
-  vueCode: string
-  reactHtml: string
-  vueHtml: string
+  reactCode: string;
+  vueCode: string;
+  reactHtml: string;
+  vueHtml: string;
 }) {
   return (
     <FrameworkTabs
       react={<Code code={reactCode} html={reactHtml} />}
       vue={<Code code={vueCode} html={vueHtml} />}
     />
-  )
+  );
 }

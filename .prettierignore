@@ -1,0 +1,11 @@
+node_modules
+.next
+dist
+.output
+.vite
+.turbo
+pnpm-lock.yaml
+assets
+apps/registry/public/r
+apps/registry/public/toast-preview.css
+*.tsbuildinfo
