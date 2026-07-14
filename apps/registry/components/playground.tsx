@@ -147,7 +147,7 @@ export function Playground({
                 "inline-flex items-center gap-1 rounded px-2.5 py-1 font-medium transition-colors",
                 f.disabled
                   ? "cursor-not-allowed text-muted-foreground/50"
-                  : "bg-background text-foreground shadow-sm"
+                  : "bg-linear-to-br from-sapa-warning to-sapa-error text-white shadow-sm"
               )}
             >
               {f.label}

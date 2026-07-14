@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowLeft, BookOpen } from "lucide-react"
+import { ArrowLeft, BookOpen, Github } from "lucide-react"
 
 import { BASE_URL, getSource, getItemFiles, getPreviewCss } from "@/lib/registry"
 import { Playground } from "@/components/playground"
@@ -68,6 +68,13 @@ export default async function PlaygroundPage() {
             <BookOpen className="size-3.5" />
             Docs
           </Link>
+          <a
+            href="https://github.com/mpsalunggg/sapa"
+            className="group inline-flex size-9 items-center justify-center rounded-md border bg-background text-muted-foreground shadow-lg transition-all hover:-translate-y-0.5 hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground hover:shadow-xl"
+            aria-label="GitHub"
+          >
+            <Github className="size-4" />
+          </a>
           <ThemeToggle />
         </div>
       </header>
