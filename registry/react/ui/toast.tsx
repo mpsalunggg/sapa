@@ -60,6 +60,14 @@ const CHIP: Record<ToastType, string> = {
 
 const SWIPE_THRESHOLD = 80;
 
+/** Safe on the client only — Toast renders after the Toaster has mounted. */
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 // Enter/exit slide direction based on the toast's anchor position.
 // `top-*` centers slide up, `bottom-*` centers slide down, corners slide sideways.
 function dirTransform(position: ToastPosition = "bottom-right"): string {
@@ -103,6 +111,9 @@ export function Toast({
     !toast.cancel &&
     toast.progress == null;
 
+  // Skip enter/exit/drag animations for users who prefer reduced motion.
+  const reduceMotion = prefersReducedMotion();
+
   const [state, setState] = React.useState<"open" | "closing">("open");
   const [shown, setShown] = React.useState(false);
   const [paused, setPaused] = React.useState(false);
@@ -130,12 +141,15 @@ export function Toast({
         : dir;
       setState("closing");
 
-      window.setTimeout(() => {
-        toast.onAutoClose?.(toast);
-        toastStore.dismiss(id);
-      }, 320);
+      window.setTimeout(
+        () => {
+          toast.onAutoClose?.(toast);
+          toastStore.dismiss(id);
+        },
+        reduceMotion ? 0 : 320,
+      );
     },
-    [id, toast, dir, vertical],
+    [id, toast, dir, vertical, reduceMotion],
   );
 
   React.useEffect(() => {
@@ -228,9 +242,10 @@ export function Toast({
   const dragged = dragging.current && offset !== 0;
   const style: React.CSSProperties = {
     touchAction: vertical ? "pan-x" : "pan-y",
-    transition: dragged
-      ? "none"
-      : "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease",
+    transition:
+      dragged || reduceMotion
+        ? "none"
+        : "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease",
   };
 
   if (stacked) {
@@ -373,7 +388,7 @@ export function Toast({
         type="button"
         aria-label="Close"
         onClick={() => close()}
-        className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 group-hover:opacity-70 dark:hover:bg-white/10"
+        className="focus-visible:ring-ring absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70 dark:hover:bg-white/10"
       >
         <X className="size-4" />
       </button>
@@ -383,7 +398,9 @@ export function Toast({
           key={duration}
           className="absolute inset-x-3 bottom-1.5 h-1 origin-left rounded-full bg-current opacity-25"
           style={{
-            animation: `sapa-toast-progress ${duration}ms linear forwards`,
+            animation: reduceMotion
+              ? "none"
+              : `sapa-toast-progress ${duration}ms linear forwards`,
             animationPlayState:
               paused || dragging.current ? "paused" : undefined,
           }}

@@ -16,6 +16,7 @@ _Copy, paste, own it. Same design, two frameworks._
 - **Directional motion** — toasts exit toward their anchor; swipe to dismiss (sideways for corners, up/down for centered).
 - **Variants** — default, types, description, action, promise, progress, custom content, positions.
 - **Theme-aware** — light & dark via CSS variables.
+- **Accessible** — `aria-live` announcements, keyboard-focusable dismiss, honors `prefers-reduced-motion`.
 
 ## Install into your project
 

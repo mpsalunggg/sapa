@@ -102,10 +102,10 @@ function layoutFor(items: ToastData[], i: number, pos: ToastPosition) {
           )
         "
         enter-from-class="opacity-0 scale-95"
-        enter-active-class="transition-all duration-300 ease-out"
-        leave-active-class="transition-all duration-300 ease-in absolute"
+        enter-active-class="transition-all duration-300 ease-out motion-reduce:transition-none"
+        leave-active-class="transition-all duration-300 ease-in absolute motion-reduce:transition-none"
         :leave-to-class="dirClass(pos)"
-        move-class="transition-transform duration-300"
+        move-class="transition-transform duration-300 motion-reduce:transition-none"
       >
         <Toast v-for="t in items" :key="t.id" :toast="t" />
       </TransitionGroup>

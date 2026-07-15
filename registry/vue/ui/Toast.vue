@@ -84,6 +84,11 @@ const CHIP: Record<ToastType, string> = {
 
 const SWIPE_THRESHOLD = 80;
 
+/** Skip enter/exit/drag animations for users who prefer reduced motion. */
+const reduceMotion =
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 const compact = computed(
   () =>
     !props.toast.component &&
@@ -220,9 +225,10 @@ const stackStyle = computed(() => {
   return {
     zIndex: props.stackZ,
     touchAction: vertical.value ? "pan-x" : "pan-y",
-    transition: dragged
-      ? "none"
-      : "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease",
+    transition:
+      dragged || reduceMotion
+        ? "none"
+        : "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease",
     transform: dragged
       ? vertical.value
         ? `translateY(${offset.value}px)`
@@ -350,7 +356,7 @@ onBeforeUnmount(() => {
     <button
       type="button"
       aria-label="Close"
-      class="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 group-hover:opacity-70 dark:hover:bg-white/10"
+      class="focus-visible:ring-ring absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70 dark:hover:bg-white/10"
       @click="close"
     >
       <X class="size-4" />
@@ -360,7 +366,9 @@ onBeforeUnmount(() => {
       v-if="showProgress"
       class="absolute inset-x-3 bottom-1.5 h-1 origin-left rounded-full bg-current opacity-25"
       :style="{
-        animation: `sapa-toast-progress ${duration}ms linear forwards`,
+        animation: reduceMotion
+          ? 'none'
+          : `sapa-toast-progress ${duration}ms linear forwards`,
         animationPlayState: paused || dragging ? 'paused' : undefined,
       }"
     />
