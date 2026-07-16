@@ -7,6 +7,7 @@ import { FrameworkProvider } from "@/components/framework-context";
 import { InstallCommand } from "@/components/install-command";
 import { CodeTabs } from "@/components/code-tabs";
 import { DocCode } from "@/components/doc-code";
+import { CopyButton } from "@/components/copy-button";
 import { DocsToc, type TocGroup } from "@/components/docs-toc";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { HeroWaves } from "@/components/hero-waves";
@@ -103,6 +104,10 @@ const TOC_GROUPS: TocGroup[] = [
       { key: "toaster-props", title: "<Toaster> props" },
     ],
   },
+  {
+    label: "Theming",
+    items: [{ key: "theming", title: "Custom colors" }],
+  },
 ];
 
 // Hand-written snippets for concepts that have no registry example file.
@@ -148,6 +153,48 @@ toast.dismiss()                      // dismiss every toast
 </script>`,
   },
 };
+
+// Framework-agnostic — the same CSS overrides the toast colors in React and Vue.
+const THEMING_CSS = `/* globals.css — override Sapa's rich colors */
+:root {
+  --sapa-success: oklch(0.62 0.17 149);
+  --sapa-success-foreground: oklch(0.98 0.02 150);
+  --sapa-error: oklch(0.58 0.22 27);
+  --sapa-error-foreground: oklch(0.98 0.02 20);
+  --sapa-warning: oklch(0.75 0.16 78);
+  --sapa-warning-foreground: oklch(0.28 0.07 70);
+  --sapa-info: oklch(0.6 0.13 240);
+  --sapa-info-foreground: oklch(0.98 0.02 240);
+}
+
+.dark {
+  --sapa-success: oklch(0.7 0.16 150);
+  --sapa-error: oklch(0.7 0.19 22);
+  --sapa-warning: oklch(0.82 0.16 82);
+  --sapa-info: oklch(0.68 0.14 240);
+  /* …plus the matching *-foreground tokens */
+}`;
+
+// The eight semantic tokens that power the toast "rich colors".
+const SAPA_TOKENS: { name: string; desc: string }[] = [
+  { name: "--sapa-success", desc: "Success border, glow and title." },
+  {
+    name: "--sapa-success-foreground",
+    desc: "Icon/text on the solid success chip.",
+  },
+  { name: "--sapa-error", desc: "Error border, glow and title." },
+  {
+    name: "--sapa-error-foreground",
+    desc: "Icon/text on the solid error chip.",
+  },
+  { name: "--sapa-warning", desc: "Warning border, glow and title." },
+  {
+    name: "--sapa-warning-foreground",
+    desc: "Icon/text on the solid warning chip.",
+  },
+  { name: "--sapa-info", desc: "Info border, glow and title." },
+  { name: "--sapa-info-foreground", desc: "Icon/text on the solid info chip." },
+];
 
 const OPTIONS: { name: string; type: string; desc: string }[] = [
   {
@@ -274,6 +321,58 @@ function ReferenceTable({
   );
 }
 
+// A single, framework-agnostic code block (no React/Vue tabs) — mirrors the
+// inner Code of <DocCode> but for one snippet, e.g. the theming CSS.
+function CssBlock({
+  code,
+  html,
+  filename,
+}: {
+  code: string;
+  html: string;
+  filename?: string;
+}) {
+  return (
+    <div className="bg-muted/40 min-w-0 overflow-hidden rounded-lg border">
+      <div className="flex items-center justify-between border-b px-3 py-1.5">
+        <span className="text-muted-foreground font-mono text-xs">
+          {filename ?? ""}
+        </span>
+        <CopyButton value={code} />
+      </div>
+      <div
+        className="shiki-code overflow-x-auto p-3 font-mono text-xs leading-relaxed"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </div>
+  );
+}
+
+function TokenTable({ rows }: { rows: { name: string; desc: string }[] }) {
+  return (
+    <div className="overflow-x-auto rounded-lg border">
+      <table className="w-full border-collapse text-left text-sm">
+        <thead>
+          <tr className="bg-muted/40 text-muted-foreground border-b text-xs uppercase tracking-wide">
+            <th className="px-3 py-2 font-semibold">Token</th>
+            <th className="px-3 py-2 font-semibold">What it colors</th>
+          </tr>
+        </thead>
+        <tbody className="divide-border divide-y">
+          {rows.map((r) => (
+            <tr key={r.name} className="align-top">
+              <td className="text-sapa-info whitespace-nowrap px-3 py-2 font-mono text-xs font-medium">
+                {r.name}
+              </td>
+              <td className="text-muted-foreground px-3 py-2">{r.desc}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default async function DocsPage() {
   // Real registry sources for every variant (default + examples), highlighted server-side.
   const variantKeys = ["default", ...EXAMPLES.map((e) => e.key)];
@@ -310,6 +409,9 @@ export default async function DocsPage() {
     ),
   );
   const hl = Object.fromEntries(snippetEntries);
+
+  // Theming snippet — a single CSS block, identical for React and Vue.
+  const themingHtml = await highlight(THEMING_CSS, "css");
 
   const docCode = (
     key: string,
@@ -509,7 +611,7 @@ export default async function DocsPage() {
               </section>
 
               {/* Toaster props */}
-              <section id="toaster-props" className="scroll-mt-6 pb-96 pt-8">
+              <section id="toaster-props" className="scroll-mt-6 py-8">
                 <h2 className="text-xl font-bold tracking-tight">
                   &lt;Toaster&gt; props
                 </h2>
@@ -517,6 +619,59 @@ export default async function DocsPage() {
                   Defaults for the mounted toaster.
                 </p>
                 <ReferenceTable rows={TOASTER_PROPS} />
+              </section>
+
+              {/* Theming — custom colors */}
+              <section id="theming" className="scroll-mt-6 pb-96 pt-8">
+                <h2 className="text-xl font-bold tracking-tight">
+                  Custom colors
+                </h2>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  The rich colors come from eight semantic CSS variables —{" "}
+                  <code className={codeChip}>--sapa-success</code>,{" "}
+                  <code className={codeChip}>--sapa-error</code>,{" "}
+                  <code className={codeChip}>--sapa-warning</code>,{" "}
+                  <code className={codeChip}>--sapa-info</code> and their{" "}
+                  <code className={codeChip}>-foreground</code> pairs. They
+                  apply whenever a toast runs with{" "}
+                  <code className={codeChip}>richColors</code>. The{" "}
+                  <code className={codeChip}>theme</code> registry item installs
+                  them into your project on setup; to re-brand the toast, just
+                  override them in your own{" "}
+                  <code className={codeChip}>globals.css</code> — no component
+                  changes needed.
+                </p>
+
+                <div className="mt-4">
+                  <TokenTable rows={SAPA_TOKENS} />
+                </div>
+
+                <p className="text-muted-foreground mb-4 mt-6 text-sm">
+                  Redefine any of them under{" "}
+                  <code className={codeChip}>:root</code> (light) and{" "}
+                  <code className={codeChip}>.dark</code> (dark). Values use{" "}
+                  <a
+                    href="https://oklch.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sapa-info underline underline-offset-2"
+                  >
+                    oklch
+                  </a>
+                  , but any valid CSS color works.
+                </p>
+                <CssBlock
+                  code={THEMING_CSS}
+                  html={themingHtml}
+                  filename="app/globals.css"
+                />
+
+                <p className="text-muted-foreground mb-4 mt-6 text-sm">
+                  The result — flip the theme to see both palettes:
+                </p>
+                <div className="bg-linear-to-b from-muted/50 to-muted/20 flex min-h-28 items-center justify-center rounded-xl border border-dashed p-4">
+                  <ToastTypes />
+                </div>
               </section>
             </main>
           </div>
