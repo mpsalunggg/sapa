@@ -53,6 +53,11 @@ document.documentElement.classList.toggle("dark", ${isDark ? "true" : "false"});
 window.addEventListener("message", (e) => {
   if (e && e.data && e.data.__sapaTheme) {
     document.documentElement.classList.toggle("dark", !!e.data.dark);
+    if (e.data.vars) {
+      for (const name in e.data.vars) {
+        document.documentElement.style.setProperty(name, e.data.vars[name]);
+      }
+    }
   }
 });
 

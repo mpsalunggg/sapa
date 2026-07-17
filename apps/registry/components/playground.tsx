@@ -17,6 +17,12 @@ import {
   type RegistryFile,
 } from "@/lib/playground-files";
 import { GradientLoader } from "@/components/gradient-loader";
+import {
+  ThemeCustomizer,
+  EMPTY_OVERRIDES,
+  resolveVars,
+  type TokenOverrides,
+} from "@/components/theme-customizer";
 
 /** The editor + preview, with a gradient loading overlay until the Sandpack
  *  bundler finishes its first compile. Must render inside <SandpackProvider>. */
@@ -97,6 +103,7 @@ export function Playground({
   const isDark = resolvedTheme === "dark";
   const [active, setActive] = useState(variants[0]?.key ?? "default");
   const [layout, setLayout] = useState<"stack" | "list">("stack");
+  const [overrides, setOverrides] = useState<TokenOverrides>(EMPTY_OVERRIDES);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isDarkRef = useRef(isDark);
@@ -115,15 +122,17 @@ export function Playground({
     [active, examples, toasterFiles, utilsFiles, previewCss, layout],
   );
 
-  // Keep the preview iframe's `.dark` class in sync when the site theme toggles,
-  // via postMessage — no file rebuild, so edits survive the toggle.
+  // Keep the preview iframe's `.dark` class and the customizer's rich-color
+  // overrides in sync via postMessage — no file rebuild, so edits survive the
+  // toggle and the color changes apply live.
   useEffect(() => {
+    const vars = resolveVars(overrides, isDark ? "dark" : "light");
     const post = () => {
       containerRef.current
         ?.querySelectorAll<HTMLIFrameElement>("iframe.sp-preview-iframe")
         .forEach((f) =>
           f.contentWindow?.postMessage(
-            { __sapaTheme: true, dark: isDark },
+            { __sapaTheme: true, dark: isDark, vars },
             "*",
           ),
         );
@@ -131,7 +140,7 @@ export function Playground({
     post();
     const t = window.setTimeout(post, 500); // in case the iframe wasn't ready yet
     return () => window.clearTimeout(t);
-  }, [isDark, active]);
+  }, [isDark, active, layout, overrides]);
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
@@ -213,6 +222,10 @@ export function Playground({
             </li>
           ))}
         </ul>
+
+        {/* Live theme customizer — overrides the rich-color tokens in the
+            preview, and exports the matching globals.css block. */}
+        <ThemeCustomizer overrides={overrides} onChange={setOverrides} />
       </aside>
 
       <div ref={containerRef} className="min-w-0 flex-1">
