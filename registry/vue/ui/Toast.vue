@@ -84,6 +84,14 @@ const CHIP: Record<ToastType, string> = {
 
 const SWIPE_THRESHOLD = 80;
 
+// Enter/exit slide direction based on the toast's anchor position.
+// `top-*` centered slide up, `bottom-*` centered slide down, corners slide sideways.
+function dirTransform(position: string = "bottom-right"): string {
+  if (position.endsWith("left")) return "translateX(-115%)";
+  if (position.endsWith("right")) return "translateX(115%)";
+  return position.startsWith("top") ? "translateY(-250%)" : "translateY(250%)";
+}
+
 /** Skip enter/exit/drag animations for users who prefer reduced motion. */
 const reduceMotion =
   typeof window !== "undefined" &&
@@ -120,16 +128,21 @@ const vertical = computed(
     props.toast.position === "bottom-center",
 );
 
+const dir = computed(() => dirTransform(props.toast.position));
+
 const rootEl = ref<HTMLLIElement | null>(null);
 const shown = ref(false);
 const paused = ref(false);
 const offset = ref(0);
 const dragging = ref(false);
+const state = ref<"open" | "closing">("open");
+const exitTransform = ref(dir.value);
 let startX = 0;
 let startY = 0;
 let remaining = duration.value;
 let startedAt = Date.now();
 let timer: ReturnType<typeof setTimeout> | null = null;
+let closeTimeout: ReturnType<typeof setTimeout> | null = null;
 let ro: ResizeObserver | null = null;
 
 function clearTimer() {
@@ -139,9 +152,25 @@ function clearTimer() {
   }
 }
 
-function close() {
-  props.toast.onAutoClose?.(props.toast);
-  dismiss(props.toast.id);
+// Animate out (directional), then remove — mirrors the React <Toast> closing
+// state so stacked toasts slide away instead of vanishing. `swipe` is the drag
+// offset (px): its sign picks the exit direction.
+function close(swipe?: number) {
+  if (state.value === "closing") return;
+  exitTransform.value = swipe
+    ? vertical.value
+      ? `translateY(${swipe > 0 ? 260 : -260}%)`
+      : `translateX(${swipe > 0 ? 130 : -130}%)`
+    : dir.value;
+  state.value = "closing";
+  clearTimer();
+  closeTimeout = setTimeout(
+    () => {
+      props.toast.onAutoClose?.(props.toast);
+      dismiss(props.toast.id);
+    },
+    reduceMotion ? 0 : 320,
+  );
 }
 
 function startTimer() {
@@ -152,6 +181,7 @@ function startTimer() {
 }
 
 function pause() {
+  if (state.value === "closing") return;
   paused.value = true;
   if (!Number.isFinite(remaining)) return;
   clearTimer();
@@ -159,9 +189,17 @@ function pause() {
 }
 
 function resume() {
+  if (state.value === "closing") return;
   paused.value = false;
   startTimer();
 }
+
+// Re-arm the auto-dismiss timer when the duration changes (e.g. a promise
+// toast transitions loading→success), matching the React useEffect([duration]).
+watch(duration, (d) => {
+  remaining = d;
+  startTimer();
+});
 
 // Pause the whole group while the stack is expanded (hovered).
 watch(
@@ -189,8 +227,7 @@ function onPointerUp() {
   if (!dragging.value) return;
   dragging.value = false;
   if (Math.abs(offset.value) > SWIPE_THRESHOLD) {
-    offset.value = 0;
-    close();
+    close(offset.value); // exit toward the swipe direction
   } else {
     offset.value = 0;
     resume();
@@ -206,39 +243,50 @@ function runCancel() {
   close();
 }
 
-// Combined transform/opacity — stack layout merged with drag + enter.
+// Combined transform/opacity — stack layout merged with drag + enter/exit.
 const stackStyle = computed(() => {
+  const dragged = dragging.value && offset.value !== 0;
+  const closing = state.value === "closing";
+  const transition =
+    dragged || reduceMotion
+      ? "none"
+      : "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease";
+  const dragTransform = vertical.value
+    ? `translateY(${offset.value}px)`
+    : `translateX(${offset.value}px)`;
+  const dragOpacity = Math.max(0, 1 - Math.abs(offset.value) / 200);
+
   if (!props.stacked) {
     return {
-      transform: offset.value
-        ? vertical.value
-          ? `translateY(${offset.value}px)`
-          : `translateX(${offset.value}px)`
-        : undefined,
-      opacity: dragging.value
-        ? Math.max(0, 1 - Math.abs(offset.value) / 200)
-        : undefined,
       touchAction: vertical.value ? "pan-x" : "pan-y",
+      transition,
+      transform: closing
+        ? exitTransform.value
+        : dragged
+          ? dragTransform
+          : shown.value
+            ? undefined
+            : "scale(0.96)",
+      opacity: closing ? 0 : dragged ? dragOpacity : shown.value ? 1 : 0,
     } as CSSProperties;
   }
-  const dragged = dragging.value && offset.value !== 0;
+
   return {
     zIndex: props.stackZ,
     touchAction: vertical.value ? "pan-x" : "pan-y",
-    transition:
-      dragged || reduceMotion
-        ? "none"
-        : "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease",
-    transform: dragged
-      ? vertical.value
-        ? `translateY(${offset.value}px)`
-        : `translateX(${offset.value}px)`
-      : `translateY(${props.stackY}px) scale(${shown.value ? props.stackScale : 0.9})`,
-    opacity: dragged
-      ? Math.max(0, 1 - Math.abs(offset.value) / 200)
-      : shown.value
-        ? props.stackOpacity
-        : 0,
+    transition,
+    transform: closing
+      ? exitTransform.value
+      : dragged
+        ? dragTransform
+        : `translateY(${props.stackY}px) scale(${shown.value ? props.stackScale : 0.9})`,
+    opacity: closing
+      ? 0
+      : dragged
+        ? dragOpacity
+        : shown.value
+          ? props.stackOpacity
+          : 0,
   } as CSSProperties;
 });
 
@@ -256,6 +304,7 @@ onMounted(() => {
 });
 onBeforeUnmount(() => {
   clearTimer();
+  if (closeTimeout) clearTimeout(closeTimeout);
   ro?.disconnect();
 });
 </script>
@@ -357,7 +406,7 @@ onBeforeUnmount(() => {
       type="button"
       aria-label="Close"
       class="focus-visible:ring-ring absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70 dark:hover:bg-white/10"
-      @click="close"
+      @click="close()"
     >
       <X class="size-4" />
     </button>

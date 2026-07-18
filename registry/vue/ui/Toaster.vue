@@ -30,15 +30,6 @@ const GAP = 14;
 const SCALE_STEP = 0.05;
 const MAX_VISIBLE = 3;
 
-// Enter/exit slide direction based on the group's position (flat-list mode).
-function dirClass(pos: ToastPosition): string {
-  if (pos.endsWith("left")) return "-translate-x-full opacity-0";
-  if (pos.endsWith("right")) return "translate-x-full opacity-0";
-  return pos.startsWith("top")
-    ? "-translate-y-[220%] opacity-0"
-    : "translate-y-[220%] opacity-0";
-}
-
 const heights = reactive<Record<string | number, number>>({});
 const expandedMap = reactive<Record<string, boolean>>({});
 
@@ -91,6 +82,8 @@ function layoutFor(items: ToastData[], i: number, pos: ToastPosition) {
   <Teleport to="body">
     <!-- Flat-list mode -->
     <template v-if="expand">
+      <!-- Enter/exit are self-managed inside <Toast> (mirrors React); the
+           TransitionGroup only FLIP-animates siblings reflowing on removal. -->
       <TransitionGroup
         v-for="[pos, items] in groups"
         :key="pos"
@@ -101,10 +94,6 @@ function layoutFor(items: ToastData[], i: number, pos: ToastPosition) {
             POSITION_CLASSES[pos],
           )
         "
-        enter-from-class="opacity-0 scale-95"
-        enter-active-class="transition-all duration-300 ease-out motion-reduce:transition-none"
-        leave-active-class="transition-all duration-300 ease-in absolute motion-reduce:transition-none"
-        :leave-to-class="dirClass(pos)"
         move-class="transition-transform duration-300 motion-reduce:transition-none"
       >
         <Toast v-for="t in items" :key="t.id" :toast="t" />
