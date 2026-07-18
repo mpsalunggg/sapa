@@ -17,12 +17,8 @@ import {
   type RegistryFile,
 } from "@/lib/playground-files";
 import { GradientLoader } from "@/components/gradient-loader";
-import {
-  ThemeCustomizer,
-  EMPTY_OVERRIDES,
-  resolveVars,
-  type TokenOverrides,
-} from "@/components/theme-customizer";
+import { resolveVars } from "@/components/theme-customizer";
+import { useThemeOverrides } from "@/app/providers";
 
 /** The editor + preview, with a gradient loading overlay until the Sandpack
  *  bundler finishes its first compile. Must render inside <SandpackProvider>. */
@@ -103,7 +99,7 @@ export function Playground({
   const isDark = resolvedTheme === "dark";
   const [active, setActive] = useState(variants[0]?.key ?? "default");
   const [layout, setLayout] = useState<"stack" | "list">("stack");
-  const [overrides, setOverrides] = useState<TokenOverrides>(EMPTY_OVERRIDES);
+  const { overrides } = useThemeOverrides();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isDarkRef = useRef(isDark);
@@ -222,10 +218,6 @@ export function Playground({
             </li>
           ))}
         </ul>
-
-        {/* Live theme customizer — overrides the rich-color tokens in the
-            preview, and exports the matching globals.css block. */}
-        <ThemeCustomizer overrides={overrides} onChange={setOverrides} />
       </aside>
 
       <div ref={containerRef} className="min-w-0 flex-1">

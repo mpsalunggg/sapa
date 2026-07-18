@@ -130,7 +130,7 @@ export function ThemeCustomizer({
   const dirty = mounted && Object.keys(overrides[mode]).length > 0;
 
   return (
-    <div className="mt-6">
+    <div>
       <div className="mb-2 flex items-center justify-between px-3">
         <p className="font-display text-muted-foreground text-[0.95rem] italic">
           Rich colors
