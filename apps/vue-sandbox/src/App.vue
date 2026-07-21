@@ -4,6 +4,8 @@ import { onMounted, ref } from "vue";
 import Toaster from "@/components/ui/Toaster.vue";
 import ToastDefault from "../../../registry/vue/examples/ToastDefault.vue";
 import ToastTypes from "../../../registry/vue/examples/ToastTypes.vue";
+import ToastVariants from "../../../registry/vue/examples/ToastVariants.vue";
+import ToastSizes from "../../../registry/vue/examples/ToastSizes.vue";
 import ToastDescription from "../../../registry/vue/examples/ToastDescription.vue";
 import ToastAction from "../../../registry/vue/examples/ToastAction.vue";
 import ToastPromise from "../../../registry/vue/examples/ToastPromise.vue";
@@ -23,6 +25,8 @@ onMounted(() => {
 const variants = [
   { title: "Default", comp: ToastDefault },
   { title: "Types · rich colors", comp: ToastTypes },
+  { title: "Variants · filled / outline / accent", comp: ToastVariants },
+  { title: "Sizes · sm / default / lg", comp: ToastSizes },
   { title: "Title + description", comp: ToastDescription },
   { title: "Action + cancel", comp: ToastAction },
   { title: "Promise", comp: ToastPromise },

@@ -24,6 +24,16 @@ const VARIANTS = [
     description: "Semantic colors + icons.",
   },
   {
+    key: "variants",
+    title: "Variants",
+    description: "Filled, outline and accent styles.",
+  },
+  {
+    key: "sizes",
+    title: "Sizes",
+    description: "sm, default and lg.",
+  },
+  {
     key: "description",
     title: "Title + description",
     description: "Headline + detail line.",

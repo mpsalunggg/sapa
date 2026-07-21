@@ -15,6 +15,8 @@ import { ToastLayoutToggle } from "@/components/toast-layout-toggle";
 
 import ToastDefault from "@/registry/react/examples/toast-default";
 import ToastTypes from "@/registry/react/examples/toast-types";
+import ToastVariants from "@/registry/react/examples/toast-variants";
+import ToastSizes from "@/registry/react/examples/toast-sizes";
 import ToastDescription from "@/registry/react/examples/toast-description";
 import ToastAction from "@/registry/react/examples/toast-action";
 import ToastPromise from "@/registry/react/examples/toast-promise";
@@ -37,6 +39,18 @@ const EXAMPLES = [
     description:
       "Success, error, warning and info — each with a semantic color + icon.",
     Preview: ToastTypes,
+  },
+  {
+    key: "variants",
+    title: "Variants",
+    description: "Three styles — filled, outline and accent.",
+    Preview: ToastVariants,
+  },
+  {
+    key: "sizes",
+    title: "Sizes",
+    description: "Three sizes — sm, default and lg.",
+    Preview: ToastSizes,
   },
   {
     key: "description",
@@ -218,9 +232,19 @@ const OPTIONS: { name: string; type: string; desc: string }[] = [
     desc: "One of the six anchors — overrides the Toaster default.",
   },
   {
+    name: "variant",
+    type: "ToastVariant",
+    desc: 'Visual treatment: "default", "outline", "filled" or "accent".',
+  },
+  {
+    name: "size",
+    type: "ToastSize",
+    desc: 'Toast size: "sm", "default" or "lg".',
+  },
+  {
     name: "richColors",
     type: "boolean",
-    desc: "Use the semantic --sapa-* colors instead of the neutral surface.",
+    desc: 'Deprecated alias for variant: "outline".',
   },
   {
     name: "icon",
@@ -266,9 +290,19 @@ const TOASTER_PROPS: { name: string; type: string; desc: string }[] = [
     desc: 'Default position for toasts that don\'t set their own (default "bottom-right").',
   },
   {
+    name: "variant",
+    type: "ToastVariant",
+    desc: 'Default visual treatment for every toast (default "default").',
+  },
+  {
+    name: "size",
+    type: "ToastSize",
+    desc: 'Default size for every toast (default "default").',
+  },
+  {
     name: "richColors",
     type: "boolean",
-    desc: "Apply the semantic colors to every toast by default (default false).",
+    desc: 'Deprecated alias for variant="outline" (default false).',
   },
   {
     name: "expand",

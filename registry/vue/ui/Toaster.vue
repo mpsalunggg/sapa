@@ -3,15 +3,32 @@ import { computed, reactive } from "vue";
 
 import { cn } from "@/lib/utils";
 import Toast from "./Toast.vue";
-import { toasts, type ToastData, type ToastPosition } from "./useToast";
+import {
+  toasts,
+  type ToastData,
+  type ToastPosition,
+  type ToastSize,
+  type ToastVariant,
+} from "./useToast";
 
 const props = withDefaults(
   defineProps<{
     position?: ToastPosition;
+    /** Default visual treatment for toasts that don't set their own. */
+    variant?: ToastVariant;
+    /** Default size for toasts that don't set their own. */
+    size?: ToastSize;
+    /** @deprecated Use `variant="outline"`. */
     richColors?: boolean;
     expand?: boolean;
   }>(),
-  { position: "bottom-right", richColors: false, expand: false },
+  {
+    position: "bottom-right",
+    variant: "default",
+    size: "default",
+    richColors: false,
+    expand: false,
+  },
 );
 
 const POSITION_CLASSES: Record<ToastPosition, string> = {
@@ -39,6 +56,13 @@ function registerHeight(id: string | number, h: number) {
 const h = (id: string | number) => heights[id] ?? 76;
 
 const groups = computed(() => {
+  // Toaster-level default; `richColors` is a deprecated alias for "outline".
+  const defaultVariant: ToastVariant =
+    props.variant !== "default"
+      ? props.variant
+      : props.richColors
+        ? "outline"
+        : "default";
   const map = new Map<ToastPosition, ToastData[]>();
   for (const t of toasts) {
     const pos = t.position ?? props.position;
@@ -46,7 +70,8 @@ const groups = computed(() => {
     map.get(pos)!.push({
       ...t,
       position: pos,
-      richColors: t.richColors ?? props.richColors,
+      variant: t.variant ?? (t.richColors ? "outline" : defaultVariant),
+      size: t.size ?? props.size,
     });
   }
   return [...map.entries()];

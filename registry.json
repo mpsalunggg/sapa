@@ -116,6 +116,30 @@
       ]
     },
     {
+      "name": "react/toast-variants",
+      "type": "registry:example",
+      "registryDependencies": ["react/toaster"],
+      "files": [
+        {
+          "path": "toast-variants.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-variants.tsx"
+        }
+      ]
+    },
+    {
+      "name": "react/toast-sizes",
+      "type": "registry:example",
+      "registryDependencies": ["react/toaster"],
+      "files": [
+        {
+          "path": "toast-sizes.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-sizes.tsx"
+        }
+      ]
+    },
+    {
       "name": "react/toast-description",
       "type": "registry:example",
       "registryDependencies": ["react/toaster"],
@@ -257,6 +281,30 @@
           "path": "ToastTypes.vue",
           "type": "registry:example",
           "src": "registry/vue/examples/ToastTypes.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-variants",
+      "type": "registry:example",
+      "registryDependencies": ["vue/toaster"],
+      "files": [
+        {
+          "path": "ToastVariants.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastVariants.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-sizes",
+      "type": "registry:example",
+      "registryDependencies": ["vue/toaster"],
+      "files": [
+        {
+          "path": "ToastSizes.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastSizes.vue"
         }
       ]
     },

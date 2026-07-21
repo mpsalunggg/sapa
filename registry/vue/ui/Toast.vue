@@ -17,7 +17,13 @@ import {
 } from "@lucide/vue";
 
 import { cn } from "@/lib/utils";
-import { dismiss, type ToastData, type ToastType } from "./useToast";
+import {
+  dismiss,
+  type ToastData,
+  type ToastSize,
+  type ToastType,
+  type ToastVariant,
+} from "./useToast";
 
 const props = withDefaults(
   defineProps<{
@@ -51,9 +57,9 @@ const ICONS: Record<ToastType, unknown> = {
   loading: Loader2,
 };
 
-// Colored "outline" treatment (richColors): tinted border + title + soft glow
+// Colored "outline" treatment: tinted border + title + soft glow
 // over a light surface — matches the pill reference design.
-const RICH_COLORS: Record<ToastType, string> = {
+const OUTLINE: Record<ToastType, string> = {
   default: "",
   success: "border-sapa-success/50 shadow-lg shadow-sapa-success/10",
   error: "border-sapa-error/50 shadow-lg shadow-sapa-error/10",
@@ -62,7 +68,57 @@ const RICH_COLORS: Record<ToastType, string> = {
   loading: "",
 };
 
-// Title text color when richColors is on.
+// Solid colored surface (high contrast). default/loading stay neutral.
+const FILLED: Record<ToastType, string> = {
+  default: "",
+  success:
+    "bg-sapa-success text-sapa-success-foreground border-transparent shadow-lg shadow-sapa-success/20",
+  error:
+    "bg-sapa-error text-sapa-error-foreground border-transparent shadow-lg shadow-sapa-error/20",
+  warning:
+    "bg-sapa-warning text-sapa-warning-foreground border-transparent shadow-lg shadow-sapa-warning/20",
+  info: "bg-sapa-info text-sapa-info-foreground border-transparent shadow-lg shadow-sapa-info/20",
+  loading: "",
+};
+
+// Neutral surface + thick colored left bar (minimalist), tighter radius.
+const ACCENT: Record<ToastType, string> = {
+  default: "border-l-4",
+  success: "border-l-4 border-l-sapa-success rounded-xl",
+  error: "border-l-4 border-l-sapa-error rounded-xl",
+  warning: "border-l-4 border-l-sapa-warning rounded-xl",
+  info: "border-l-4 border-l-sapa-info rounded-xl",
+  loading: "border-l-4 rounded-xl",
+};
+
+// Padding / gap per size (applied to the root <li>).
+const SIZE_ROOT: Record<ToastSize, string> = {
+  sm: "gap-2.5 p-3 pr-9",
+  default: "gap-3 p-4 pr-10",
+  lg: "gap-4 p-5 pr-12",
+};
+const SIZE_TITLE: Record<ToastSize, string> = {
+  sm: "text-xs",
+  default: "text-sm",
+  lg: "text-base",
+};
+const SIZE_DESC: Record<ToastSize, string> = {
+  sm: "text-xs",
+  default: "text-sm",
+  lg: "text-base",
+};
+const SIZE_CHIP: Record<ToastSize, string> = {
+  sm: "size-7",
+  default: "size-8",
+  lg: "size-10",
+};
+const SIZE_GLYPH: Record<ToastSize, string> = {
+  sm: "size-4",
+  default: "size-5",
+  lg: "size-6",
+};
+
+// Title text color when the outline variant is on.
 const RICH_TEXT: Record<ToastType, string> = {
   default: "",
   success: "text-sapa-success",
@@ -111,6 +167,34 @@ const progressValue = computed(() =>
   props.toast.progress == null
     ? null
     : Math.min(100, Math.max(0, props.toast.progress)),
+);
+
+// Effective variant — `richColors: true` is a deprecated alias for "outline".
+const variant = computed<ToastVariant>(
+  () => props.toast.variant ?? (props.toast.richColors ? "outline" : "default"),
+);
+const size = computed<ToastSize>(() => props.toast.size ?? "default");
+
+// Variant classes applied last on the root <li> (tailwind-merge lets them win).
+const variantClass = computed(() => {
+  const t = props.toast.type;
+  switch (variant.value) {
+    case "outline":
+      return OUTLINE[t];
+    case "filled":
+      return FILLED[t];
+    case "accent":
+      return ACCENT[t];
+    default:
+      return "";
+  }
+});
+
+// Icon chip: translucent on the filled surface, otherwise the solid colored chip.
+const chipClass = computed(() =>
+  variant.value === "filled"
+    ? "bg-white/20 text-current"
+    : CHIP[props.toast.type],
 );
 
 const duration = computed(() => props.toast.duration ?? 4000);
@@ -325,7 +409,8 @@ onBeforeUnmount(() => {
           : 'relative',
         compact ? 'items-center rounded-full' : 'items-start rounded-3xl',
         !dragging && 'cursor-grab active:cursor-grabbing',
-        toast.richColors && RICH_COLORS[toast.type],
+        SIZE_ROOT[size],
+        variantClass,
       )
     "
     @mouseenter="pause"
@@ -341,16 +426,18 @@ onBeforeUnmount(() => {
         v-if="iconComp"
         :class="
           cn(
-            'flex size-8 shrink-0 items-center justify-center rounded-full',
+            'flex shrink-0 items-center justify-center rounded-full',
+            SIZE_CHIP[size],
             !compact && 'mt-0.5',
-            CHIP[toast.type],
+            chipClass,
           )
         "
       >
         <component
           :is="iconComp"
-          class="size-5"
-          :class="toast.type === 'loading' && 'animate-spin'"
+          :class="
+            cn(SIZE_GLYPH[size], toast.type === 'loading' && 'animate-spin')
+          "
         />
       </span>
       <div class="flex-1 space-y-1">
@@ -358,14 +445,18 @@ onBeforeUnmount(() => {
           v-if="toast.title != null"
           :class="
             cn(
-              'text-sm font-semibold leading-tight',
-              toast.richColors && RICH_TEXT[toast.type],
+              'font-semibold leading-tight',
+              SIZE_TITLE[size],
+              variant === 'outline' && RICH_TEXT[toast.type],
             )
           "
         >
           {{ toast.title }}
         </div>
-        <div v-if="toast.description != null" class="text-sm opacity-90">
+        <div
+          v-if="toast.description != null"
+          :class="cn('opacity-90', SIZE_DESC[size])"
+        >
           {{ toast.description }}
         </div>
         <div

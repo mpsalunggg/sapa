@@ -64,7 +64,13 @@ import { toast } from "@/components/ui/sapa-toast/useToast";
 `toast.custom(node/component)` · `toast.dismiss(id?)`
 
 **Options:** `title`, `description`, `duration` (`Infinity` to persist), `position`,
-`richColors`, `action`, `cancel`, `icon`, `progress` (0–100).
+`variant` (`"default" | "outline" | "filled" | "accent"`), `size` (`"sm" | "default" | "lg"`),
+`action`, `cancel`, `icon`, `progress` (0–100).
+
+`variant` picks the visual treatment — `filled` (solid color), `outline` (tinted
+border/title), `accent` (colored left bar), or the neutral `default`. `richColors: true`
+is still accepted as a deprecated alias for `variant: "outline"`. Set defaults for every
+toast on the `<Toaster variant="…" size="…" />`.
 
 ## Repository layout
 

@@ -3,6 +3,10 @@ import type { ReactNode } from "react";
 export type ToastType =
   "default" | "success" | "error" | "warning" | "info" | "loading";
 
+export type ToastVariant = "default" | "outline" | "filled" | "accent";
+
+export type ToastSize = "sm" | "default" | "lg";
+
 export type ToastPosition =
   | "top-left"
   | "top-center"
@@ -25,7 +29,11 @@ export interface ToastOptions {
   duration?: number;
   position?: ToastPosition;
   icon?: ReactNode;
-  /** Use the semantic --sapa-* colors instead of the neutral surface. */
+  /** Visual treatment. Defaults to "default" (neutral surface). */
+  variant?: ToastVariant;
+  /** Toast size. Defaults to "default". */
+  size?: ToastSize;
+  /** @deprecated Use `variant: "outline"`. Kept as an alias for backward compat. */
   richColors?: boolean;
   action?: ToastAction;
   cancel?: ToastAction;
