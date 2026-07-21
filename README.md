@@ -95,3 +95,7 @@ pnpm dev            # Next.js showcase → http://localhost:3000  (auto-runs reg
 pnpm sandbox        # Vue sandbox      → http://localhost:5174
 pnpm registry:build # regenerate apps/registry/public/r/*.json
 ```
+
+## License
+
+MIT © Muhamad Putra Satria
