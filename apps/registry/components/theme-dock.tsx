@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 import { useThemeOverrides } from "@/app/providers";
 import { ThemeCustomizer } from "@/components/theme-customizer";
 
-/** Global floating "live theme" editor. A palette button (bottom-left, clear of
- *  the bottom-right toaster) opens a popover that drives the rich-color tokens
- *  for every real toast on the page. */
+/** Global floating "live theme" editor. A palette button pinned to the
+ *  center-right of the viewport opens a popover that drives the rich-color
+ *  tokens for every real toast on the page. The palette icon itself carries a
+ *  red → green → blue gradient stroke (sapa error / success / info tokens). */
 export function ThemeDock() {
   const { overrides, setOverrides } = useThemeOverrides();
   const [open, setOpen] = useState(false);
@@ -35,12 +36,23 @@ export function ThemeDock() {
   }, [open]);
 
   return (
-    <div ref={rootRef} className="fixed bottom-4 right-4 z-40">
+    <div ref={rootRef} className="fixed right-4 top-1/2 z-40 -translate-y-1/2">
+      {/* Hidden defs: red → green → blue gradient for the palette icon stroke. */}
+      <svg aria-hidden="true" width="0" height="0" className="absolute">
+        <defs>
+          <linearGradient id="sapa-rgb-icon" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="var(--sapa-error)" />
+            <stop offset="50%" stopColor="var(--sapa-success)" />
+            <stop offset="100%" stopColor="var(--sapa-info)" />
+          </linearGradient>
+        </defs>
+      </svg>
+
       {open && (
         <div
           role="dialog"
           aria-label="Live theme editor"
-          className="bg-popover/95 text-popover-foreground animate-in fade-in slide-in-from-bottom-2 absolute bottom-12 right-0 w-72 rounded-xl border shadow-xl backdrop-blur duration-200"
+          className="bg-popover/95 text-popover-foreground animate-in fade-in slide-in-from-right-2 absolute right-12 top-1/2 w-72 -translate-y-1/2 rounded-xl border shadow-xl backdrop-blur duration-200"
         >
           <div className="flex items-center justify-between border-b px-3 py-2">
             <span className="font-display text-sm font-semibold">
@@ -72,15 +84,13 @@ export function ThemeDock() {
         className={cn(
           "bg-background group inline-flex size-10 items-center justify-center rounded-full border shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl",
           open
-            ? "border-sapa-warning/40 bg-linear-to-br from-sapa-warning/15 to-sapa-error/10"
-            : "text-muted-foreground hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground",
+            ? "border-sapa-info/40 bg-linear-to-br from-sapa-error/15 via-sapa-success/15 to-sapa-info/15"
+            : "hover:border-sapa-info/40 hover:bg-linear-to-br hover:from-sapa-error/15 hover:via-sapa-success/15 hover:to-sapa-info/15",
         )}
       >
         <Palette
-          className={cn(
-            "size-4 transition-colors",
-            open ? "text-sapa-error" : "group-hover:text-sapa-warning",
-          )}
+          className="size-4 transition-transform group-hover:scale-110"
+          style={{ stroke: "url(#sapa-rgb-icon)" }}
         />
       </button>
     </div>
