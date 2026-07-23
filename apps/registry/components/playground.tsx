@@ -13,7 +13,9 @@ import {
 import { cn } from "@/lib/utils";
 import {
   buildReactFiles,
+  buildVueFiles,
   REACT_DEPENDENCIES,
+  VUE_DEPENDENCIES,
   type RegistryFile,
 } from "@/lib/playground-files";
 import { GradientLoader } from "@/components/gradient-loader";
@@ -73,19 +75,25 @@ interface Variant {
   description: string;
 }
 
+type Framework = "react" | "vue";
+
 export interface PlaygroundProps {
   variants: Variant[];
   /** variant key → example source (react/toast-<key>). */
   examples: Record<string, string>;
   toasterFiles: RegistryFile[];
   utilsFiles: RegistryFile[];
+  /** variant key → example source (vue/toast-<key>). */
+  vueExamples: Record<string, string>;
+  vueToasterFiles: RegistryFile[];
+  vueUtilsFiles: RegistryFile[];
   /** Precompiled preview CSS (public/toast-preview.css). */
   previewCss: string;
 }
 
 const FRAMEWORKS = [
-  { key: "react", label: "React", disabled: false },
-  { key: "vue", label: "Vue", disabled: true },
+  { key: "react", label: "React" },
+  { key: "vue", label: "Vue" },
 ] as const;
 
 export function Playground({
@@ -93,30 +101,53 @@ export function Playground({
   examples,
   toasterFiles,
   utilsFiles,
+  vueExamples,
+  vueToasterFiles,
+  vueUtilsFiles,
   previewCss,
 }: PlaygroundProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const [active, setActive] = useState(variants[0]?.key ?? "default");
   const [layout, setLayout] = useState<"stack" | "list">("stack");
+  const [framework, setFramework] = useState<Framework>("react");
   const { overrides } = useThemeOverrides();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isDarkRef = useRef(isDark);
   isDarkRef.current = isDark;
 
-  const built = useMemo(
-    () =>
-      buildReactFiles({
-        example: examples[active] ?? "",
-        toasterFiles,
-        utilsFiles,
-        previewCss,
-        isDark: isDarkRef.current,
-        expand: layout === "list",
-      }),
-    [active, examples, toasterFiles, utilsFiles, previewCss, layout],
-  );
+  const built = useMemo(() => {
+    const expand = layout === "list";
+    return framework === "vue"
+      ? buildVueFiles({
+          example: vueExamples[active] ?? "",
+          toasterFiles: vueToasterFiles,
+          utilsFiles: vueUtilsFiles,
+          previewCss,
+          isDark: isDarkRef.current,
+          expand,
+        })
+      : buildReactFiles({
+          example: examples[active] ?? "",
+          toasterFiles,
+          utilsFiles,
+          previewCss,
+          isDark: isDarkRef.current,
+          expand,
+        });
+  }, [
+    framework,
+    active,
+    examples,
+    toasterFiles,
+    utilsFiles,
+    vueExamples,
+    vueToasterFiles,
+    vueUtilsFiles,
+    previewCss,
+    layout,
+  ]);
 
   // Keep the preview iframe's `.dark` class and the customizer's rich-color
   // overrides in sync via postMessage — no file rebuild, so edits survive the
@@ -136,12 +167,12 @@ export function Playground({
     post();
     const t = window.setTimeout(post, 500); // in case the iframe wasn't ready yet
     return () => window.clearTimeout(t);
-  }, [isDark, active, layout, overrides]);
+  }, [isDark, active, layout, framework, overrides]);
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
       <aside className="lg:w-56 lg:shrink-0">
-        {/* Framework switch — React active, Vue "coming soon" */}
+        {/* Framework switch — React / Vue */}
         <p className="font-display text-muted-foreground mb-2 px-3 text-[0.95rem] italic">
           Framework
         </p>
@@ -150,20 +181,15 @@ export function Playground({
             <button
               key={f.key}
               type="button"
-              disabled={f.disabled}
+              onClick={() => setFramework(f.key)}
               className={cn(
                 "inline-flex items-center gap-1 rounded px-2.5 py-1 font-medium transition-colors",
-                f.disabled
-                  ? "text-muted-foreground/50 cursor-not-allowed"
-                  : "bg-linear-to-br from-sapa-warning to-sapa-error text-white shadow-sm",
+                framework === f.key
+                  ? "bg-linear-to-br from-sapa-warning to-sapa-error text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {f.label}
-              {f.disabled && (
-                <span className="bg-linear-to-br from-sapa-warning to-sapa-error rounded-sm px-1 py-0.5 text-[9px] font-semibold uppercase leading-none text-white">
-                  Soon
-                </span>
-              )}
             </button>
           ))}
         </div>
@@ -222,15 +248,18 @@ export function Playground({
 
       <div ref={containerRef} className="min-w-0 flex-1">
         <SandpackProvider
-          key={`${active}-${layout}`}
-          template="react-ts"
+          key={`${framework}-${active}-${layout}`}
+          template={framework === "vue" ? "vue-ts" : "react-ts"}
           theme={isDark ? "dark" : "light"}
           files={built.files}
           options={{
             activeFile: built.activeFile,
             visibleFiles: built.visibleFiles,
           }}
-          customSetup={{ dependencies: REACT_DEPENDENCIES }}
+          customSetup={{
+            dependencies:
+              framework === "vue" ? VUE_DEPENDENCIES : REACT_DEPENDENCIES,
+          }}
         >
           <EditorArea />
         </SandpackProvider>

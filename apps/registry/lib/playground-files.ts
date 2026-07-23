@@ -25,6 +25,16 @@ function rewriteImports(src: string): string {
     .replace(/^\n+/, "");
 }
 
+/** Vue counterpart of {@link rewriteImports}: map the `@/…` aliases the Vue
+ *  sources use to the sibling paths inside the `/src` sandbox tree. The
+ *  `./Toast.vue` / `./useToast` specifiers inside the toaster are already
+ *  relative, so they need no rewriting. */
+function rewriteVueImports(src: string): string {
+  return src
+    .replaceAll("@/components/ui/sapa-toast/useToast", "./useToast")
+    .replaceAll("@/lib/utils", "./utils");
+}
+
 function appTsx(expand: boolean): string {
   return `import { Toaster } from "./toaster";
 import Example from "./Example";
@@ -122,5 +132,92 @@ export function buildReactFiles({
     },
     activeFile: "/Example.tsx",
     visibleFiles: ["/Example.tsx"],
+  };
+}
+
+/* ---------------------------------------------------------------------------
+ * Vue playground
+ *
+ * Sandpack's `vue-ts` template is a Vite app: the entry is `/src/main.ts`
+ * (`createApp(App).mount("#app")`, importing `./styles.css`), the root is
+ * `/src/App.vue`, and a bundled `vite.config.ts` already registers
+ * `@vitejs/plugin-vue`. So every file we inject lives under `/src`.
+ * ------------------------------------------------------------------------- */
+
+function appVue(expand: boolean): string {
+  return `<script setup lang="ts">
+import Toaster from "./Toaster.vue";
+import Example from "./Example.vue";
+</script>
+
+<template>
+  <div class="grid min-h-screen place-items-center p-6">
+    <Example />
+    <Toaster position="bottom-right"${expand ? " expand" : ""} />
+  </div>
+</template>
+`;
+}
+
+/** Bundled entry: applies the initial theme and listens for the live theme
+ *  changes posted by the parent (playground.tsx) — the same message protocol
+ *  as the React entry — then mounts <App/>. */
+function mainTs(isDark: boolean): string {
+  return `import { createApp } from "vue";
+import App from "./App.vue";
+import "./styles.css";
+
+document.documentElement.classList.toggle("dark", ${isDark ? "true" : "false"});
+window.addEventListener("message", (e) => {
+  if (e && e.data && e.data.__sapaTheme) {
+    document.documentElement.classList.toggle("dark", !!e.data.dark);
+    if (e.data.vars) {
+      for (const name in e.data.vars) {
+        document.documentElement.style.setProperty(name, e.data.vars[name]);
+      }
+    }
+  }
+});
+
+createApp(App).mount("#app");
+`;
+}
+
+export const VUE_DEPENDENCIES: Record<string, string> = {
+  "@lucide/vue": "latest",
+  clsx: "latest",
+  "tailwind-merge": "latest",
+};
+
+/** Assemble the Sandpack file map for the Vue playground. */
+export function buildVueFiles({
+  example,
+  toasterFiles,
+  utilsFiles,
+  previewCss,
+  isDark,
+  expand,
+}: BuildInput): PlaygroundFiles {
+  const lib: PlaygroundFiles["files"] = {};
+  for (const f of [...toasterFiles, ...utilsFiles]) {
+    // Built paths are like "sapa-toast/useToast.ts" / "utils.ts" → sit them
+    // next to the entry under /src as flat basenames.
+    const name = f.path.split("/").pop() as string;
+    lib[`/src/${name}`] = {
+      code: rewriteVueImports(f.content),
+      readOnly: true,
+    };
+  }
+
+  return {
+    files: {
+      "/src/main.ts": { code: mainTs(isDark), readOnly: true },
+      "/src/App.vue": { code: appVue(expand), readOnly: true },
+      "/src/Example.vue": { code: rewriteVueImports(example), active: true },
+      "/src/styles.css": { code: previewCss, readOnly: true },
+      ...lib,
+    },
+    activeFile: "/src/Example.vue",
+    visibleFiles: ["/src/Example.vue"],
   };
 }

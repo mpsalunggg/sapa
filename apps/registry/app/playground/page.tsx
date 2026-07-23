@@ -67,17 +67,28 @@ const VARIANTS = [
 ] as const;
 
 export default async function PlaygroundPage() {
-  const entries = await Promise.all(
-    VARIANTS.map(
-      async (v) => [v.key, await getSource(`react/toast-${v.key}`)] as const,
+  const [entries, vueEntries] = await Promise.all([
+    Promise.all(
+      VARIANTS.map(
+        async (v) => [v.key, await getSource(`react/toast-${v.key}`)] as const,
+      ),
     ),
-  );
-  const examples = Object.fromEntries(entries);
-  const [toasterFiles, utilsFiles, previewCss] = await Promise.all([
-    getItemFiles("react/toaster"),
-    getItemFiles("react/utils"),
-    getPreviewCss(),
+    Promise.all(
+      VARIANTS.map(
+        async (v) => [v.key, await getSource(`vue/toast-${v.key}`)] as const,
+      ),
+    ),
   ]);
+  const examples = Object.fromEntries(entries);
+  const vueExamples = Object.fromEntries(vueEntries);
+  const [toasterFiles, utilsFiles, vueToasterFiles, vueUtilsFiles, previewCss] =
+    await Promise.all([
+      getItemFiles("react/toaster"),
+      getItemFiles("react/utils"),
+      getItemFiles("vue/toaster"),
+      getItemFiles("vue/utils"),
+      getPreviewCss(),
+    ]);
 
   return (
     <div className="relative overflow-hidden">
@@ -130,6 +141,9 @@ export default async function PlaygroundPage() {
           examples={examples}
           toasterFiles={toasterFiles}
           utilsFiles={utilsFiles}
+          vueExamples={vueExamples}
+          vueToasterFiles={vueToasterFiles}
+          vueUtilsFiles={vueUtilsFiles}
           previewCss={previewCss}
         />
 

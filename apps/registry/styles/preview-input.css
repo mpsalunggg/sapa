@@ -5,6 +5,8 @@
 /* Scan the real toast sources so every utility they use is generated. */
 @source "../../../registry/react/ui";
 @source "../../../registry/react/examples";
+@source "../../../registry/vue/ui";
+@source "../../../registry/vue/examples";
 /* Classes only present in the generated sandbox App wrapper. */
 @source inline("grid min-h-screen place-items-center p-6");
 
