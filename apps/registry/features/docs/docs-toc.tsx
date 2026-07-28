@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
-import { FrameworkSwitch } from "@/components/framework-context";
+import { FrameworkSwitch } from "@/shared/framework/framework-context";
 
 export interface TocItem {
   key: string;

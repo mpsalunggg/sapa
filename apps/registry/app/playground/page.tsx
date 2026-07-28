@@ -6,10 +6,10 @@ import {
   getSource,
   getItemFiles,
   getPreviewCss,
-} from "@/lib/registry";
-import { Playground } from "@/components/playground";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { HeroWaves } from "@/components/hero-waves";
+} from "@/shared/lib/registry";
+import { Playground } from "@/features/playground/playground";
+import { ThemeToggle } from "@/shared/components/theme-toggle";
+import { HeroWaves } from "@/shared/components/hero-waves";
 
 export const metadata = {
   title: "Sapa — Playground",

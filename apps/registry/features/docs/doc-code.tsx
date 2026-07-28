@@ -1,8 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { CopyButton } from "@/components/copy-button";
-import { FrameworkTabs } from "@/components/framework-tabs";
+import { CopyButton } from "@/shared/components/copy-button";
+import { FrameworkTabs } from "@/shared/framework/framework-tabs";
 
 function Code({
   code,

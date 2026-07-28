@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Fraunces, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 
 import "./globals.css";
-import { SapaToaster } from "@/components/sapa-toaster";
-import { ThemeDock } from "@/components/theme-dock";
+import { SapaToaster } from "@/features/toast/sapa-toaster";
+import { ThemeDock } from "@/features/theming/theme-dock";
 import { Providers } from "./providers";
 
 const fontSans = Plus_Jakarta_Sans({

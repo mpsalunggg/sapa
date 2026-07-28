@@ -1,6 +1,6 @@
 "use client";
 
-import { useFramework } from "@/components/framework-context";
+import { useFramework } from "@/shared/framework/framework-context";
 
 export function FrameworkTabs({
   react,

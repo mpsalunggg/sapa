@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
-import { CopyButton } from "@/components/copy-button";
-import { FrameworkTabs } from "@/components/framework-tabs";
+import { CopyButton } from "@/shared/components/copy-button";
+import { FrameworkTabs } from "@/shared/framework/framework-tabs";
 
 function Code({ code, html }: { code: string; html: string }) {
   const [open, setOpen] = useState(false);

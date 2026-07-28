@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { BookOpen, Github, Play } from "lucide-react";
 
-import { BASE_URL, itemUrl } from "@/lib/registry";
-import { InstallCommand } from "@/components/install-command";
+import { BASE_URL, itemUrl } from "@/shared/lib/registry";
+import { InstallCommand } from "@/shared/components/install-command";
 import {
   FrameworkProvider,
   FrameworkSwitch,
-} from "@/components/framework-context";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { ReactLogo, VueLogo } from "@/components/logos";
-import { HeroToastPreview } from "@/components/hero-toast-preview";
-import { HeroWaves } from "@/components/hero-waves";
-import { TryToasts } from "@/components/try-toasts";
+} from "@/shared/framework/framework-context";
+import { ThemeToggle } from "@/shared/components/theme-toggle";
+import { ReactLogo, VueLogo } from "@/features/landing/logos";
+import { HeroToastPreview } from "@/features/landing/hero-toast-preview";
+import { HeroWaves } from "@/shared/components/hero-waves";
+import { TryToasts } from "@/features/landing/try-toasts";
 
 export default function Home() {
   return (

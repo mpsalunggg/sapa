@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { ArrowLeft, Github, Play } from "lucide-react";
 
-import { BASE_URL, getSource, itemUrl } from "@/lib/registry";
-import { highlight } from "@/lib/highlight";
-import { FrameworkProvider } from "@/components/framework-context";
-import { InstallCommand } from "@/components/install-command";
-import { CodeTabs } from "@/components/code-tabs";
-import { DocCode } from "@/components/doc-code";
-import { CopyButton } from "@/components/copy-button";
-import { DocsToc, type TocGroup } from "@/components/docs-toc";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { HeroWaves } from "@/components/hero-waves";
-import { ToastLayoutToggle } from "@/components/toast-layout-toggle";
+import { BASE_URL, getSource, itemUrl } from "@/shared/lib/registry";
+import { highlight } from "@/features/docs/highlight";
+import { FrameworkProvider } from "@/shared/framework/framework-context";
+import { InstallCommand } from "@/shared/components/install-command";
+import { CodeTabs } from "@/features/docs/code-tabs";
+import { DocCode } from "@/features/docs/doc-code";
+import { CopyButton } from "@/shared/components/copy-button";
+import { DocsToc, type TocGroup } from "@/features/docs/docs-toc";
+import { ThemeToggle } from "@/shared/components/theme-toggle";
+import { HeroWaves } from "@/shared/components/hero-waves";
+import { ToastLayoutToggle } from "@/features/toast/toast-layout-toggle";
 
 import ToastDefault from "@/registry/react/examples/toast-default";
 import ToastTypes from "@/registry/react/examples/toast-types";

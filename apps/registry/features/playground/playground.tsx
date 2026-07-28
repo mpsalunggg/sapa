@@ -17,9 +17,9 @@ import {
   REACT_DEPENDENCIES,
   VUE_DEPENDENCIES,
   type RegistryFile,
-} from "@/lib/playground-files";
-import { GradientLoader } from "@/components/gradient-loader";
-import { resolveVars } from "@/components/theme-customizer";
+} from "@/features/playground/playground-files";
+import { GradientLoader } from "@/features/playground/gradient-loader";
+import { resolveVars } from "@/features/theming/theme-customizer";
 import { useThemeOverrides } from "@/app/providers";
 
 /** The editor + preview, with a gradient loading overlay until the Sandpack

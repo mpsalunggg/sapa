@@ -1,7 +1,7 @@
 "use client";
 
-import { CopyButton } from "@/components/copy-button";
-import { FrameworkTabs } from "@/components/framework-tabs";
+import { CopyButton } from "@/shared/components/copy-button";
+import { FrameworkTabs } from "@/shared/framework/framework-tabs";
 
 function Command({ cmd }: { cmd: string }) {
   return (

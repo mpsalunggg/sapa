@@ -8,7 +8,7 @@ import {
   SAPA_DEFAULTS,
   type ThemeMode,
   type TokenOverrides,
-} from "@/components/theme-customizer";
+} from "@/features/theming/theme-customizer";
 
 export type ToastLayout = "stack" | "list";
 

@@ -5,8 +5,8 @@ import { useTheme } from "next-themes";
 import { RotateCcw } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { hexToOklch, oklchToHex } from "@/lib/color";
-import { CopyButton } from "@/components/copy-button";
+import { hexToOklch, oklchToHex } from "@/features/theming/color";
+import { CopyButton } from "@/shared/components/copy-button";
 
 export type ThemeMode = "light" | "dark";
 
