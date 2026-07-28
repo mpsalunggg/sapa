@@ -1,128 +1,141 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Check, CircleAlert, Info, TriangleAlert, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const POOL = [
+import { Toast } from "@/components/ui/sapa-toast/toast";
+import type { ToastData } from "@/components/ui/sapa-toast/toast-store";
+import { cn } from "@/lib/utils";
+
+/** The hero pile renders the *real* <Toast>, so what visitors see is exactly
+ *  what `shadcn add` gives them. Four cards, picked so that all four variants,
+ *  both silhouettes (pill vs card) and every content feature appear once.
+ *
+ *  Two constraints worth keeping if you edit this list:
+ *  - `id` must be a string. The store hands real toasts incrementing *numbers*,
+ *    and closing a card calls toastStore.dismiss(id) — a string id can never
+ *    collide with a live toast.
+ *  - `createdAt` must be a constant, never Date.now(), or the server and client
+ *    render different values and hydration mismatches. Nothing reads it.
+ *  `duration: Infinity` keeps every card put: it skips the auto-dismiss timer
+ *  and suppresses the thin timer bar along the bottom edge. */
+const HERO_TOASTS: ToastData[] = [
   {
-    Icon: Check,
-    label: "Operation successful!",
-    chip: "bg-sapa-success",
-    text: "text-sapa-success",
-    ring: "border-sapa-success/50 shadow-sapa-success/10",
+    id: "hero-deploy",
+    type: "success",
+    variant: "filled",
+    size: "sm",
+    title: "Deployed to production",
+    duration: Infinity,
+    createdAt: 0,
   },
   {
-    Icon: Info,
-    label: "Execute the operation",
-    chip: "bg-sapa-info",
-    text: "text-sapa-info",
-    ring: "border-sapa-info/50 shadow-sapa-info/10",
+    id: "hero-storage",
+    type: "warning",
+    variant: "outline",
+    size: "sm",
+    title: "Storage almost full",
+    duration: Infinity,
+    createdAt: 0,
   },
   {
-    Icon: TriangleAlert,
-    label: "Operation in progress",
-    chip: "bg-sapa-warning",
-    text: "text-sapa-warning",
-    ring: "border-sapa-warning/50 shadow-sapa-warning/10",
+    id: "hero-build",
+    type: "error",
+    variant: "accent",
+    title: "Build failed",
+    description: "3 type errors in toast.tsx",
+    action: { label: "Retry" },
+    cancel: { label: "Dismiss" },
+    duration: Infinity,
+    createdAt: 0,
   },
   {
-    Icon: CircleAlert,
-    label: "Operation unsuccessful",
-    chip: "bg-sapa-error",
-    text: "text-sapa-error",
-    ring: "border-sapa-error/50 shadow-sapa-error/10",
+    id: "hero-upload",
+    type: "loading",
+    title: "Uploading assets…",
+    description: "sapa-toast.tar.gz — 4.2 MB",
+    progress: 62,
+    duration: Infinity,
+    createdAt: 0,
   },
-  {
-    Icon: Info,
-    label: "Copied to clipboard",
-    chip: "bg-sapa-info",
-    text: "text-sapa-info",
-    ring: "border-sapa-info/50 shadow-sapa-info/10",
-  },
-  {
-    Icon: Check,
-    label: "Halo 👋 from Sapa",
-    chip: "bg-sapa-success",
-    text: "text-sapa-success",
-    ring: "border-sapa-success/50 shadow-sapa-success/10",
-  },
+];
+
+/** Ambient haze behind the pile, cycling through the four rich-color tokens. */
+const GLOW = [
+  "bg-sapa-success",
+  "bg-sapa-info",
+  "bg-sapa-warning",
+  "bg-sapa-error",
 ] as const;
 
-// Sonner-style pile: collapsed cards peek 14px above the front card with a
-// shrinking scale; hovering the group expands them into a flat list.
-const STACK = [
-  "z-40",
-  "z-30 -translate-y-[14px] scale-95 group-hover:-translate-y-[56px] group-hover:scale-100",
-  "z-20 -translate-y-[28px] scale-90 group-hover:-translate-y-[112px] group-hover:scale-100",
-  "z-10 -translate-y-[42px] scale-[.85] group-hover:-translate-y-[168px] group-hover:scale-100",
-] as const;
-
-const MAX_VISIBLE = STACK.length;
-const ARRIVAL_MS = 2500;
-
-interface StackToast {
-  uid: number;
-  pool: number;
-}
-
-// Seeded with the first four pool entries so SSR/first paint shows a full pile.
-const SEED: StackToast[] = [0, 1, 2, 3].map((i) => ({ uid: i, pool: i }));
+const GLOW_MS = 3000;
+/** Grace period before a dismissed card comes back. */
+const RESPAWN_MS = 600;
 
 export function HeroToastPreview() {
-  const [toasts, setToasts] = useState<StackToast[]>(SEED);
+  // Bumping a card's nonce changes its React key, which remounts it — that's how
+  // a card the visitor swiped away re-enters with the component's own pop-in.
+  const [nonces, setNonces] = useState<Record<string, number>>({});
+  const [glow, setGlow] = useState(0);
   const hovered = useRef(false);
-  const nextUid = useRef(SEED.length);
+  const timers = useRef<number[]>([]);
+
+  const respawn = useCallback((id: string) => {
+    const t = window.setTimeout(() => {
+      setNonces((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }));
+    }, RESPAWN_MS);
+    timers.current.push(t);
+  }, []);
+
+  useEffect(
+    () => () => {
+      for (const t of timers.current) window.clearTimeout(t);
+    },
+    [],
+  );
 
   useEffect(() => {
-    // Ambient loop only — keep the pile static for reduced-motion users.
+    // Ambient loop only — hold a single colour for reduced-motion users.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const timer = window.setInterval(() => {
       if (hovered.current || document.hidden) return;
-      setToasts((prev) => {
-        const uid = nextUid.current++;
-        return [{ uid, pool: uid % POOL.length }, ...prev].slice(
-          0,
-          MAX_VISIBLE,
-        );
-      });
-    }, ARRIVAL_MS);
+      setGlow((i) => (i + 1) % GLOW.length);
+    }, GLOW_MS);
     return () => window.clearInterval(timer);
   }, []);
 
+  // Stable identities so <Toast> doesn't re-arm its internals every render.
+  const toasts = useMemo(
+    () =>
+      HERO_TOASTS.map((t) => ({
+        ...t,
+        onAutoClose: () => respawn(String(t.id)),
+      })),
+    [respawn],
+  );
+
   return (
-    <div className="mx-auto w-full max-w-xs lg:ml-auto lg:mr-0">
+    <div className="mx-auto w-full max-w-sm lg:ml-auto lg:mr-0">
       <div
         onMouseEnter={() => (hovered.current = true)}
         onMouseLeave={() => (hovered.current = false)}
-        className="group relative h-[88px] transition-[height] duration-300 ease-out hover:h-[214px]"
+        className="relative"
       >
-        {toasts.map(({ uid, pool }, i) => {
-          const { Icon, label, chip, text, ring } = POOL[pool];
-          return (
-            <div
-              key={uid}
-              // Stagger the entrance only for the seeded cards; live arrivals pop in right away.
-              style={{
-                animationDelay: uid < SEED.length ? `${i * 90}ms` : "0ms",
-              }}
-              className={`bg-popover/95 animate-in fade-in slide-in-from-bottom-3 fill-mode-both absolute inset-x-0 bottom-0 flex items-center gap-2.5 rounded-full border p-2 pr-3.5 shadow-lg shadow-black/5 backdrop-blur transition-[translate,scale] duration-300 ease-out ${STACK[i]} ${ring}`}
-            >
-              <span
-                className={`flex size-7 shrink-0 items-center justify-center rounded-full text-white ${chip}`}
-              >
-                <Icon className="size-4" strokeWidth={2.5} />
-              </span>
-              <span className={`truncate text-[13px] font-semibold ${text}`}>
-                {label}
-              </span>
-              <X className="text-muted-foreground/60 ml-auto size-3.5 shrink-0" />
-            </div>
-          );
-        })}
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute -inset-6 rounded-[3rem] opacity-25 blur-3xl transition-colors duration-1000",
+            GLOW[glow],
+          )}
+        />
+        <ol className="relative flex flex-col gap-3">
+          {toasts.map((t) => (
+            <Toast key={`${t.id}-${nonces[String(t.id)] ?? 0}`} toast={t} />
+          ))}
+        </ol>
       </div>
-      <p className="font-display text-muted-foreground mt-4 text-center text-sm italic">
-        hover the stack — it expands
+      <p className="font-display text-muted-foreground mt-6 text-center text-sm italic">
+        swipe one away — it&rsquo;s the real component
       </p>
     </div>
   );
