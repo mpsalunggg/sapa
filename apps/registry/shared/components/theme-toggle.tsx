@@ -4,6 +4,9 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
+import { cn } from "@/lib/utils";
+import { chromeSurface } from "@/shared/components/link-button";
+
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -16,7 +19,7 @@ export function ThemeToggle() {
       type="button"
       aria-label="Toggle theme"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="bg-background text-muted-foreground hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 group inline-flex size-9 items-center justify-center rounded-md border shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
+      className={cn(chromeSurface, "text-muted-foreground size-9")}
     >
       {mounted && isDark ? (
         <Sun className="group-hover:text-sapa-warning size-4 transition-colors" />

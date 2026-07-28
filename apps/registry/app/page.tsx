@@ -1,10 +1,17 @@
-import Link from "next/link";
 import { BookOpen, Github, Play } from "lucide-react";
 
 import { BASE_URL, itemUrl } from "@/shared/lib/registry";
+import { GITHUB_URL } from "@/shared/lib/site";
 import { InstallCommand } from "@/shared/components/install-command";
 import { FrameworkProvider } from "@/shared/framework/framework-context";
 import { FrameworkSwitch } from "@/shared/framework/framework-switch";
+import { GradientDot } from "@/shared/components/gradient-dot";
+import {
+  GradientLinkButton,
+  IconLinkButton,
+  NavLinkButton,
+} from "@/shared/components/link-button";
+import { SiteFooter } from "@/shared/components/site-footer";
 import { ThemeToggle } from "@/shared/components/theme-toggle";
 import { ReactLogo, VueLogo } from "@/features/landing/logos";
 import { HeroToastPreview } from "@/features/landing/hero-toast-preview";
@@ -22,32 +29,20 @@ export default function Home() {
           <header className="mb-12 flex items-center justify-between">
             <span className="font-display rounded-xl text-3xl font-semibold tracking-tight">
               Sapa
-              <span className="bg-linear-to-br from-sapa-warning to-sapa-error bg-clip-text text-transparent">
-                .
-              </span>
+              <GradientDot />
             </span>
             <div className="flex items-center gap-2">
-              <Link
-                href="/docs"
-                className="bg-background text-muted-foreground hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground group inline-flex h-9 items-center gap-1.5 rounded-md border px-3.5 text-sm font-medium shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
-              >
+              <NavLinkButton href="/docs">
                 <BookOpen className="size-3.5" />
                 Docs
-              </Link>
-              <Link
-                href="/playground"
-                className="bg-linear-to-br from-sapa-warning via-sapa-error to-sapa-info bg-size-[200%_200%] shadow-sapa-error/25 hover:shadow-sapa-error/40 group inline-flex h-9 items-center gap-1.5 rounded-md bg-left px-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-right hover:shadow-xl"
-              >
+              </NavLinkButton>
+              <GradientLinkButton href="/playground">
                 <Play className="size-3.5" />
                 Playground
-              </Link>
-              <a
-                href="https://github.com/mpsalunggg/sapa"
-                className="bg-background text-muted-foreground hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground group inline-flex size-9 items-center justify-center rounded-md border shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
-                aria-label="GitHub"
-              >
+              </GradientLinkButton>
+              <IconLinkButton href={GITHUB_URL} external label="GitHub">
                 <Github className="size-4" />
-              </a>
+              </IconLinkButton>
               <ThemeToggle />
             </div>
           </header>
@@ -103,10 +98,7 @@ export default function Home() {
             </div>
           </section>
 
-          <footer className="text-muted-foreground mt-8 border-t pt-6 text-sm">
-            Sapa · registry served from{" "}
-            <code className="text-xs">{BASE_URL}/r</code>
-          </footer>
+          <SiteFooter baseUrl={BASE_URL} className="mt-8" />
         </div>
       </div>
     </FrameworkProvider>

@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowLeft, Github, Play } from "lucide-react";
+import { Play } from "lucide-react";
 
 import { BASE_URL, getSource, itemUrl } from "@/shared/lib/registry";
 import { highlight } from "@/features/docs/highlight";
@@ -7,7 +6,9 @@ import { FrameworkProvider } from "@/shared/framework/framework-context";
 import { InstallCommand } from "@/shared/components/install-command";
 import { CodeFrame, FrameworkCodeFrame } from "@/features/docs/code-frame";
 import { DocsToc, type TocGroup } from "@/features/docs/docs-toc";
-import { ThemeToggle } from "@/shared/components/theme-toggle";
+import { GradientLinkButton } from "@/shared/components/link-button";
+import { SiteFooter } from "@/shared/components/site-footer";
+import { SiteHeader } from "@/shared/components/site-header";
 import { HeroWaves } from "@/shared/components/hero-waves";
 import { ToastLayoutToggle } from "@/features/toast/toast-layout-toggle";
 
@@ -451,45 +452,16 @@ export default async function DocsPage() {
         </div>
 
         <div className="relative z-10 mx-auto max-w-5xl px-4 py-8">
-          <header className="mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link
-                href="/"
-                className="bg-background text-muted-foreground hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground group inline-flex size-9 items-center justify-center rounded-md border shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
-                aria-label="Back to home"
-              >
-                <ArrowLeft className="size-4" />
-              </Link>
-              <div>
-                <h1 className="font-display text-2xl font-semibold tracking-tight">
-                  Documentation
-                  <span className="bg-linear-to-br from-sapa-warning to-sapa-error bg-clip-text text-transparent">
-                    .
-                  </span>
-                </h1>
-                <p className="text-muted-foreground text-xs">
-                  One API, both React and Vue. Copy, paste, own it.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/playground"
-                className="bg-linear-to-br from-sapa-warning via-sapa-error to-sapa-info bg-size-[200%_200%] shadow-sapa-error/25 hover:shadow-sapa-error/40 group inline-flex h-9 items-center gap-1.5 rounded-md bg-left px-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-right hover:shadow-xl"
-              >
+          <SiteHeader
+            title="Documentation"
+            subtitle="One API, both React and Vue. Copy, paste, own it."
+            actions={
+              <GradientLinkButton href="/playground">
                 <Play className="size-3.5" />
                 Playground
-              </Link>
-              <a
-                href="https://github.com/mpsalunggg/sapa"
-                className="bg-background text-muted-foreground hover:border-sapa-warning/40 hover:bg-linear-to-br hover:from-sapa-warning/15 hover:to-sapa-error/10 hover:text-foreground group inline-flex size-9 items-center justify-center rounded-md border shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
-                aria-label="GitHub"
-              >
-                <Github className="size-4" />
-              </a>
-              <ThemeToggle />
-            </div>
-          </header>
+              </GradientLinkButton>
+            }
+          />
 
           <div className="flex flex-col gap-8 lg:flex-row">
             <aside className="lg:w-52 lg:shrink-0">
@@ -682,10 +654,7 @@ export default async function DocsPage() {
             </main>
           </div>
 
-          <footer className="text-muted-foreground mt-16 border-t pt-6 text-sm">
-            Sapa · registry served from{" "}
-            <code className="text-xs">{BASE_URL}/r</code>
-          </footer>
+          <SiteFooter baseUrl={BASE_URL} />
         </div>
       </div>
     </FrameworkProvider>

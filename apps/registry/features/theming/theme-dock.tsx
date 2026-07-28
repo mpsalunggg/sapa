@@ -6,6 +6,7 @@ import { Palette, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeCustomizer } from "@/features/theming/theme-customizer";
 import { useThemeOverrides } from "@/features/theming/theme-overrides-context";
+import { GradientDot } from "@/shared/components/gradient-dot";
 
 /** Global floating "live theme" editor. A palette button pinned to the
  *  center-right of the viewport opens a popover that drives the rich-color
@@ -57,9 +58,7 @@ export function ThemeDock() {
           <div className="flex items-center justify-between border-b px-3 py-2">
             <span className="font-display text-sm font-semibold">
               Live theme
-              <span className="bg-linear-to-br from-sapa-warning to-sapa-error bg-clip-text text-transparent">
-                .
-              </span>
+              <GradientDot />
             </span>
             <button
               type="button"
