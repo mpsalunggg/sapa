@@ -21,6 +21,11 @@ import {
 import { GradientLoader } from "@/features/playground/gradient-loader";
 import { useThemeOverrides } from "@/features/theming/theme-overrides-context";
 import { resolveVars } from "@/features/theming/theme-tokens";
+import { TOAST_LAYOUT_OPTIONS } from "@/features/toast/toast-layout-toggle";
+import type { ToastLayout } from "@/features/toast/toast-layout-context";
+import { SegmentedControl } from "@/shared/components/segmented-control";
+import type { Framework } from "@/shared/framework/framework-context";
+import { FRAMEWORK_OPTIONS } from "@/shared/framework/framework-switch";
 
 /** The editor + preview, with a gradient loading overlay until the Sandpack
  *  bundler finishes its first compile. Must render inside <SandpackProvider>. */
@@ -75,8 +80,6 @@ interface Variant {
   description: string;
 }
 
-type Framework = "react" | "vue";
-
 export interface PlaygroundProps {
   variants: Variant[];
   /** variant key → example source (react/toast-<key>). */
@@ -91,11 +94,6 @@ export interface PlaygroundProps {
   previewCss: string;
 }
 
-const FRAMEWORKS = [
-  { key: "react", label: "React" },
-  { key: "vue", label: "Vue" },
-] as const;
-
 export function Playground({
   variants,
   examples,
@@ -109,7 +107,7 @@ export function Playground({
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const [active, setActive] = useState(variants[0]?.key ?? "default");
-  const [layout, setLayout] = useState<"stack" | "list">("stack");
+  const [layout, setLayout] = useState<ToastLayout>("stack");
   const [framework, setFramework] = useState<Framework>("react");
   const { overrides } = useThemeOverrides();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -176,45 +174,23 @@ export function Playground({
         <p className="font-display text-muted-foreground mb-2 px-3 text-[0.95rem] italic">
           Framework
         </p>
-        <div className="bg-muted/50 mb-6 inline-flex rounded-md border p-0.5 text-xs">
-          {FRAMEWORKS.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setFramework(f.key)}
-              className={cn(
-                "inline-flex items-center gap-1 rounded px-2.5 py-1 font-medium transition-colors",
-                framework === f.key
-                  ? "bg-linear-to-br from-sapa-warning to-sapa-error text-white shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          options={FRAMEWORK_OPTIONS}
+          value={framework}
+          onChange={setFramework}
+          className="mb-6"
+        />
 
         {/* Layout switch — stack (default) vs flat list */}
         <p className="font-display text-muted-foreground mb-2 px-3 text-[0.95rem] italic">
           Layout
         </p>
-        <div className="bg-muted/50 mb-6 inline-flex rounded-md border p-0.5 text-xs">
-          {(["stack", "list"] as const).map((l) => (
-            <button
-              key={l}
-              type="button"
-              onClick={() => setLayout(l)}
-              className={cn(
-                "rounded px-2.5 py-1 font-medium capitalize transition-colors",
-                layout === l
-                  ? "bg-linear-to-br from-sapa-warning to-sapa-error text-white shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          options={TOAST_LAYOUT_OPTIONS}
+          value={layout}
+          onChange={setLayout}
+          className="mb-6"
+        />
 
         {/* Variant picker */}
         <p className="font-display text-muted-foreground mb-2 px-3 text-[0.95rem] italic">

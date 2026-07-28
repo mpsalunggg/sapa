@@ -2,9 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 
-import { cn } from "@/lib/utils";
-
-type Framework = "react" | "vue";
+export type Framework = "react" | "vue";
 
 const FrameworkContext = createContext<{
   framework: Framework;
@@ -26,33 +24,4 @@ export function useFramework() {
     throw new Error("useFramework must be used within a FrameworkProvider");
   }
   return ctx;
-}
-
-/** The single React/Vue switch that drives every framework-aware block. */
-export function FrameworkSwitch({ className }: { className?: string }) {
-  const { framework, setFramework } = useFramework();
-  return (
-    <div
-      className={cn(
-        "bg-muted/50 inline-flex rounded-md border p-0.5 text-xs",
-        className,
-      )}
-    >
-      {(["react", "vue"] as const).map((key) => (
-        <button
-          key={key}
-          type="button"
-          onClick={() => setFramework(key)}
-          className={cn(
-            "rounded px-2.5 py-1 font-medium capitalize transition-colors",
-            framework === key
-              ? "bg-linear-to-br from-sapa-warning to-sapa-error text-white shadow-sm"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {key}
-        </button>
-      ))}
-    </div>
-  );
 }

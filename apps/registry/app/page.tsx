@@ -3,10 +3,8 @@ import { BookOpen, Github, Play } from "lucide-react";
 
 import { BASE_URL, itemUrl } from "@/shared/lib/registry";
 import { InstallCommand } from "@/shared/components/install-command";
-import {
-  FrameworkProvider,
-  FrameworkSwitch,
-} from "@/shared/framework/framework-context";
+import { FrameworkProvider } from "@/shared/framework/framework-context";
+import { FrameworkSwitch } from "@/shared/framework/framework-switch";
 import { ThemeToggle } from "@/shared/components/theme-toggle";
 import { ReactLogo, VueLogo } from "@/features/landing/logos";
 import { HeroToastPreview } from "@/features/landing/hero-toast-preview";
