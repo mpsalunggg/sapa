@@ -5,9 +5,7 @@ import { BASE_URL, getSource, itemUrl } from "@/shared/lib/registry";
 import { highlight } from "@/features/docs/highlight";
 import { FrameworkProvider } from "@/shared/framework/framework-context";
 import { InstallCommand } from "@/shared/components/install-command";
-import { CodeTabs } from "@/features/docs/code-tabs";
-import { DocCode } from "@/features/docs/doc-code";
-import { CopyButton } from "@/shared/components/copy-button";
+import { CodeFrame, FrameworkCodeFrame } from "@/features/docs/code-frame";
 import { DocsToc, type TocGroup } from "@/features/docs/docs-toc";
 import { ThemeToggle } from "@/shared/components/theme-toggle";
 import { HeroWaves } from "@/shared/components/hero-waves";
@@ -355,33 +353,6 @@ function ReferenceTable({
   );
 }
 
-// A single, framework-agnostic code block (no React/Vue tabs) — mirrors the
-// inner Code of <DocCode> but for one snippet, e.g. the theming CSS.
-function CssBlock({
-  code,
-  html,
-  filename,
-}: {
-  code: string;
-  html: string;
-  filename?: string;
-}) {
-  return (
-    <div className="bg-muted/40 min-w-0 overflow-hidden rounded-lg border">
-      <div className="flex items-center justify-between border-b px-3 py-1.5">
-        <span className="text-muted-foreground font-mono text-xs">
-          {filename ?? ""}
-        </span>
-        <CopyButton value={code} />
-      </div>
-      <div
-        className="shiki-code overflow-x-auto p-3 font-mono text-xs leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-    </div>
-  );
-}
-
 function TokenTable({ rows }: { rows: { name: string; desc: string }[] }) {
   return (
     <div className="overflow-x-auto rounded-lg border">
@@ -447,27 +418,28 @@ export default async function DocsPage() {
   // Theming snippet — a single CSS block, identical for React and Vue.
   const themingHtml = await highlight(THEMING_CSS, "css");
 
+  // A hand-written snippet, labelled with the file it belongs in.
   const docCode = (
     key: string,
     reactFilename?: string,
     vueFilename?: string,
   ) => (
-    <DocCode
-      reactCode={hl[key].react}
-      vueCode={hl[key].vue}
-      reactHtml={hl[key].reactHtml}
-      vueHtml={hl[key].vueHtml}
-      reactFilename={reactFilename}
-      vueFilename={vueFilename}
+    <FrameworkCodeFrame
+      react={{
+        code: hl[key].react,
+        html: hl[key].reactHtml,
+        filename: reactFilename,
+      }}
+      vue={{ code: hl[key].vue, html: hl[key].vueHtml, filename: vueFilename }}
     />
   );
 
+  // A real registry source — long, so it starts collapsed behind "Show code".
   const sourceTabs = (key: string) => (
-    <CodeTabs
-      reactCode={src[key].react}
-      vueCode={src[key].vue}
-      reactHtml={src[key].reactHtml}
-      vueHtml={src[key].vueHtml}
+    <FrameworkCodeFrame
+      react={{ code: src[key].react, html: src[key].reactHtml }}
+      vue={{ code: src[key].vue, html: src[key].vueHtml }}
+      collapsible
     />
   );
 
@@ -694,7 +666,7 @@ export default async function DocsPage() {
                   </a>
                   , but any valid CSS color works.
                 </p>
-                <CssBlock
+                <CodeFrame
                   code={THEMING_CSS}
                   html={themingHtml}
                   filename="app/globals.css"
