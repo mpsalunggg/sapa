@@ -19,8 +19,8 @@ import {
   type RegistryFile,
 } from "@/features/playground/playground-files";
 import { GradientLoader } from "@/features/playground/gradient-loader";
-import { resolveVars } from "@/features/theming/theme-customizer";
-import { useThemeOverrides } from "@/app/providers";
+import { useThemeOverrides } from "@/features/theming/theme-overrides-context";
+import { resolveVars } from "@/features/theming/theme-tokens";
 
 /** The editor + preview, with a gradient loading overlay until the Sandpack
  *  bundler finishes its first compile. Must render inside <SandpackProvider>. */

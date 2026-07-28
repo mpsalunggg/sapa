@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Palette, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { useThemeOverrides } from "@/app/providers";
 import { ThemeCustomizer } from "@/features/theming/theme-customizer";
+import { useThemeOverrides } from "@/features/theming/theme-overrides-context";
 
 /** Global floating "live theme" editor. A palette button pinned to the
  *  center-right of the viewport opens a popover that drives the rich-color

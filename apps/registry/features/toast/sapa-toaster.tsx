@@ -1,7 +1,7 @@
 "use client";
 
 import { Toaster } from "@/components/ui/sapa-toast/toaster";
-import { useToastLayout } from "@/app/providers";
+import { useToastLayout } from "@/features/toast/toast-layout-context";
 
 /** Global toaster whose layout (stack vs list) follows the showcase toggle. */
 export function SapaToaster() {

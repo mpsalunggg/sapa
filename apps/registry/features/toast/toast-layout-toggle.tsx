@@ -1,7 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useToastLayout, type ToastLayout } from "@/app/providers";
+import {
+  useToastLayout,
+  type ToastLayout,
+} from "@/features/toast/toast-layout-context";
 
 const OPTIONS: { key: ToastLayout; label: string }[] = [
   { key: "stack", label: "Stack" },
