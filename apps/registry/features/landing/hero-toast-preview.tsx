@@ -134,9 +134,6 @@ export function HeroToastPreview() {
           ))}
         </ol>
       </div>
-      <p className="font-display text-muted-foreground mt-6 text-center text-sm italic">
-        swipe one away — it&rsquo;s the real component
-      </p>
     </div>
   );
 }
