@@ -6,6 +6,13 @@ import { FrameworkProvider } from "@/shared/framework/framework-context";
 import { InstallCommand } from "@/shared/components/install-command";
 import { CodeFrame, FrameworkCodeFrame } from "@/features/docs/code-frame";
 import { DocsToc, type TocGroup } from "@/features/docs/docs-toc";
+import { Chip } from "@/features/docs/chip";
+import {
+  ReferenceTable,
+  TokenTable,
+  type PropRow,
+  type TokenRow,
+} from "@/features/docs/reference-table";
 import { GradientLinkButton } from "@/shared/components/link-button";
 import { SiteFooter } from "@/shared/components/site-footer";
 import { SiteHeader } from "@/shared/components/site-header";
@@ -189,7 +196,7 @@ const THEMING_CSS = `/* globals.css — override Sapa's rich colors */
 }`;
 
 // The eight semantic tokens that power the toast "rich colors".
-const SAPA_TOKENS: { name: string; desc: string }[] = [
+const SAPA_TOKENS: TokenRow[] = [
   { name: "--sapa-success", desc: "Success border, glow and title." },
   {
     name: "--sapa-success-foreground",
@@ -209,7 +216,7 @@ const SAPA_TOKENS: { name: string; desc: string }[] = [
   { name: "--sapa-info-foreground", desc: "Icon/text on the solid info chip." },
 ];
 
-const OPTIONS: { name: string; type: string; desc: string }[] = [
+const OPTIONS: PropRow[] = [
   {
     name: "title",
     type: "ReactNode",
@@ -282,7 +289,7 @@ const OPTIONS: { name: string; type: string; desc: string }[] = [
   },
 ];
 
-const TOASTER_PROPS: { name: string; type: string; desc: string }[] = [
+const TOASTER_PROPS: PropRow[] = [
   {
     name: "position",
     type: "ToastPosition",
@@ -318,66 +325,6 @@ const POSITIONS = [
   "bottom-center",
   "bottom-right",
 ];
-
-const codeChip = "rounded bg-muted px-1 py-0.5 font-mono text-xs";
-
-function ReferenceTable({
-  rows,
-}: {
-  rows: { name: string; type: string; desc: string }[];
-}) {
-  return (
-    <div className="overflow-x-auto rounded-lg border">
-      <table className="w-full border-collapse text-left text-sm">
-        <thead>
-          <tr className="bg-muted/40 text-muted-foreground border-b text-xs uppercase tracking-wide">
-            <th className="px-3 py-2 font-semibold">Prop</th>
-            <th className="px-3 py-2 font-semibold">Type</th>
-            <th className="px-3 py-2 font-semibold">Description</th>
-          </tr>
-        </thead>
-        <tbody className="divide-border divide-y">
-          {rows.map((r) => (
-            <tr key={r.name} className="align-top">
-              <td className="text-foreground whitespace-nowrap px-3 py-2 font-mono text-xs font-medium">
-                {r.name}
-              </td>
-              <td className="text-sapa-info whitespace-nowrap px-3 py-2 font-mono text-xs">
-                {r.type}
-              </td>
-              <td className="text-muted-foreground px-3 py-2">{r.desc}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function TokenTable({ rows }: { rows: { name: string; desc: string }[] }) {
-  return (
-    <div className="overflow-x-auto rounded-lg border">
-      <table className="w-full border-collapse text-left text-sm">
-        <thead>
-          <tr className="bg-muted/40 text-muted-foreground border-b text-xs uppercase tracking-wide">
-            <th className="px-3 py-2 font-semibold">Token</th>
-            <th className="px-3 py-2 font-semibold">What it colors</th>
-          </tr>
-        </thead>
-        <tbody className="divide-border divide-y">
-          {rows.map((r) => (
-            <tr key={r.name} className="align-top">
-              <td className="text-sapa-info whitespace-nowrap px-3 py-2 font-mono text-xs font-medium">
-                {r.name}
-              </td>
-              <td className="text-muted-foreground px-3 py-2">{r.desc}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
 
 export default async function DocsPage() {
   // Real registry sources for every variant (default + examples), highlighted server-side.
@@ -476,8 +423,7 @@ export default async function DocsPage() {
                 </h2>
                 <p className="text-muted-foreground mt-2 text-sm">
                   The registry is served as JSON. Add it with the shadcn CLI —
-                  the files land in{" "}
-                  <code className={codeChip}>components/ui/sapa-toast/</code>.
+                  the files land in <Chip>components/ui/sapa-toast/</Chip>.
                 </p>
                 <div className="mt-4 w-full">
                   <InstallCommand
@@ -493,9 +439,9 @@ export default async function DocsPage() {
                   Mount the Toaster
                 </h2>
                 <p className="text-muted-foreground mt-2 text-sm">
-                  Render <code className={codeChip}>&lt;Toaster /&gt;</code>{" "}
-                  once, near the root of your app. After that you can call{" "}
-                  <code className={codeChip}>toast()</code> from anywhere.
+                  Render <Chip>&lt;Toaster /&gt;</Chip> once, near the root of
+                  your app. After that you can call <Chip>toast()</Chip> from
+                  anywhere.
                 </p>
                 <div className="mt-4">
                   {docCode("setup", "app/layout.tsx", "App.vue")}
@@ -508,8 +454,8 @@ export default async function DocsPage() {
                   Basic usage
                 </h2>
                 <p className="text-muted-foreground mt-2 text-sm">
-                  Call <code className={codeChip}>toast()</code> with a message.
-                  Everything else is optional.
+                  Call <Chip>toast()</Chip> with a message. Everything else is
+                  optional.
                 </p>
                 <div className="bg-linear-to-b from-muted/50 to-muted/20 mt-4 flex min-h-28 items-center justify-center rounded-xl border border-dashed p-4">
                   <ToastDefault />
@@ -529,9 +475,9 @@ export default async function DocsPage() {
                   Loading &amp; dismiss
                 </h2>
                 <p className="text-muted-foreground mt-2 text-sm">
-                  <code className={codeChip}>toast.loading()</code> persists
-                  until you dismiss or replace it. Every call returns an id you
-                  can pass to <code className={codeChip}>toast.dismiss()</code>.
+                  <Chip>toast.loading()</Chip> persists until you dismiss or
+                  replace it. Every call returns an id you can pass to{" "}
+                  <Chip>toast.dismiss()</Chip>.
                 </p>
                 <div className="mt-4">{docCode("loading")}</div>
               </section>
@@ -581,9 +527,8 @@ export default async function DocsPage() {
               <section id="options" className="scroll-mt-6 py-8">
                 <h2 className="text-xl font-bold tracking-tight">Options</h2>
                 <p className="text-muted-foreground mb-4 mt-2 text-sm">
-                  The second argument of every{" "}
-                  <code className={codeChip}>toast()</code> call. Identical in
-                  React and Vue.
+                  The second argument of every <Chip>toast()</Chip> call.
+                  Identical in React and Vue.
                 </p>
                 <ReferenceTable rows={OPTIONS} />
               </section>
@@ -606,18 +551,14 @@ export default async function DocsPage() {
                 </h2>
                 <p className="text-muted-foreground mt-2 text-sm">
                   The rich colors come from eight semantic CSS variables —{" "}
-                  <code className={codeChip}>--sapa-success</code>,{" "}
-                  <code className={codeChip}>--sapa-error</code>,{" "}
-                  <code className={codeChip}>--sapa-warning</code>,{" "}
-                  <code className={codeChip}>--sapa-info</code> and their{" "}
-                  <code className={codeChip}>-foreground</code> pairs. They
-                  apply whenever a toast runs with{" "}
-                  <code className={codeChip}>richColors</code>. The{" "}
-                  <code className={codeChip}>theme</code> registry item installs
-                  them into your project on setup; to re-brand the toast, just
-                  override them in your own{" "}
-                  <code className={codeChip}>globals.css</code> — no component
-                  changes needed.
+                  <Chip>--sapa-success</Chip>, <Chip>--sapa-error</Chip>,{" "}
+                  <Chip>--sapa-warning</Chip>, <Chip>--sapa-info</Chip> and
+                  their <Chip>-foreground</Chip> pairs. They apply whenever a
+                  toast runs with <Chip>richColors</Chip>. The{" "}
+                  <Chip>theme</Chip> registry item installs them into your
+                  project on setup; to re-brand the toast, just override them in
+                  your own <Chip>globals.css</Chip> — no component changes
+                  needed.
                 </p>
 
                 <div className="mt-4">
@@ -625,9 +566,8 @@ export default async function DocsPage() {
                 </div>
 
                 <p className="text-muted-foreground mb-4 mt-6 text-sm">
-                  Redefine any of them under{" "}
-                  <code className={codeChip}>:root</code> (light) and{" "}
-                  <code className={codeChip}>.dark</code> (dark). Values use{" "}
+                  Redefine any of them under <Chip>:root</Chip> (light) and{" "}
+                  <Chip>.dark</Chip> (dark). Values use{" "}
                   <a
                     href="https://oklch.com"
                     target="_blank"
