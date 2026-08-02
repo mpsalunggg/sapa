@@ -11,6 +11,7 @@ import { NavLinkButton } from "@/shared/components/link-button";
 import { SiteFooter } from "@/shared/components/site-footer";
 import { SiteHeader } from "@/shared/components/site-header";
 import { HeroWaves } from "@/shared/components/hero-waves";
+import { getLatestVersion } from "@/features/changelog/changelog";
 
 export const metadata = {
   title: "Sapa — Playground",
@@ -68,6 +69,7 @@ const VARIANTS = [
 ] as const;
 
 export default async function PlaygroundPage() {
+  const version = await getLatestVersion();
   const [entries, vueEntries] = await Promise.all([
     Promise.all(
       VARIANTS.map(
@@ -119,7 +121,7 @@ export default async function PlaygroundPage() {
           previewCss={previewCss}
         />
 
-        <SiteFooter baseUrl={BASE_URL} />
+        <SiteFooter baseUrl={BASE_URL} version={version} />
       </div>
     </div>
   );

@@ -96,6 +96,13 @@ pnpm sandbox        # Vue sandbox      → http://localhost:5174
 pnpm registry:build # regenerate apps/registry/public/r/*.json
 ```
 
+## Changelog
+
+Every release and the files it touched: [CHANGELOG.md](CHANGELOG.md) ·
+[sapa-registry.vercel.app/changelog](https://sapa-registry.vercel.app/changelog)
+
+Sapa is copy-paste — when you update, re-copy the files each entry names.
+
 ## License
 
 MIT © Muhamad Putra Satria

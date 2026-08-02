@@ -30,6 +30,7 @@ import ToastProgress from "@/registry/react/examples/toast-progress";
 import ToastCustom from "@/registry/react/examples/toast-custom";
 import ToastPositions from "@/registry/react/examples/toast-positions";
 import ToastStack from "@/registry/react/examples/toast-stack";
+import { getLatestVersion } from "@/features/changelog/changelog";
 
 export const metadata = {
   title: "Sapa — Documentation",
@@ -327,6 +328,7 @@ const POSITIONS = [
 ];
 
 export default async function DocsPage() {
+  const version = await getLatestVersion();
   // Real registry sources for every variant (default + examples), highlighted server-side.
   const variantKeys = ["default", ...EXAMPLES.map((e) => e.key)];
   const sourceEntries = await Promise.all(
@@ -594,7 +596,7 @@ export default async function DocsPage() {
             </main>
           </div>
 
-          <SiteFooter baseUrl={BASE_URL} />
+          <SiteFooter baseUrl={BASE_URL} version={version} />
         </div>
       </div>
     </FrameworkProvider>

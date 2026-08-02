@@ -1,7 +1,7 @@
 {
   "name": "sapa",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Sapa — your own cross-framework (React + Vue) component registry. v1: a custom-built, variated toast system.",
   "license": "MIT",
   "author": "Muhamad Putra Satria",

@@ -18,8 +18,10 @@ import { HeroToastPreview } from "@/features/landing/hero-toast-preview";
 import { HeroWaves } from "@/shared/components/hero-waves";
 import { SupportLink } from "@/features/landing/support-link";
 import { TryToasts } from "@/features/landing/try-toasts";
+import { getLatestVersion } from "@/features/changelog/changelog";
 
-export default function Home() {
+export default async function Home() {
+  const version = await getLatestVersion();
   return (
     <FrameworkProvider>
       <div className="relative flex min-h-svh flex-col overflow-hidden">
@@ -100,7 +102,7 @@ export default function Home() {
             </div>
           </section>
 
-          <SiteFooter baseUrl={BASE_URL} className="mt-8" />
+          <SiteFooter baseUrl={BASE_URL} version={version} className="mt-8" />
         </div>
       </div>
     </FrameworkProvider>
