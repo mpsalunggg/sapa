@@ -127,7 +127,9 @@ function layoutFor(items: ToastData[], i: number, pos: ToastPosition) {
 
     <!-- Stacked mode (default) -->
     <template v-else>
-      <ol
+      <!-- The positioning wrapper is a <div>, not the <ol>: a list may only
+           contain <li> children, and the stack needs its own sized box. -->
+      <div
         v-for="[pos, items] in groups"
         :key="pos"
         :class="
@@ -137,7 +139,7 @@ function layoutFor(items: ToastData[], i: number, pos: ToastPosition) {
           )
         "
       >
-        <div
+        <ol
           class="pointer-events-auto relative w-full transition-[height] duration-300 ease-out"
           :style="{ height: containerHeight(items, pos) + 'px' }"
           @mouseenter="expandedMap[pos] = true"
@@ -156,8 +158,8 @@ function layoutFor(items: ToastData[], i: number, pos: ToastPosition) {
             :stack-z="layoutFor(items, i, pos).stackZ"
             :report-height="registerHeight"
           />
-        </div>
-      </ol>
+        </ol>
+      </div>
     </template>
   </Teleport>
 </template>

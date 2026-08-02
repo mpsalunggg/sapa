@@ -132,14 +132,16 @@ export function Toaster({
           : frontHeight + visibleBehind * PEEK;
 
         return (
-          <ol
+          // The positioning wrapper is a <div>, not the <ol>: a list may only
+          // contain <li> children, and the stack needs its own sized box.
+          <div
             key={pos}
             className={cn(
               "pointer-events-none fixed z-[100] flex w-full p-4 sm:max-w-[380px]",
               POSITION_CLASSES[pos],
             )}
           >
-            <div
+            <ol
               onMouseEnter={() => setGroupExpanded(pos, true)}
               onMouseLeave={() => setGroupExpanded(pos, false)}
               className="pointer-events-auto relative w-full transition-[height] duration-300 ease-out"
@@ -173,8 +175,8 @@ export function Toaster({
                   />
                 );
               })}
-            </div>
-          </ol>
+            </ol>
+          </div>
         );
       })}
     </>,

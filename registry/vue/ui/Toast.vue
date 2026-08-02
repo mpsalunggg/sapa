@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   dismiss,
+  type CloseReason,
   type ToastData,
   type ToastSize,
   type ToastType,
@@ -36,6 +37,11 @@ const props = withDefaults(
     stackOpacity?: number;
     stackZ?: number;
     reportHeight?: (id: string | number, height: number) => void;
+    /**
+     * Fired once the exit animation is over. Works even when <Toast> is
+     * rendered on its own, outside the store — unlike onDismiss/onAutoClose.
+     */
+    onClosed?: (reason: CloseReason) => void;
   }>(),
   {
     stacked: false,
@@ -236,10 +242,13 @@ function clearTimer() {
   }
 }
 
-// Animate out (directional), then remove — mirrors the React <Toast> closing
-// state so stacked toasts slide away instead of vanishing. `swipe` is the drag
-// offset (px): its sign picks the exit direction.
-function close(swipe?: number) {
+/**
+ * Starts the exit animation and hands the removal over to the store, which
+ * fires onDismiss (always) and onAutoClose (timeouts only) once it drops the
+ * toast. Repeat calls are ignored so a swipe racing the timer closes once.
+ * `swipe` is the drag offset (px): its sign picks the exit direction.
+ */
+function close(reason: CloseReason, swipe?: number) {
   if (state.value === "closing") return;
   exitTransform.value = swipe
     ? vertical.value
@@ -248,32 +257,33 @@ function close(swipe?: number) {
     : dir.value;
   state.value = "closing";
   clearTimer();
+  dismiss(props.toast.id, reason);
   closeTimeout = setTimeout(
-    () => {
-      props.toast.onAutoClose?.(props.toast);
-      dismiss(props.toast.id);
-    },
+    () => props.onClosed?.(reason),
     reduceMotion ? 0 : 320,
   );
 }
 
 function startTimer() {
-  if (!Number.isFinite(remaining)) return;
+  if (state.value === "closing" || !Number.isFinite(remaining)) return;
   startedAt = Date.now();
   clearTimer();
-  timer = setTimeout(close, remaining);
+  timer = setTimeout(() => close("timeout"), remaining);
 }
 
 function pause() {
-  if (state.value === "closing") return;
+  // Without the `paused` guard the elapsed time is subtracted once per caller,
+  // and a stacked toast gets two calls per hover (its own handler plus the
+  // group container's) — draining the remaining time.
+  if (paused.value || state.value === "closing") return;
   paused.value = true;
   if (!Number.isFinite(remaining)) return;
   clearTimer();
-  remaining -= Date.now() - startedAt;
+  remaining = Math.max(0, remaining - (Date.now() - startedAt));
 }
 
 function resume() {
-  if (state.value === "closing") return;
+  if (!paused.value || state.value === "closing") return;
   paused.value = false;
   startTimer();
 }
@@ -282,8 +292,19 @@ function resume() {
 // toast transitions loading→success), matching the React useEffect([duration]).
 watch(duration, (d) => {
   remaining = d;
-  startTimer();
+  // Don't restart a hovered toast: a promise resolving under the cursor must
+  // not undo the pause.
+  if (!paused.value) startTimer();
 });
+
+// A dismiss from application code only flags the toast in the store; mirror
+// that here so it animates out instead of vanishing.
+watch(
+  () => props.toast.closing,
+  (closing) => {
+    if (closing) close("programmatic");
+  },
+);
 
 // Pause the whole group while the stack is expanded (hovered).
 watch(
@@ -311,7 +332,7 @@ function onPointerUp() {
   if (!dragging.value) return;
   dragging.value = false;
   if (Math.abs(offset.value) > SWIPE_THRESHOLD) {
-    close(offset.value); // exit toward the swipe direction
+    close("user", offset.value); // exit toward the swipe direction
   } else {
     offset.value = 0;
     resume();
@@ -320,11 +341,11 @@ function onPointerUp() {
 
 function runAction() {
   props.toast.action?.onClick?.();
-  close();
+  close("action");
 }
 function runCancel() {
   props.toast.cancel?.onClick?.();
-  close();
+  close("action");
 }
 
 // Combined transform/opacity — stack layout merged with drag + enter/exit.
@@ -399,6 +420,7 @@ onBeforeUnmount(() => {
     role="status"
     :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
     aria-atomic="true"
+    :data-state="state"
     :data-type="toast.type"
     :style="stackStyle"
     :class="
@@ -497,7 +519,7 @@ onBeforeUnmount(() => {
       type="button"
       aria-label="Close"
       class="focus-visible:ring-ring absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70 dark:hover:bg-white/10"
-      @click="close()"
+      @click="close('user')"
     >
       <X class="size-4" />
     </button>

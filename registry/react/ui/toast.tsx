@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   toastStore,
+  type CloseReason,
   type ToastData,
   type ToastPosition,
   type ToastSize,
@@ -140,6 +141,11 @@ export interface ToastProps {
   stackOpacity?: number;
   stackZ?: number;
   onHeight?: (id: string | number, height: number) => void;
+  /**
+   * Fired once the exit animation is over. Works even when <Toast> is rendered
+   * on its own, outside the store — unlike the store's onDismiss/onAutoClose.
+   */
+  onClosed?: (reason: CloseReason) => void;
 }
 
 export function Toast({
@@ -152,6 +158,7 @@ export function Toast({
   stackOpacity = 1,
   stackZ = 1,
   onHeight,
+  onClosed,
 }: ToastProps) {
   const { id, type, duration = 4000, richColors, icon, jsx } = toast;
 
@@ -208,7 +215,20 @@ export function Toast({
   const remaining = React.useRef(duration);
   const startedAt = React.useRef(Date.now());
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exitTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const rootRef = React.useRef<HTMLLIElement>(null);
+
+  // `paused` and `state` are mirrored in refs because both guards are read more
+  // than once per tick — one hover reaches this toast *and* its stack container,
+  // and a setState value is not visible until the next render.
+  const pausedRef = React.useRef(false);
+  const closingRef = React.useRef(false);
+
+  // Kept in a ref so `close` stays referentially stable: <Toaster> hands down a
+  // fresh toast object on every render, and an unstable `close` would re-arm the
+  // auto-dismiss timer each time.
+  const onClosedRef = React.useRef(onClosed);
+  onClosedRef.current = onClosed;
 
   const dir = dirTransform(toast.position);
   const exit = React.useRef(dir);
@@ -216,30 +236,57 @@ export function Toast({
   const vertical =
     toast.position === "top-center" || toast.position === "bottom-center";
 
+  const clearTimer = React.useCallback(() => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
+  }, []);
+
+  /**
+   * Starts the exit animation and hands the removal over to the store, which
+   * fires onDismiss (always) and onAutoClose (timeouts only) once it drops the
+   * toast. Repeat calls are ignored so a swipe racing the timer closes once.
+   */
   const close = React.useCallback(
-    (swipe?: number) => {
+    (reason: CloseReason, swipe?: number) => {
+      if (closingRef.current) return;
+      closingRef.current = true;
+
       exit.current = swipe
         ? vertical
           ? `translateY(${swipe > 0 ? 260 : -260}%)`
           : `translateX(${swipe > 0 ? 130 : -130}%)`
         : dir;
       setState("closing");
+      clearTimer();
+      toastStore.dismiss(id, reason);
 
-      window.setTimeout(
-        () => {
-          toast.onAutoClose?.(toast);
-          toastStore.dismiss(id);
-        },
+      exitTimer.current = setTimeout(
+        () => onClosedRef.current?.(reason),
         reduceMotion ? 0 : 320,
       );
     },
-    [id, toast, dir, vertical, reduceMotion],
+    [id, dir, vertical, reduceMotion, clearTimer],
   );
+
+  // A dismiss from application code only flags the toast in the store; mirror
+  // that here so it animates out instead of vanishing.
+  React.useEffect(() => {
+    if (toast.closing) close("programmatic");
+  }, [toast.closing, close]);
 
   React.useEffect(() => {
     const raf = requestAnimationFrame(() => setShown(true));
     return () => cancelAnimationFrame(raf);
   }, []);
+
+  React.useEffect(
+    () => () => {
+      if (exitTimer.current) clearTimeout(exitTimer.current);
+    },
+    [],
+  );
 
   // Report the measured height so the Toaster can lay out the stack.
   React.useEffect(() => {
@@ -253,35 +300,39 @@ export function Toast({
     return () => ro.disconnect();
   }, [stacked, onHeight, id]);
 
-  const clearTimer = React.useCallback(() => {
-    if (timer.current) {
-      clearTimeout(timer.current);
-      timer.current = null;
-    }
-  }, []);
-
   const startTimer = React.useCallback(() => {
-    if (!Number.isFinite(remaining.current)) return;
+    if (closingRef.current || !Number.isFinite(remaining.current)) return;
     startedAt.current = Date.now();
     clearTimer();
-    timer.current = setTimeout(close, remaining.current);
+    timer.current = setTimeout(() => close("timeout"), remaining.current);
   }, [clearTimer, close]);
 
   React.useEffect(() => {
     remaining.current = duration;
-    startTimer();
+    // Don't restart a hovered toast: a promise resolving under the cursor must
+    // not undo the pause.
+    if (!pausedRef.current) startTimer();
     return clearTimer;
     // Re-arm when the duration changes (e.g. promise resolves).
   }, [duration, startTimer, clearTimer]);
 
   const pause = React.useCallback(() => {
+    // Without this guard the elapsed time is subtracted once per caller, and a
+    // stacked toast gets two calls per hover — draining the remaining time.
+    if (pausedRef.current || closingRef.current) return;
+    pausedRef.current = true;
     setPaused(true);
     if (!Number.isFinite(remaining.current)) return;
     clearTimer();
-    remaining.current -= Date.now() - startedAt.current;
+    remaining.current = Math.max(
+      0,
+      remaining.current - (Date.now() - startedAt.current),
+    );
   }, [clearTimer]);
 
   const resume = React.useCallback(() => {
+    if (!pausedRef.current || closingRef.current) return;
+    pausedRef.current = false;
     setPaused(false);
     startTimer();
   }, [startTimer]);
@@ -312,7 +363,7 @@ export function Toast({
     if (!dragging.current) return;
     dragging.current = false;
     if (Math.abs(offset) > SWIPE_THRESHOLD) {
-      close(offset);
+      close("user", offset);
     } else {
       setOffset(0);
       resume();
@@ -448,7 +499,7 @@ export function Toast({
                     type="button"
                     onClick={() => {
                       toast.action?.onClick?.();
-                      close();
+                      close("action");
                     }}
                     className="bg-foreground text-background inline-flex h-7 items-center rounded-md px-2.5 text-xs font-medium transition-opacity hover:opacity-90"
                   >
@@ -460,7 +511,7 @@ export function Toast({
                     type="button"
                     onClick={() => {
                       toast.cancel?.onClick?.();
-                      close();
+                      close("action");
                     }}
                     className="hover:bg-muted inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors"
                   >
@@ -476,7 +527,7 @@ export function Toast({
       <button
         type="button"
         aria-label="Close"
-        onClick={() => close()}
+        onClick={() => close("user")}
         className="focus-visible:ring-ring absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70 dark:hover:bg-white/10"
       >
         <X className="size-4" />

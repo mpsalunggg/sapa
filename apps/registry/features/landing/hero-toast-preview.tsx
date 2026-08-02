@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Toast } from "@/components/ui/sapa-toast/toast";
 import type { ToastData } from "@/components/ui/sapa-toast/toast-store";
@@ -104,15 +104,9 @@ export function HeroToastPreview() {
     return () => window.clearInterval(timer);
   }, []);
 
-  // Stable identities so <Toast> doesn't re-arm its internals every render.
-  const toasts = useMemo(
-    () =>
-      HERO_TOASTS.map((t) => ({
-        ...t,
-        onAutoClose: () => respawn(String(t.id)),
-      })),
-    [respawn],
-  );
+  // These cards live outside the store, so onDismiss/onAutoClose never fire for
+  // them — <Toast>'s own onClosed is what brings a dismissed card back, whether
+  // it was swiped, closed or answered with an action.
 
   return (
     <div className="mx-auto w-full max-w-sm lg:ml-auto lg:mr-0">
@@ -129,8 +123,12 @@ export function HeroToastPreview() {
           )}
         />
         <ol className="relative flex flex-col gap-3">
-          {toasts.map((t) => (
-            <Toast key={`${t.id}-${nonces[String(t.id)] ?? 0}`} toast={t} />
+          {HERO_TOASTS.map((t) => (
+            <Toast
+              key={`${t.id}-${nonces[String(t.id)] ?? 0}`}
+              toast={t}
+              onClosed={() => respawn(String(t.id))}
+            />
           ))}
         </ol>
       </div>

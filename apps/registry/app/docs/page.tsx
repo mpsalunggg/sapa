@@ -280,12 +280,12 @@ const OPTIONS: PropRow[] = [
   {
     name: "onDismiss",
     type: "(toast) => void",
-    desc: "Called when the toast is dismissed.",
+    desc: "Called once the toast is removed, whatever closed it.",
   },
   {
     name: "onAutoClose",
     type: "(toast) => void",
-    desc: "Called when the toast auto-closes.",
+    desc: "Called only when the duration ran out — not on close, swipe or action.",
   },
 ];
 

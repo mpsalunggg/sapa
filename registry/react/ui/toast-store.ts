@@ -20,6 +20,12 @@ export interface ToastAction {
   onClick?: () => void;
 }
 
+/**
+ * Why a toast is going away. Only `"timeout"` counts as an auto-close;
+ * everything else is a deliberate dismissal.
+ */
+export type CloseReason = "timeout" | "user" | "action" | "programmatic";
+
 export interface ToastOptions {
   id?: string | number;
   type?: ToastType;
@@ -41,7 +47,9 @@ export interface ToastOptions {
   jsx?: ReactNode;
   /** 0–100 — renders a determinate progress bar under the content. */
   progress?: number;
+  /** Called for every removal, whatever triggered it. */
   onDismiss?: (toast: ToastData) => void;
+  /** Called only when the toast's own duration ran out. */
   onAutoClose?: (toast: ToastData) => void;
 }
 
@@ -49,9 +57,21 @@ export interface ToastData extends Omit<ToastOptions, "id" | "type"> {
   id: string | number;
   type: ToastType;
   createdAt: number;
+  /** Set while the exit animation plays, just before the toast is removed. */
+  closing?: boolean;
 }
 
 const DEFAULT_DURATION = 4000;
+
+/** Matches the transition duration on <Toast>. */
+const EXIT_MS = 320;
+
+function exitDelay(): number {
+  if (typeof window === "undefined") return 0;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ? 0
+    : EXIT_MS;
+}
 
 type Listener = (toasts: ToastData[]) => void;
 
@@ -59,6 +79,10 @@ class ToastStore {
   private toasts: ToastData[] = [];
   private listeners = new Set<Listener>();
   private counter = 0;
+  private exitTimers = new Map<
+    string | number,
+    ReturnType<typeof setTimeout>
+  >();
 
   subscribe = (listener: Listener) => {
     this.listeners.add(listener);
@@ -74,8 +98,28 @@ class ToastStore {
     for (const listener of this.listeners) listener(this.toasts);
   }
 
+  /**
+   * Auto-ids must never land on an id the caller has already claimed, so a
+   * numeric explicit id pushes the counter past itself.
+   */
+  private nextId(explicit?: string | number): string | number {
+    if (explicit == null) return ++this.counter;
+    if (typeof explicit === "number" && explicit > this.counter) {
+      this.counter = explicit;
+    }
+    return explicit;
+  }
+
+  private cancelExit(id: string | number) {
+    const timer = this.exitTimers.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      this.exitTimers.delete(id);
+    }
+  }
+
   add(options: ToastOptions): string | number {
-    const id = options.id ?? ++this.counter;
+    const id = this.nextId(options.id);
     const existingIndex = this.toasts.findIndex((t) => t.id === id);
 
     const base: ToastData = {
@@ -84,10 +128,13 @@ class ToastStore {
       type: options.type ?? "default",
       id,
       createdAt: Date.now(),
+      closing: false,
     };
 
     if (existingIndex > -1) {
-      // Update in place (used by toast.promise transitions).
+      // Update in place (used by toast.promise transitions). An update revives
+      // a toast that was already animating out.
+      this.cancelExit(id);
       const next = this.toasts.slice();
       next[existingIndex] = { ...next[existingIndex], ...base };
       this.toasts = next;
@@ -98,11 +145,49 @@ class ToastStore {
     return id;
   }
 
-  dismiss(id?: string | number) {
-    const target =
-      id != null ? this.toasts.filter((t) => t.id === id) : this.toasts;
-    for (const t of target) t.onDismiss?.(t);
-    this.toasts = id != null ? this.toasts.filter((t) => t.id !== id) : [];
+  /**
+   * Flags the toast as closing so <Toast> can play its exit animation, then
+   * removes it once that animation is over. Dismissing an already-closing toast
+   * is a no-op, so the callbacks fire exactly once per toast.
+   */
+  dismiss(id?: string | number, reason: CloseReason = "programmatic") {
+    const targets = (
+      id != null ? this.toasts.filter((t) => t.id === id) : this.toasts
+    ).filter((t) => !t.closing);
+    if (targets.length === 0) return;
+
+    const ids = new Set(targets.map((t) => t.id));
+    this.toasts = this.toasts.map((t) =>
+      ids.has(t.id) ? { ...t, closing: true } : t,
+    );
+
+    const delay = exitDelay();
+    for (const target of targets) {
+      this.exitTimers.set(
+        target.id,
+        setTimeout(() => this.remove(target.id, reason), delay),
+      );
+    }
+    this.emit();
+  }
+
+  /** Drop a closing toast and fire its callbacks. */
+  private remove(id: string | number, reason: CloseReason) {
+    this.exitTimers.delete(id);
+    const toast = this.toasts.find((t) => t.id === id);
+    if (!toast) return;
+
+    this.toasts = this.toasts.filter((t) => t.id !== id);
+    if (reason === "timeout") toast.onAutoClose?.(toast);
+    toast.onDismiss?.(toast);
+    this.emit();
+  }
+
+  /** Wipe the queue with no animation and no callbacks (reset / teardown). */
+  clear() {
+    for (const timer of this.exitTimers.values()) clearTimeout(timer);
+    this.exitTimers.clear();
+    this.toasts = [];
     this.emit();
   }
 }
@@ -139,7 +224,7 @@ interface ToastApi extends ToastFn {
     options?: ToastOptions & { value?: number },
   ) => string | number;
   custom: (jsx: ReactNode, options?: ToastOptions) => string | number;
-  dismiss: (id?: string | number) => void;
+  dismiss: (id?: string | number, reason?: CloseReason) => void;
   promise: <T>(
     promise: Promise<T>,
     messages: PromiseMessages<T>,
@@ -180,7 +265,8 @@ export const toast: ToastApi = Object.assign(
     },
     custom: (jsx: ReactNode, options?: ToastOptions) =>
       toastStore.add({ ...options, jsx }),
-    dismiss: (id?: string | number) => toastStore.dismiss(id),
+    dismiss: (id?: string | number, reason?: CloseReason) =>
+      toastStore.dismiss(id, reason),
     promise: <T>(
       promise: Promise<T>,
       messages: PromiseMessages<T>,

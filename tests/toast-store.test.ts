@@ -1,12 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { toast, toastStore } from "../registry/react/ui/toast-store";
+import { EXIT_MS, useToastTimers } from "./helpers";
 
 const snap = () => toastStore.getSnapshot();
 const byId = (id: string | number) => snap().find((t) => t.id === id);
 
 beforeEach(() => {
-  toastStore.dismiss();
+  toastStore.clear();
 });
 
 describe("toast()", () => {
@@ -101,13 +102,35 @@ describe("toast.custom", () => {
   });
 });
 
+describe("id allocation", () => {
+  it("never reuses an id the caller already claimed", () => {
+    toast("explicit", { id: 1 });
+    const auto = toast("auto");
+
+    expect(auto).not.toBe(1);
+    expect(snap()).toHaveLength(2);
+  });
+});
+
 describe("dismiss", () => {
-  it("removes only the targeted toast and calls its onDismiss", () => {
+  beforeEach(() => {
+    useToastTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("marks the toast as closing first, then removes it after the exit animation", () => {
     const onDismiss = vi.fn();
     const keep = toast("keep");
     const drop = toast("drop", { onDismiss });
 
     toastStore.dismiss(drop);
+
+    expect(byId(drop)?.closing).toBe(true);
+    expect(onDismiss).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(EXIT_MS + 10);
 
     expect(snap()).toHaveLength(1);
     expect(byId(keep)).toBeDefined();
@@ -121,10 +144,44 @@ describe("dismiss", () => {
     toast("b", { onDismiss: b });
 
     toastStore.dismiss();
+    vi.advanceTimersByTime(EXIT_MS + 10);
 
     expect(snap()).toHaveLength(0);
     expect(a).toHaveBeenCalledTimes(1);
     expect(b).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores a repeated dismiss of the same toast", () => {
+    const onDismiss = vi.fn();
+    const id = toast("bye", { onDismiss });
+
+    toastStore.dismiss(id);
+    toastStore.dismiss(id);
+    vi.advanceTimersByTime(EXIT_MS + 10);
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it("only calls onAutoClose for the timeout reason", () => {
+    const onAutoClose = vi.fn();
+    const timedOut = toast("a", { onAutoClose });
+    const userClosed = toast("b", { onAutoClose });
+
+    toastStore.dismiss(timedOut, "timeout");
+    toastStore.dismiss(userClosed, "user");
+    vi.advanceTimersByTime(EXIT_MS + 10);
+
+    expect(onAutoClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("clear() empties the queue immediately without callbacks", () => {
+    const onDismiss = vi.fn();
+    toast("a", { onDismiss });
+
+    toastStore.clear();
+
+    expect(snap()).toHaveLength(0);
+    expect(onDismiss).not.toHaveBeenCalled();
   });
 });
 
