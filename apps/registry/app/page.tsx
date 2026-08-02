@@ -16,6 +16,7 @@ import { ThemeToggle } from "@/shared/components/theme-toggle";
 import { ReactLogo, VueLogo } from "@/features/landing/logos";
 import { HeroToastPreview } from "@/features/landing/hero-toast-preview";
 import { HeroWaves } from "@/shared/components/hero-waves";
+import { SupportLink } from "@/features/landing/support-link";
 import { TryToasts } from "@/features/landing/try-toasts";
 
 export default function Home() {
@@ -87,7 +88,8 @@ export default function Home() {
                     vueUrl={itemUrl("vue/toaster")}
                   />
                 </div>
-                <div className="mt-7">
+                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4">
+                  <SupportLink />
                   <TryToasts />
                 </div>
               </div>
