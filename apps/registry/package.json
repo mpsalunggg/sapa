@@ -1,7 +1,7 @@
 {
   "name": "registry",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "build:preview-css": "tailwindcss -i ./styles/preview-input.css -o ./public/toast-preview.css --minify",

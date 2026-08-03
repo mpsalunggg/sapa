@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+# gh release create writes to the repo.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Resolve version from the tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      # A tag that disagrees with package.json is the easiest way to publish a
+      # mislabelled release. Fail before anything is created.
+      - name: Guard — tag matches package.json
+        run: |
+          pkg=$(node -p "require('./package.json').version")
+          if [ "$pkg" != "$VERSION" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package.json $pkg"
+            exit 1
+          fi
+
+      - name: Guard — the changelog has a section for this version
+        run: |
+          if ! grep -q "^## \[$VERSION\]" CHANGELOG.md; then
+            echo "::error::no '## [$VERSION]' section in CHANGELOG.md"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Repeated from CI on purpose: a tag has to be proven green at the exact
+      # commit it points to, not inherit trust from the branch it came off.
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Slice the release notes out of CHANGELOG.md
+        run: |
+          awk -v v="$VERSION" '
+            index($0, "## [" v "]") == 1 { f = 1; next }
+            /^## \[/ { f = 0 }
+            f
+          ' CHANGELOG.md > notes.md
+          cat notes.md
+
+      # public/r is gitignored, so a versioned snapshot is the only way to pin a
+      # release without building it yourself. SAPA_BASE_URL matters: without it
+      # build-registry.mjs falls back to localhost:3000 and every URL inside the
+      # JSON would be useless.
+      - name: Package the registry snapshot
+        env:
+          SAPA_BASE_URL: https://sapa-registry.vercel.app
+        run: |
+          pnpm registry:build
+          cd apps/registry/public
+          zip -r "$GITHUB_WORKSPACE/sapa-registry-v$VERSION.zip" r
+
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file notes.md \
+            "sapa-registry-v$VERSION.zip"

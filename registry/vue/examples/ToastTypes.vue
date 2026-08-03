@@ -7,33 +7,27 @@ const btn =
 
 <template>
   <div class="flex flex-wrap gap-2">
-    <button
-      type="button"
-      :class="btn"
-      @click="toast.success('Changes saved', { richColors: true })"
-    >
+    <button type="button" :class="btn" @click="toast.success('Changes saved')">
       Success
     </button>
     <button
       type="button"
       :class="btn"
-      @click="toast.error('Something went wrong', { richColors: true })"
+      @click="toast.error('Something went wrong')"
     >
       Error
     </button>
     <button
       type="button"
       :class="btn"
-      @click="
-        toast.warning('Your session is about to expire', { richColors: true })
-      "
+      @click="toast.warning('Your session is about to expire')"
     >
       Warning
     </button>
     <button
       type="button"
       :class="btn"
-      @click="toast.info('A new update is available', { richColors: true })"
+      @click="toast.info('A new update is available')"
     >
       Info
     </button>

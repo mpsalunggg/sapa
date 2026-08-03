@@ -21,8 +21,6 @@ import { ToastLayoutToggle } from "@/features/toast/toast-layout-toggle";
 
 import ToastDefault from "@/registry/react/examples/toast-default";
 import ToastTypes from "@/registry/react/examples/toast-types";
-import ToastVariants from "@/registry/react/examples/toast-variants";
-import ToastSizes from "@/registry/react/examples/toast-sizes";
 import ToastDescription from "@/registry/react/examples/toast-description";
 import ToastAction from "@/registry/react/examples/toast-action";
 import ToastPromise from "@/registry/react/examples/toast-promise";
@@ -38,7 +36,7 @@ export const metadata = {
     "How to install and use the Sapa toast — one API, both React and Vue.",
 };
 
-// Variants shown with a live preview + install command + real registry source.
+// Examples shown with a live preview + install command + real registry source.
 const EXAMPLES = [
   {
     key: "types",
@@ -46,18 +44,6 @@ const EXAMPLES = [
     description:
       "Success, error, warning and info — each with a semantic color + icon.",
     Preview: ToastTypes,
-  },
-  {
-    key: "variants",
-    title: "Variants",
-    description: "Three styles — filled, outline and accent.",
-    Preview: ToastVariants,
-  },
-  {
-    key: "sizes",
-    title: "Sizes",
-    description: "Three sizes — sm, default and lg.",
-    Preview: ToastSizes,
   },
   {
     key: "description",
@@ -145,7 +131,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
-        <Toaster richColors position="bottom-right" />
+        <Toaster position="bottom-right" />
       </body>
     </html>
   )
@@ -156,7 +142,7 @@ import Toaster from "@/components/ui/sapa-toast/Toaster.vue"
 
 <template>
   <RouterView />
-  <Toaster rich-colors position="bottom-right" />
+  <Toaster position="bottom-right" />
 </template>`,
   },
   loading: {
@@ -179,13 +165,9 @@ toast.dismiss()                      // dismiss every toast
 const THEMING_CSS = `/* globals.css — override Sapa's rich colors */
 :root {
   --sapa-success: oklch(0.62 0.17 149);
-  --sapa-success-foreground: oklch(0.98 0.02 150);
   --sapa-error: oklch(0.58 0.22 27);
-  --sapa-error-foreground: oklch(0.98 0.02 20);
   --sapa-warning: oklch(0.75 0.16 78);
-  --sapa-warning-foreground: oklch(0.28 0.07 70);
   --sapa-info: oklch(0.6 0.13 240);
-  --sapa-info-foreground: oklch(0.98 0.02 240);
 }
 
 .dark {
@@ -193,28 +175,15 @@ const THEMING_CSS = `/* globals.css — override Sapa's rich colors */
   --sapa-error: oklch(0.7 0.19 22);
   --sapa-warning: oklch(0.82 0.16 82);
   --sapa-info: oklch(0.68 0.14 240);
-  /* …plus the matching *-foreground tokens */
 }`;
 
-// The eight semantic tokens that power the toast "rich colors".
+// The four semantic tokens the toast reads, one per type. The theme item also
+// ships a `-foreground` pair for each; the toast no longer uses them.
 const SAPA_TOKENS: TokenRow[] = [
-  { name: "--sapa-success", desc: "Success border, glow and title." },
-  {
-    name: "--sapa-success-foreground",
-    desc: "Icon/text on the solid success chip.",
-  },
-  { name: "--sapa-error", desc: "Error border, glow and title." },
-  {
-    name: "--sapa-error-foreground",
-    desc: "Icon/text on the solid error chip.",
-  },
-  { name: "--sapa-warning", desc: "Warning border, glow and title." },
-  {
-    name: "--sapa-warning-foreground",
-    desc: "Icon/text on the solid warning chip.",
-  },
-  { name: "--sapa-info", desc: "Info border, glow and title." },
-  { name: "--sapa-info-foreground", desc: "Icon/text on the solid info chip." },
+  { name: "--sapa-success", desc: "Success tile and bottom-edge bar." },
+  { name: "--sapa-error", desc: "Error tile and bottom-edge bar." },
+  { name: "--sapa-warning", desc: "Warning tile and bottom-edge bar." },
+  { name: "--sapa-info", desc: "Info tile and bottom-edge bar." },
 ];
 
 const OPTIONS: PropRow[] = [
@@ -239,21 +208,6 @@ const OPTIONS: PropRow[] = [
     desc: "One of the six anchors — overrides the Toaster default.",
   },
   {
-    name: "variant",
-    type: "ToastVariant",
-    desc: 'Visual treatment: "default", "outline", "filled" or "accent".',
-  },
-  {
-    name: "size",
-    type: "ToastSize",
-    desc: 'Toast size: "sm", "default" or "lg".',
-  },
-  {
-    name: "richColors",
-    type: "boolean",
-    desc: 'Deprecated alias for variant: "outline".',
-  },
-  {
     name: "icon",
     type: "ReactNode",
     desc: "Custom leading icon; falls back to the type's default.",
@@ -261,7 +215,7 @@ const OPTIONS: PropRow[] = [
   {
     name: "progress",
     type: "number",
-    desc: "0–100 — renders a determinate progress bar (see toast.progress).",
+    desc: "0–100 — a determinate bar along the bottom edge (see toast.progress).",
   },
   {
     name: "action",
@@ -297,21 +251,6 @@ const TOASTER_PROPS: PropRow[] = [
     desc: 'Default position for toasts that don\'t set their own (default "bottom-right").',
   },
   {
-    name: "variant",
-    type: "ToastVariant",
-    desc: 'Default visual treatment for every toast (default "default").',
-  },
-  {
-    name: "size",
-    type: "ToastSize",
-    desc: 'Default size for every toast (default "default").',
-  },
-  {
-    name: "richColors",
-    type: "boolean",
-    desc: 'Deprecated alias for variant="outline" (default false).',
-  },
-  {
     name: "expand",
     type: "boolean",
     desc: "Show toasts as a flat list instead of a collapsible stack (default false).",
@@ -329,10 +268,10 @@ const POSITIONS = [
 
 export default async function DocsPage() {
   const version = await getLatestVersion();
-  // Real registry sources for every variant (default + examples), highlighted server-side.
-  const variantKeys = ["default", ...EXAMPLES.map((e) => e.key)];
+  // Real registry sources for every example (default + examples), highlighted server-side.
+  const exampleKeys = ["default", ...EXAMPLES.map((e) => e.key)];
   const sourceEntries = await Promise.all(
-    variantKeys.map(async (key) => {
+    exampleKeys.map(async (key) => {
       const react = await getSource(`react/toast-${key}`);
       const vue = await getSource(`vue/toast-${key}`);
       return [
@@ -552,11 +491,14 @@ export default async function DocsPage() {
                   Custom colors
                 </h2>
                 <p className="text-muted-foreground mt-2 text-sm">
-                  The rich colors come from eight semantic CSS variables —{" "}
+                  The rich colors come from four semantic CSS variables —{" "}
                   <Chip>--sapa-success</Chip>, <Chip>--sapa-error</Chip>,{" "}
-                  <Chip>--sapa-warning</Chip>, <Chip>--sapa-info</Chip> and
-                  their <Chip>-foreground</Chip> pairs. They apply whenever a
-                  toast runs with <Chip>richColors</Chip>. The{" "}
+                  <Chip>--sapa-warning</Chip> and <Chip>--sapa-info</Chip>. The
+                  toast&apos;s <Chip>type</Chip> picks one, and it does two
+                  jobs: it tints the icon tile — a soft wash, a hairline of the
+                  same hue, and the glyph — and it paints the bar along the
+                  card&apos;s bottom edge, whether that bar is counting down the
+                  auto-dismiss or tracking a <Chip>progress</Chip> value. The{" "}
                   <Chip>theme</Chip> registry item installs them into your
                   project on setup; to re-brand the toast, just override them in
                   your own <Chip>globals.css</Chip> — no component changes

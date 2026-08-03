@@ -5,13 +5,7 @@ import { createPortal } from "react-dom";
 
 import { cn } from "@/lib/utils";
 import { Toast } from "./toast";
-import {
-  toastStore,
-  type ToastData,
-  type ToastPosition,
-  type ToastSize,
-  type ToastVariant,
-} from "./toast-store";
+import { toastStore, type ToastData, type ToastPosition } from "./toast-store";
 
 // Stable reference for SSR: getServerSnapshot must return the same value every
 // call, otherwise useSyncExternalStore re-renders forever.
@@ -36,21 +30,12 @@ const MAX_VISIBLE = 3; // cards shown before the rest fade out when collapsed
 export interface ToasterProps {
   /** Default position for toasts that don't set their own. */
   position?: ToastPosition;
-  /** Default visual treatment for toasts that don't set their own. */
-  variant?: ToastVariant;
-  /** Default size for toasts that don't set their own. */
-  size?: ToastSize;
-  /** @deprecated Use `variant="outline"`. */
-  richColors?: boolean;
   /** Show toasts as a flat list instead of a collapsible stack. */
   expand?: boolean;
 }
 
 export function Toaster({
   position = "bottom-right",
-  variant = "default",
-  size = "default",
-  richColors = false,
   expand = false,
 }: ToasterProps) {
   const toasts = React.useSyncExternalStore(
@@ -80,21 +65,12 @@ export function Toaster({
 
   if (!mounted) return null;
 
-  // Toaster-level default; `richColors` is a deprecated alias for "outline".
-  const defaultVariant: ToastVariant =
-    variant !== "default" ? variant : richColors ? "outline" : "default";
-
   // Group toasts by their effective position.
   const groups = new Map<ToastPosition, ToastData[]>();
   for (const t of toasts) {
     const pos = t.position ?? position;
     if (!groups.has(pos)) groups.set(pos, []);
-    groups.get(pos)!.push({
-      ...t,
-      position: pos,
-      variant: t.variant ?? (t.richColors ? "outline" : defaultVariant),
-      size: t.size ?? size,
-    });
+    groups.get(pos)!.push({ ...t, position: pos });
   }
 
   const stacked = !expand;

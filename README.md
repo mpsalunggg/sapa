@@ -12,9 +12,10 @@ _Copy, paste, own it. Same design, two frameworks._
 
 - **Cross-framework** — one registry, two authored sources (`.tsx` + `.vue`).
 - **Custom-built** — written from scratch on framework primitives (no `sonner` / `vue-sonner`).
-- **Rich colors** — semantic success / error / warning / info with a pill design.
+- **Rich colors** — semantic success / error / warning / info, carried by a squared icon tile.
+- **One shape** — a single squared card: icon tile beside the header, description on its own full-width line.
 - **Directional motion** — toasts exit toward their anchor; swipe to dismiss (sideways for corners, up/down for centered).
-- **Variants** — default, types, description, action, promise, progress, custom content, positions.
+- **Examples** — default, types, description, action, promise, progress, custom content, positions.
 - **Theme-aware** — light & dark via CSS variables.
 - **Accessible** — `aria-live` announcements, keyboard-focusable dismiss, honors `prefers-reduced-motion`.
 
@@ -30,7 +31,7 @@ npx shadcn@latest add https://sapa-registry.vercel.app/r/react/toaster.json
 npx shadcn-vue@latest add https://sapa-registry.vercel.app/r/vue/toaster.json
 ```
 
-Files land in `components/ui/sapa-toast/`. Optional demo variants:
+Files land in `components/ui/sapa-toast/`. Optional demo examples:
 `.../r/react/toast-types.json`, `toast-promise.json`, `toast-positions.json`, …
 
 Mount the toaster once, then call the API anywhere:
@@ -39,7 +40,7 @@ Mount the toaster once, then call the API anywhere:
 // React — e.g. app/layout.tsx
 import { Toaster, toast } from "@/components/ui/sapa-toast/toaster";
 
-// <Toaster richColors position="bottom-right" />
+// <Toaster position="bottom-right" />
 toast.success("Saved", { description: "All changes stored." });
 ```
 
@@ -51,7 +52,7 @@ import { toast } from "@/components/ui/sapa-toast/useToast";
 </script>
 
 <template>
-  <Toaster rich-colors position="bottom-right" />
+  <Toaster position="bottom-right" />
 </template>
 <!-- toast.success("Saved", { description: "All changes stored." }) -->
 ```
@@ -64,13 +65,14 @@ import { toast } from "@/components/ui/sapa-toast/useToast";
 `toast.custom(node/component)` · `toast.dismiss(id?)`
 
 **Options:** `title`, `description`, `duration` (`Infinity` to persist), `position`,
-`variant` (`"default" | "outline" | "filled" | "accent"`), `size` (`"sm" | "default" | "lg"`),
 `action`, `cancel`, `icon`, `progress` (0–100).
 
-`variant` picks the visual treatment — `filled` (solid color), `outline` (tinted
-border/title), `accent` (colored left bar), or the neutral `default`. `richColors: true`
-is still accepted as a deprecated alias for `variant: "outline"`. Set defaults for every
-toast on the `<Toaster variant="…" size="…" />`.
+Every toast is the same squared card — there is no `variant` or `size` to pick.
+The only visual axis is `type`, which pulls a color from the `--sapa-*` tokens
+and uses it twice: a soft wash with a hairline of the same hue on the icon tile,
+and a solid 3px bar along the card's bottom edge — either the auto-dismiss
+countdown or, when you pass `progress`, the determinate fill.
+`<Toaster>` takes `position` and `expand`.
 
 ## Repository layout
 

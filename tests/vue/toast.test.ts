@@ -171,6 +171,101 @@ describe("programmatic dismiss", () => {
   });
 });
 
+describe("square layout", () => {
+  it("renders the description as a sibling of the header, not inside it", async () => {
+    await mountToaster();
+    toast("Backup completed", { description: "1,248 records archived" });
+    await advance(0);
+
+    const root = item()!;
+    // The header row's textContent equals the title too (the tile holds no
+    // text), so take the *last* match — the innermost element in tree order.
+    const byText = (text: string) =>
+      [...root.querySelectorAll("div")]
+        .filter((d) => d.textContent?.trim() === text)
+        .pop()!;
+    const title = byText("Backup completed");
+    const description = byText("1,248 records archived");
+
+    // The header holds the tile + title; the description sits below it at the
+    // card's full width. If it ever lands back inside the header row it would
+    // be indented under the icon again.
+    expect(description.parentElement).toBe(root);
+    expect(title.parentElement).not.toBe(root);
+    expect(title.parentElement!.contains(description)).toBe(false);
+  });
+
+  it("colors the icon tile from the toast type", async () => {
+    await mountToaster();
+    toast.error("Connection lost");
+    await advance(0);
+
+    const tile = item()!.querySelector("span.rounded-\\[8px\\]")!;
+    expect(tile.className).toContain("bg-sapa-error/10");
+    expect(tile.className).toContain("text-sapa-error");
+  });
+});
+
+describe("bottom-edge bars", () => {
+  /** Every bar — countdown or determinate — is a direct child of the <li>. */
+  const bars = () =>
+    [...item()!.children].filter((el) =>
+      el.className.includes("bottom-0"),
+    ) as HTMLElement[];
+  const track = () =>
+    document.querySelector<HTMLElement>("[role='progressbar']")!;
+
+  it("pins the determinate bar to the card's bottom edge, not the content flow", async () => {
+    await mountToaster();
+    toast.progress("Uploading…", { value: 62 });
+    await advance(0);
+
+    expect(track().parentElement).toBe(item());
+    expect(track().className).toContain("bottom-0");
+    expect(track().getAttribute("aria-valuenow")).toBe("62");
+    expect((track().firstElementChild as HTMLElement).style.width).toBe("62%");
+  });
+
+  it("clamps an out-of-range progress value", async () => {
+    await mountToaster();
+    toast.progress("Uploading…", { value: 140 });
+    await advance(0);
+
+    expect(track().getAttribute("aria-valuenow")).toBe("100");
+    expect((track().firstElementChild as HTMLElement).style.width).toBe("100%");
+  });
+
+  it("colors the countdown bar from the toast type", async () => {
+    await mountToaster();
+    toast.success("Saved", { duration: 4000 });
+    await advance(0);
+
+    const [bar, ...rest] = bars();
+    expect(rest).toHaveLength(0);
+    expect(bar.className).toContain("bg-sapa-success");
+    expect(bar.className).toContain("origin-left");
+  });
+
+  it("falls back to a neutral bar for types with no semantic hue", async () => {
+    await mountToaster();
+    toast("Copied", { duration: 4000 });
+    await advance(0);
+
+    expect(bars()[0].className).toContain("bg-foreground");
+  });
+
+  it("hides the countdown bar when a progress value owns the strip", async () => {
+    await mountToaster();
+    // Both are set, so the two bars would otherwise stack on the same pixels.
+    toast.progress("Uploading…", { value: 40, duration: 4000 });
+    await advance(0);
+
+    const drawn = bars();
+    expect(drawn).toHaveLength(1);
+    expect(drawn[0]).toBe(track());
+  });
+});
+
 describe("stacked markup", () => {
   it("keeps the list element free of non-li children", async () => {
     await mountToaster();

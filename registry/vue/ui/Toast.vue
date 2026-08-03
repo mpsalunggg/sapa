@@ -21,9 +21,7 @@ import {
   dismiss,
   type CloseReason,
   type ToastData,
-  type ToastSize,
   type ToastType,
-  type ToastVariant,
 } from "./useToast";
 
 const props = withDefaults(
@@ -63,86 +61,32 @@ const ICONS: Record<ToastType, unknown> = {
   loading: Loader2,
 };
 
-// Colored "outline" treatment: tinted border + title + soft glow
-// over a light surface — matches the pill reference design.
-const OUTLINE: Record<ToastType, string> = {
-  default: "",
-  success: "border-sapa-success/50 shadow-lg shadow-sapa-success/10",
-  error: "border-sapa-error/50 shadow-lg shadow-sapa-error/10",
-  warning: "border-sapa-warning/50 shadow-lg shadow-sapa-warning/10",
-  info: "border-sapa-info/50 shadow-lg shadow-sapa-info/10",
-  loading: "",
+// Squared icon tile — soft semantic wash with a hairline of the same hue.
+// This is where the type's color lives; the surface itself stays neutral.
+const TILE: Record<ToastType, string> = {
+  default: "bg-muted text-foreground border-border",
+  success: "bg-sapa-success/10 text-sapa-success border-sapa-success/25",
+  error: "bg-sapa-error/10 text-sapa-error border-sapa-error/25",
+  warning: "bg-sapa-warning/10 text-sapa-warning border-sapa-warning/25",
+  info: "bg-sapa-info/10 text-sapa-info border-sapa-info/25",
+  loading: "bg-muted text-muted-foreground border-border",
 };
 
-// Solid colored surface (high contrast). default/loading stay neutral.
-const FILLED: Record<ToastType, string> = {
-  default: "",
-  success:
-    "bg-sapa-success text-sapa-success-foreground border-transparent shadow-lg shadow-sapa-success/20",
-  error:
-    "bg-sapa-error text-sapa-error-foreground border-transparent shadow-lg shadow-sapa-error/20",
-  warning:
-    "bg-sapa-warning text-sapa-warning-foreground border-transparent shadow-lg shadow-sapa-warning/20",
-  info: "bg-sapa-info text-sapa-info-foreground border-transparent shadow-lg shadow-sapa-info/20",
-  loading: "",
+// Bar colors, shared by the auto-dismiss timer and the determinate progress
+// bar — both ride the card's bottom edge. default/loading have no semantic hue,
+// so they fall back to the text color.
+const BAR: Record<ToastType, string> = {
+  default: "bg-foreground",
+  success: "bg-sapa-success",
+  error: "bg-sapa-error",
+  warning: "bg-sapa-warning",
+  info: "bg-sapa-info",
+  loading: "bg-foreground",
 };
 
-// Neutral surface + thick colored left bar (minimalist), tighter radius.
-const ACCENT: Record<ToastType, string> = {
-  default: "border-l-4",
-  success: "border-l-4 border-l-sapa-success rounded-xl",
-  error: "border-l-4 border-l-sapa-error rounded-xl",
-  warning: "border-l-4 border-l-sapa-warning rounded-xl",
-  info: "border-l-4 border-l-sapa-info rounded-xl",
-  loading: "border-l-4 rounded-xl",
-};
-
-// Padding / gap per size (applied to the root <li>).
-const SIZE_ROOT: Record<ToastSize, string> = {
-  sm: "gap-2.5 p-3 pr-9",
-  default: "gap-3 p-4 pr-10",
-  lg: "gap-4 p-5 pr-12",
-};
-const SIZE_TITLE: Record<ToastSize, string> = {
-  sm: "text-xs",
-  default: "text-sm",
-  lg: "text-base",
-};
-const SIZE_DESC: Record<ToastSize, string> = {
-  sm: "text-xs",
-  default: "text-sm",
-  lg: "text-base",
-};
-const SIZE_CHIP: Record<ToastSize, string> = {
-  sm: "size-7",
-  default: "size-8",
-  lg: "size-10",
-};
-const SIZE_GLYPH: Record<ToastSize, string> = {
-  sm: "size-4",
-  default: "size-5",
-  lg: "size-6",
-};
-
-// Title text color when the outline variant is on.
-const RICH_TEXT: Record<ToastType, string> = {
-  default: "",
-  success: "text-sapa-success",
-  error: "text-sapa-error",
-  warning: "text-sapa-warning",
-  info: "text-sapa-info",
-  loading: "",
-};
-
-// Solid colored icon circle (white glyph) per type.
-const CHIP: Record<ToastType, string> = {
-  default: "bg-muted text-foreground",
-  success: "bg-sapa-success text-white",
-  error: "bg-sapa-error text-white",
-  warning: "bg-sapa-warning text-white",
-  info: "bg-sapa-info text-white",
-  loading: "bg-muted text-muted-foreground",
-};
+// Close button — revealed on hover so a resting toast stays quiet.
+const CLOSE =
+  "focus-visible:ring-ring rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70 dark:hover:bg-white/10";
 
 const SWIPE_THRESHOLD = 80;
 
@@ -159,15 +103,6 @@ const reduceMotion =
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const compact = computed(
-  () =>
-    !props.toast.component &&
-    !props.toast.description &&
-    !props.toast.action &&
-    !props.toast.cancel &&
-    props.toast.progress == null,
-);
-
 /** Clamped determinate progress (toast.progress), or null when not a progress toast. */
 const progressValue = computed(() =>
   props.toast.progress == null
@@ -175,41 +110,15 @@ const progressValue = computed(() =>
     : Math.min(100, Math.max(0, props.toast.progress)),
 );
 
-// Effective variant — `richColors: true` is a deprecated alias for "outline".
-const variant = computed<ToastVariant>(
-  () => props.toast.variant ?? (props.toast.richColors ? "outline" : "default"),
-);
-const size = computed<ToastSize>(() => props.toast.size ?? "default");
-
-// Variant classes applied last on the root <li> (tailwind-merge lets them win).
-const variantClass = computed(() => {
-  const t = props.toast.type;
-  switch (variant.value) {
-    case "outline":
-      return OUTLINE[t];
-    case "filled":
-      return FILLED[t];
-    case "accent":
-      return ACCENT[t];
-    default:
-      return "";
-  }
-});
-
-// Icon chip: translucent on the filled surface, otherwise the solid colored chip.
-const chipClass = computed(() =>
-  variant.value === "filled"
-    ? "bg-white/20 text-current"
-    : CHIP[props.toast.type],
-);
-
 const duration = computed(() => props.toast.duration ?? 4000);
 const iconComp = computed(() => props.toast.icon ?? ICONS[props.toast.type]);
+// The auto-dismiss timer bar. A loading toast has no deadline to show, and a
+// real progress value beats a countdown for the same strip of pixels.
 const showProgress = computed(
   () =>
     Number.isFinite(duration.value) &&
     props.toast.type !== "loading" &&
-    !compact.value,
+    progressValue.value == null,
 );
 
 const vertical = computed(
@@ -425,14 +334,11 @@ onBeforeUnmount(() => {
     :style="stackStyle"
     :class="
       cn(
-        'bg-popover/95 text-popover-foreground group pointer-events-auto flex w-full gap-3 overflow-hidden border p-4 pr-10 shadow-xl shadow-black/5 backdrop-blur',
+        'bg-popover/95 text-popover-foreground group pointer-events-auto flex w-full flex-col overflow-hidden rounded-[9px] border p-[14px] shadow-xl shadow-black/5 backdrop-blur',
         stacked
           ? cn('absolute inset-x-0', anchorBottom ? 'bottom-0' : 'top-0')
           : 'relative',
-        compact ? 'items-center rounded-full' : 'items-start rounded-3xl',
         !dragging && 'cursor-grab active:cursor-grabbing',
-        SIZE_ROOT[size],
-        variantClass,
       )
     "
     @mouseenter="pause"
@@ -441,92 +347,104 @@ onBeforeUnmount(() => {
     @pointermove="onPointerMove"
     @pointerup="onPointerUp"
   >
-    <component :is="toast.component" v-if="toast.component" class="flex-1" />
+    <!-- Custom content has no header row to hang the close button off, so it
+         keeps the absolute one — hence the padding reserved on the right. -->
+    <template v-if="toast.component">
+      <component :is="toast.component" class="pr-6" />
+      <button
+        type="button"
+        aria-label="Close"
+        :class="cn(CLOSE, 'absolute right-2.5 top-2.5')"
+        @click="close('user')"
+      >
+        <X class="size-4" />
+      </button>
+    </template>
 
     <template v-else>
-      <span
-        v-if="iconComp"
-        :class="
-          cn(
-            'flex shrink-0 items-center justify-center rounded-full',
-            SIZE_CHIP[size],
-            !compact && 'mt-0.5',
-            chipClass,
-          )
-        "
-      >
-        <component
-          :is="iconComp"
-          :class="
-            cn(SIZE_GLYPH[size], toast.type === 'loading' && 'animate-spin')
-          "
-        />
-      </span>
-      <div class="flex-1 space-y-1">
-        <div
-          v-if="toast.title != null"
+      <!-- Header — the tile sits *beside* the title so the two read as one
+           object; everything below it gets the card's full width. -->
+      <div class="flex items-center gap-[10px]">
+        <span
+          v-if="iconComp"
           :class="
             cn(
-              'font-semibold leading-tight',
-              SIZE_TITLE[size],
-              variant === 'outline' && RICH_TEXT[toast.type],
+              'flex size-[30px] shrink-0 items-center justify-center rounded-[8px] border',
+              TILE[toast.type],
             )
           "
         >
+          <component
+            :is="iconComp"
+            :class="cn('size-4', toast.type === 'loading' && 'animate-spin')"
+          />
+        </span>
+        <div
+          v-if="toast.title != null"
+          class="min-w-0 flex-1 text-sm font-semibold leading-tight"
+        >
           {{ toast.title }}
         </div>
-        <div
-          v-if="toast.description != null"
-          :class="cn('opacity-90', SIZE_DESC[size])"
+        <button
+          type="button"
+          aria-label="Close"
+          :class="cn(CLOSE, '-mr-1 ml-auto shrink-0')"
+          @click="close('user')"
         >
-          {{ toast.description }}
-        </div>
-        <div
-          v-if="progressValue != null"
-          role="progressbar"
-          :aria-valuenow="progressValue"
-          :aria-valuemin="0"
-          :aria-valuemax="100"
-          class="bg-muted mt-2 h-1.5 w-full overflow-hidden rounded-full"
+          <X class="size-4" />
+        </button>
+      </div>
+
+      <div
+        v-if="toast.description != null"
+        class="mt-[11px] text-sm opacity-90"
+      >
+        {{ toast.description }}
+      </div>
+
+      <div v-if="toast.action || toast.cancel" class="mt-[11px] flex gap-2">
+        <button
+          v-if="toast.action"
+          type="button"
+          class="bg-foreground text-background inline-flex h-7 items-center rounded-md px-2.5 text-xs font-medium transition-opacity hover:opacity-90"
+          @click="runAction"
         >
-          <div
-            class="from-sapa-warning to-sapa-error bg-linear-to-r h-full rounded-full transition-[width] duration-300 ease-out"
-            :style="{ width: `${progressValue}%` }"
-          />
-        </div>
-        <div v-if="toast.action || toast.cancel" class="mt-2 flex gap-2">
-          <button
-            v-if="toast.action"
-            type="button"
-            class="bg-foreground text-background inline-flex h-7 items-center rounded-md px-2.5 text-xs font-medium transition-opacity hover:opacity-90"
-            @click="runAction"
-          >
-            {{ toast.action.label }}
-          </button>
-          <button
-            v-if="toast.cancel"
-            type="button"
-            class="hover:bg-muted inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors"
-            @click="runCancel"
-          >
-            {{ toast.cancel.label }}
-          </button>
-        </div>
+          {{ toast.action.label }}
+        </button>
+        <button
+          v-if="toast.cancel"
+          type="button"
+          class="hover:bg-muted inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors"
+          @click="runCancel"
+        >
+          {{ toast.cancel.label }}
+        </button>
       </div>
     </template>
 
-    <button
-      type="button"
-      aria-label="Close"
-      class="focus-visible:ring-ring absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70 dark:hover:bg-white/10"
-      @click="close('user')"
+    <!-- Both bars ride the bottom edge; overflow-hidden on the root clips them
+         to the card's radius, so neither needs one of its own. -->
+    <div
+      v-if="progressValue != null"
+      role="progressbar"
+      :aria-valuenow="progressValue"
+      :aria-valuemin="0"
+      :aria-valuemax="100"
+      class="bg-muted absolute inset-x-0 bottom-0 h-[3px]"
     >
-      <X class="size-4" />
-    </button>
+      <div
+        :class="
+          cn('h-full transition-[width] duration-300 ease-out', BAR[toast.type])
+        "
+        :style="{ width: `${progressValue}%` }"
+      />
+    </div>
 
     <span
       v-if="showProgress"
-      class="absolute inset-x-3 bottom-1.5 h-1 origin-left rounded-full bg-current opacity-25"
+      :class="
+        cn('absolute inset-x-0 bottom-0 h-[3px] origin-left', BAR[toast.type])
+      "
       :style="{
         animation: reduceMotion
           ? 'none'

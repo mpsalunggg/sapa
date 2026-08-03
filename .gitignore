@@ -12,3 +12,6 @@ next-env.d.ts
 .env.local
 # generated registry output
 apps/registry/public/r
+# maintainer notes, kept local. Anchored with a leading slash: a bare `docs/`
+# also matches apps/registry/app/docs, which is the showcase's docs route.
+/docs/

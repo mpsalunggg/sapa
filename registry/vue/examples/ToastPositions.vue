@@ -18,7 +18,7 @@ const positions: ToastPosition[] = [
       :key="position"
       type="button"
       class="bg-background hover:bg-muted inline-flex h-9 items-center justify-center rounded-md border px-3 text-xs font-medium shadow-sm transition-colors"
-      @click="toast(position, { position, richColors: true, type: 'info' })"
+      @click="toast(position, { position, type: 'info' })"
     >
       {{ position }}
     </button>

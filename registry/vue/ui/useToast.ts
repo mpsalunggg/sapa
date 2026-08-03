@@ -4,10 +4,6 @@ import type { Component } from "vue";
 export type ToastType =
   "default" | "success" | "error" | "warning" | "info" | "loading";
 
-export type ToastVariant = "default" | "outline" | "filled" | "accent";
-
-export type ToastSize = "sm" | "default" | "lg";
-
 export type ToastPosition =
   | "top-left"
   | "top-center"
@@ -35,12 +31,6 @@ export interface ToastOptions {
   /** Auto-dismiss delay in ms. Use `Infinity` to keep it until dismissed. */
   duration?: number;
   position?: ToastPosition;
-  /** Visual treatment. Defaults to "default" (neutral surface). */
-  variant?: ToastVariant;
-  /** Toast size. Defaults to "default". */
-  size?: ToastSize;
-  /** @deprecated Use `variant: "outline"`. Kept as an alias for backward compat. */
-  richColors?: boolean;
   action?: ToastAction;
   cancel?: ToastAction;
   /** Override the leading icon with a custom component. */
