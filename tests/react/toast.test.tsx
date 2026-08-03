@@ -190,6 +190,102 @@ describe("programmatic dismiss", () => {
   });
 });
 
+describe("square layout", () => {
+  it("renders the description as a sibling of the header, not inside it", () => {
+    mountToaster();
+    act(() => {
+      toast("Backup completed", { description: "1,248 records archived" });
+    });
+
+    const root = item()!;
+    const title = screen.getByText("Backup completed");
+    const description = screen.getByText("1,248 records archived");
+
+    // The header holds the tile + title; the description sits below it at the
+    // card's full width. If it ever lands back inside the header row it would
+    // be indented under the icon again.
+    expect(description.parentElement).toBe(root);
+    expect(title.parentElement).not.toBe(root);
+    expect(title.parentElement!.contains(description)).toBe(false);
+  });
+
+  it("colors the icon tile from the toast type", () => {
+    mountToaster();
+    act(() => {
+      toast.error("Connection lost");
+    });
+
+    const tile = item()!.querySelector("span.rounded-\\[8px\\]")!;
+    expect(tile.className).toContain("bg-sapa-error/10");
+    expect(tile.className).toContain("text-sapa-error");
+  });
+});
+
+describe("bottom-edge bars", () => {
+  /** Every bar — countdown or determinate — is a direct child of the <li>. */
+  const bars = () =>
+    [...item()!.children].filter((el) =>
+      el.className.includes("bottom-0"),
+    ) as HTMLElement[];
+
+  it("pins the determinate bar to the card's bottom edge, not the content flow", () => {
+    mountToaster();
+    act(() => {
+      toast.progress("Uploading…", { value: 62 });
+    });
+
+    const track = screen.getByRole("progressbar");
+    expect(track.parentElement).toBe(item());
+    expect(track.className).toContain("bottom-0");
+    expect(track.getAttribute("aria-valuenow")).toBe("62");
+    expect((track.firstElementChild as HTMLElement).style.width).toBe("62%");
+  });
+
+  it("clamps an out-of-range progress value", () => {
+    mountToaster();
+    act(() => {
+      toast.progress("Uploading…", { value: 140 });
+    });
+
+    const track = screen.getByRole("progressbar");
+    expect(track.getAttribute("aria-valuenow")).toBe("100");
+    expect((track.firstElementChild as HTMLElement).style.width).toBe("100%");
+  });
+
+  it("colors the countdown bar from the toast type", () => {
+    mountToaster();
+    act(() => {
+      toast.success("Saved", { duration: 4000 });
+    });
+
+    const [bar, ...rest] = bars();
+    expect(rest).toHaveLength(0);
+    expect(bar.className).toContain("bg-sapa-success");
+    expect(bar.className).toContain("origin-left");
+  });
+
+  it("falls back to a neutral bar for types with no semantic hue", () => {
+    mountToaster();
+    act(() => {
+      toast("Copied", { duration: 4000 });
+    });
+
+    expect(bars()[0].className).toContain("bg-foreground");
+  });
+
+  it("hides the countdown bar when a progress value owns the strip", () => {
+    mountToaster();
+    act(() => {
+      // Both are set, so the two bars would otherwise stack on the same pixels.
+      toast.progress("Uploading…", { value: 40, duration: 4000 });
+    });
+
+    const drawn = bars();
+    expect(drawn).toHaveLength(1);
+    expect(drawn[0]).toBe(screen.getByRole("progressbar"));
+  });
+});
+
 describe("stacked markup", () => {
   it("keeps the list element free of non-li children", () => {
     mountToaster();

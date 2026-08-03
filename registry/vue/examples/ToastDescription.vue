@@ -9,7 +9,6 @@ import { toast } from "@/components/ui/sapa-toast/useToast";
     @click="
       toast.success('Event created', {
         description: 'Monday, January 3rd at 6:00pm',
-        richColors: true,
       })
     "
   >

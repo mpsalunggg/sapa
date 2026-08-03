@@ -7,8 +7,9 @@ import type { ToastData } from "@/components/ui/sapa-toast/toast-store";
 import { cn } from "@/lib/utils";
 
 /** The hero pile renders the *real* <Toast>, so what visitors see is exactly
- *  what `shadcn add` gives them. Four cards, picked so that all four variants,
- *  both silhouettes (pill vs card) and every content feature appear once.
+ *  what `shadcn add` gives them. Four cards, picked so that every content
+ *  feature (title only, description, actions, progress) appears exactly once,
+ *  each on a different type so the semantic tiles are all represented.
  *
  *  Two constraints worth keeping if you edit this list:
  *  - `id` must be a string. The store hands real toasts incrementing *numbers*,
@@ -22,8 +23,6 @@ const HERO_TOASTS: ToastData[] = [
   {
     id: "hero-deploy",
     type: "success",
-    variant: "filled",
-    size: "sm",
     title: "Deployed to production",
     duration: Infinity,
     createdAt: 0,
@@ -31,16 +30,14 @@ const HERO_TOASTS: ToastData[] = [
   {
     id: "hero-storage",
     type: "warning",
-    variant: "outline",
-    size: "sm",
     title: "Storage almost full",
+    description: "92% of 20 GB used on acme-eu-west",
     duration: Infinity,
     createdAt: 0,
   },
   {
     id: "hero-build",
     type: "error",
-    variant: "accent",
     title: "Build failed",
     description: "3 type errors in toast.tsx",
     action: { label: "Retry" },

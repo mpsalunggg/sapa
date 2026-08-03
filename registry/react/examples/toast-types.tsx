@@ -11,36 +11,28 @@ export default function ToastTypes() {
       <button
         type="button"
         className={btn}
-        onClick={() => toast.success("Changes saved", { richColors: true })}
+        onClick={() => toast.success("Changes saved")}
       >
         Success
       </button>
       <button
         type="button"
         className={btn}
-        onClick={() =>
-          toast.error("Something went wrong", { richColors: true })
-        }
+        onClick={() => toast.error("Something went wrong")}
       >
         Error
       </button>
       <button
         type="button"
         className={btn}
-        onClick={() =>
-          toast.warning("Your session is about to expire", {
-            richColors: true,
-          })
-        }
+        onClick={() => toast.warning("Your session is about to expire")}
       >
         Warning
       </button>
       <button
         type="button"
         className={btn}
-        onClick={() =>
-          toast.info("A new update is available", { richColors: true })
-        }
+        onClick={() => toast.info("A new update is available")}
       >
         Info
       </button>

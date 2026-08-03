@@ -19,9 +19,7 @@ export default function ToastPositions() {
         <button
           key={position}
           type="button"
-          onClick={() =>
-            toast(position, { position, richColors: true, type: "info" })
-          }
+          onClick={() => toast(position, { position, type: "info" })}
           className="bg-background hover:bg-muted inline-flex h-9 items-center justify-center rounded-md border px-3 text-xs font-medium shadow-sm transition-colors"
         >
           {position}

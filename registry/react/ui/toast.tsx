@@ -16,12 +16,10 @@ import {
   type CloseReason,
   type ToastData,
   type ToastPosition,
-  type ToastSize,
   type ToastType,
-  type ToastVariant,
 } from "./toast-store";
 
-// Built-in glyphs — size / spin are applied at render time from the size prop.
+// Built-in glyphs — spin is applied at render time for the loading type.
 const ICONS: Record<ToastType, React.ReactElement | null> = {
   default: null,
   success: <Check strokeWidth={2.5} />,
@@ -31,86 +29,32 @@ const ICONS: Record<ToastType, React.ReactElement | null> = {
   loading: <Loader2 />,
 };
 
-// Colored "outline" treatment: tinted border + title + soft glow
-// over a light surface — matches the pill reference design.
-const OUTLINE: Record<ToastType, string> = {
-  default: "",
-  success: "border-sapa-success/50 shadow-lg shadow-sapa-success/10",
-  error: "border-sapa-error/50 shadow-lg shadow-sapa-error/10",
-  warning: "border-sapa-warning/50 shadow-lg shadow-sapa-warning/10",
-  info: "border-sapa-info/50 shadow-lg shadow-sapa-info/10",
-  loading: "",
+// Squared icon tile — soft semantic wash with a hairline of the same hue.
+// This is where the type's color lives; the surface itself stays neutral.
+const TILE: Record<ToastType, string> = {
+  default: "bg-muted text-foreground border-border",
+  success: "bg-sapa-success/10 text-sapa-success border-sapa-success/25",
+  error: "bg-sapa-error/10 text-sapa-error border-sapa-error/25",
+  warning: "bg-sapa-warning/10 text-sapa-warning border-sapa-warning/25",
+  info: "bg-sapa-info/10 text-sapa-info border-sapa-info/25",
+  loading: "bg-muted text-muted-foreground border-border",
 };
 
-// Solid colored surface (high contrast). default/loading stay neutral.
-const FILLED: Record<ToastType, string> = {
-  default: "",
-  success:
-    "bg-sapa-success text-sapa-success-foreground border-transparent shadow-lg shadow-sapa-success/20",
-  error:
-    "bg-sapa-error text-sapa-error-foreground border-transparent shadow-lg shadow-sapa-error/20",
-  warning:
-    "bg-sapa-warning text-sapa-warning-foreground border-transparent shadow-lg shadow-sapa-warning/20",
-  info: "bg-sapa-info text-sapa-info-foreground border-transparent shadow-lg shadow-sapa-info/20",
-  loading: "",
+// Bar colors, shared by the auto-dismiss timer and the determinate progress
+// bar — both ride the card's bottom edge. default/loading have no semantic hue,
+// so they fall back to the text color.
+const BAR: Record<ToastType, string> = {
+  default: "bg-foreground",
+  success: "bg-sapa-success",
+  error: "bg-sapa-error",
+  warning: "bg-sapa-warning",
+  info: "bg-sapa-info",
+  loading: "bg-foreground",
 };
 
-// Neutral surface + thick colored left bar (minimalist), tighter radius.
-const ACCENT: Record<ToastType, string> = {
-  default: "border-l-4",
-  success: "border-l-4 border-l-sapa-success rounded-xl",
-  error: "border-l-4 border-l-sapa-error rounded-xl",
-  warning: "border-l-4 border-l-sapa-warning rounded-xl",
-  info: "border-l-4 border-l-sapa-info rounded-xl",
-  loading: "border-l-4 rounded-xl",
-};
-
-// Padding / gap per size (applied to the root <li>).
-const SIZE_ROOT: Record<ToastSize, string> = {
-  sm: "gap-2.5 p-3 pr-9",
-  default: "gap-3 p-4 pr-10",
-  lg: "gap-4 p-5 pr-12",
-};
-const SIZE_TITLE: Record<ToastSize, string> = {
-  sm: "text-xs",
-  default: "text-sm",
-  lg: "text-base",
-};
-const SIZE_DESC: Record<ToastSize, string> = {
-  sm: "text-xs",
-  default: "text-sm",
-  lg: "text-base",
-};
-const SIZE_CHIP: Record<ToastSize, string> = {
-  sm: "size-7",
-  default: "size-8",
-  lg: "size-10",
-};
-const SIZE_GLYPH: Record<ToastSize, string> = {
-  sm: "size-4",
-  default: "size-5",
-  lg: "size-6",
-};
-
-// Title text color when the outline variant is on.
-const RICH_TEXT: Record<ToastType, string> = {
-  default: "",
-  success: "text-sapa-success",
-  error: "text-sapa-error",
-  warning: "text-sapa-warning",
-  info: "text-sapa-info",
-  loading: "",
-};
-
-// Solid colored icon circle (white glyph) per type.
-const CHIP: Record<ToastType, string> = {
-  default: "bg-muted text-foreground",
-  success: "bg-sapa-success text-white",
-  error: "bg-sapa-error text-white",
-  warning: "bg-sapa-warning text-white",
-  info: "bg-sapa-info text-white",
-  loading: "bg-muted text-muted-foreground",
-};
+// Close button — revealed on hover so a resting toast stays quiet.
+const CLOSE =
+  "focus-visible:ring-ring rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70 dark:hover:bg-white/10";
 
 const SWIPE_THRESHOLD = 80;
 
@@ -160,47 +104,19 @@ export function Toast({
   onHeight,
   onClosed,
 }: ToastProps) {
-  const { id, type, duration = 4000, richColors, icon, jsx } = toast;
+  const { id, type, duration = 4000, icon, jsx } = toast;
 
-  // Effective variant — `richColors: true` is a deprecated alias for "outline".
-  const variant: ToastVariant =
-    toast.variant ?? (richColors ? "outline" : "default");
-  const size: ToastSize = toast.size ?? "default";
-
-  // Variant classes applied last on the root <li> (tailwind-merge lets them win).
-  const variantClass =
-    variant === "outline"
-      ? OUTLINE[type]
-      : variant === "filled"
-        ? FILLED[type]
-        : variant === "accent"
-          ? ACCENT[type]
-          : "";
-
-  // Icon chip: translucent on the filled surface, otherwise the solid chip.
-  const chipClass =
-    variant === "filled" ? "bg-white/20 text-current" : CHIP[type];
-
-  // Resolve the leading icon, sizing built-in glyphs by the size prop.
+  // Resolve the leading icon; built-in glyphs are sized to fit the 30px tile.
   const rawIcon = icon ?? ICONS[type];
   const iconNode = React.isValidElement<{ className?: string }>(rawIcon)
     ? React.cloneElement(rawIcon, {
         className: cn(
-          SIZE_GLYPH[size],
+          "size-4",
           type === "loading" && "animate-spin",
           rawIcon.props.className,
         ),
       })
     : rawIcon;
-
-  // A "compact" toast (title only, no description/actions) centers its content
-  // vertically against the icon; richer toasts top-align.
-  const compact =
-    !jsx &&
-    !toast.description &&
-    !toast.action &&
-    !toast.cancel &&
-    toast.progress == null;
 
   // Skip enter/exit/drag animations for users who prefer reduced motion.
   const reduceMotion = prefersReducedMotion();
@@ -370,9 +286,14 @@ export function Toast({
     }
   };
 
-  // Progress bar only on the larger (non-pill) toasts — pills stay clean.
+  /** Clamped determinate progress, or null when this isn't a progress toast. */
+  const pct =
+    toast.progress == null ? null : Math.min(100, Math.max(0, toast.progress));
+
+  // The auto-dismiss timer bar. A loading toast has no deadline to show, and a
+  // real progress value beats a countdown for the same strip of pixels.
   const showProgress =
-    Number.isFinite(duration) && type !== "loading" && !compact;
+    Number.isFinite(duration) && type !== "loading" && pct == null;
 
   const dragged = dragging.current && offset !== 0;
   const style: React.CSSProperties = {
@@ -433,110 +354,121 @@ export function Toast({
       onPointerUp={onPointerUp}
       style={style}
       className={cn(
-        "bg-popover/95 text-popover-foreground group pointer-events-auto flex w-full gap-3 overflow-hidden border p-4 pr-10 shadow-xl shadow-black/5 backdrop-blur",
+        "bg-popover/95 text-popover-foreground group pointer-events-auto flex w-full flex-col overflow-hidden rounded-[9px] border p-[14px] shadow-xl shadow-black/5 backdrop-blur",
         stacked
           ? cn("absolute inset-x-0", anchorBottom ? "bottom-0" : "top-0")
           : "relative",
-        compact ? "items-center rounded-full" : "items-start rounded-3xl",
         !dragging.current && "cursor-grab active:cursor-grabbing",
-        SIZE_ROOT[size],
-        variantClass,
       )}
     >
       {jsx ? (
-        <div className="flex-1">{jsx}</div>
+        // Custom content has no header row to hang the close button off, so it
+        // keeps the absolute one — hence the padding reserved on the right.
+        <>
+          <div className="pr-6">{jsx}</div>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={() => close("user")}
+            className={cn(CLOSE, "absolute right-2.5 top-2.5")}
+          >
+            <X className="size-4" />
+          </button>
+        </>
       ) : (
         <>
-          {iconNode && (
-            <span
-              className={cn(
-                "flex shrink-0 items-center justify-center rounded-full",
-                SIZE_CHIP[size],
-                !compact && "mt-0.5",
-                chipClass,
-              )}
-            >
-              {iconNode}
-            </span>
-          )}
-          <div className="flex-1 space-y-1">
-            {toast.title != null && (
-              <div
+          {/* Header — the tile sits *beside* the title so the two read as one
+              object; everything below it gets the card's full width. */}
+          <div className="flex items-center gap-[10px]">
+            {iconNode && (
+              <span
                 className={cn(
-                  "font-semibold leading-tight",
-                  SIZE_TITLE[size],
-                  variant === "outline" && RICH_TEXT[type],
+                  "flex size-[30px] shrink-0 items-center justify-center rounded-[8px] border",
+                  TILE[type],
                 )}
               >
+                {iconNode}
+              </span>
+            )}
+            {toast.title != null && (
+              <div className="min-w-0 flex-1 text-sm font-semibold leading-tight">
                 {toast.title}
               </div>
             )}
-            {toast.description != null && (
-              <div className={cn("opacity-90", SIZE_DESC[size])}>
-                {toast.description}
-              </div>
-            )}
-            {toast.progress != null && (
-              <div
-                role="progressbar"
-                aria-valuenow={Math.min(100, Math.max(0, toast.progress))}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                className="bg-muted mt-2 h-1.5 w-full overflow-hidden rounded-full"
-              >
-                <div
-                  className="from-sapa-warning to-sapa-error bg-linear-to-r h-full rounded-full transition-[width] duration-300 ease-out"
-                  style={{
-                    width: `${Math.min(100, Math.max(0, toast.progress))}%`,
-                  }}
-                />
-              </div>
-            )}
-            {(toast.action || toast.cancel) && (
-              <div className="mt-2 flex gap-2">
-                {toast.action && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      toast.action?.onClick?.();
-                      close("action");
-                    }}
-                    className="bg-foreground text-background inline-flex h-7 items-center rounded-md px-2.5 text-xs font-medium transition-opacity hover:opacity-90"
-                  >
-                    {toast.action.label}
-                  </button>
-                )}
-                {toast.cancel && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      toast.cancel?.onClick?.();
-                      close("action");
-                    }}
-                    className="hover:bg-muted inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors"
-                  >
-                    {toast.cancel.label}
-                  </button>
-                )}
-              </div>
-            )}
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={() => close("user")}
+              className={cn(CLOSE, "-mr-1 ml-auto shrink-0")}
+            >
+              <X className="size-4" />
+            </button>
           </div>
+
+          {toast.description != null && (
+            <div className="mt-[11px] text-sm opacity-90">
+              {toast.description}
+            </div>
+          )}
+
+          {(toast.action || toast.cancel) && (
+            <div className="mt-[11px] flex gap-2">
+              {toast.action && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    toast.action?.onClick?.();
+                    close("action");
+                  }}
+                  className="bg-foreground text-background inline-flex h-7 items-center rounded-md px-2.5 text-xs font-medium transition-opacity hover:opacity-90"
+                >
+                  {toast.action.label}
+                </button>
+              )}
+              {toast.cancel && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    toast.cancel?.onClick?.();
+                    close("action");
+                  }}
+                  className="hover:bg-muted inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors"
+                >
+                  {toast.cancel.label}
+                </button>
+              )}
+            </div>
+          )}
         </>
       )}
 
-      <button
-        type="button"
-        aria-label="Close"
-        onClick={() => close("user")}
-        className="focus-visible:ring-ring absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70 dark:hover:bg-white/10"
-      >
-        <X className="size-4" />
-      </button>
+      {/* Both bars ride the bottom edge; overflow-hidden on the root clips them
+          to the card's radius, so neither needs one of its own. */}
+      {pct != null && (
+        <div
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          className="bg-muted absolute inset-x-0 bottom-0 h-[3px]"
+        >
+          <div
+            className={cn(
+              "h-full transition-[width] duration-300 ease-out",
+              BAR[type],
+            )}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      )}
 
       {showProgress && (
         <span
           key={duration}
-          className="absolute inset-x-3 bottom-1.5 h-1 origin-left rounded-full bg-current opacity-25"
+          className={cn(
+            "absolute inset-x-0 bottom-0 h-[3px] origin-left",
+            BAR[type],
+          )}
           style={{
             animation: reduceMotion
               ? "none"
