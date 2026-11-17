@@ -1,18 +1,27 @@
 <script setup lang="ts">
 import { computed, reactive } from "vue";
+import { MotionConfig } from "motion-v";
 
 import { cn } from "@/lib/utils";
 import Toast from "./Toast.vue";
-import { toasts, type ToastData, type ToastPosition } from "./useToast";
+import {
+  toasts,
+  type ToastData,
+  type ToastPosition,
+  type ToastVariant,
+} from "./useToast";
 
 const props = withDefaults(
   defineProps<{
     position?: ToastPosition;
     expand?: boolean;
+    /** Default color variant for toasts that don't set their own. */
+    variant?: ToastVariant;
   }>(),
   {
     position: "bottom-right",
     expand: false,
+    variant: "minimal",
   },
 );
 
@@ -38,14 +47,18 @@ const expandedMap = reactive<Record<string, boolean>>({});
 function registerHeight(id: string | number, h: number) {
   if (heights[id] !== h) heights[id] = h;
 }
-const h = (id: string | number) => heights[id] ?? 76;
+const h = (id: string | number) => heights[id] ?? 40;
 
 const groups = computed(() => {
   const map = new Map<ToastPosition, ToastData[]>();
   for (const t of toasts) {
     const pos = t.position ?? props.position;
     if (!map.has(pos)) map.set(pos, []);
-    map.get(pos)!.push({ ...t, position: pos });
+    map.get(pos)!.push({
+      ...t,
+      position: pos,
+      variant: t.variant ?? props.variant,
+    });
   }
   return [...map.entries()];
 });
@@ -78,61 +91,70 @@ function layoutFor(items: ToastData[], i: number, pos: ToastPosition) {
 
 <template>
   <Teleport to="body">
-    <!-- Flat-list mode -->
-    <template v-if="expand">
-      <!-- Enter/exit are self-managed inside <Toast> (mirrors React); the
+    <!-- Honors prefers-reduced-motion for every spring inside the bubbles. -->
+    <MotionConfig reduced-motion="user">
+      <!-- Flat-list mode -->
+      <template v-if="expand">
+        <!-- Enter/exit are self-managed inside <Toast> (mirrors React); the
            TransitionGroup only FLIP-animates siblings reflowing on removal. -->
-      <TransitionGroup
-        v-for="[pos, items] in groups"
-        :key="pos"
-        tag="ol"
-        :class="
-          cn(
-            'pointer-events-none fixed z-[100] flex max-h-screen w-full flex-col gap-2 p-4 sm:max-w-[380px]',
-            POSITION_CLASSES[pos],
-          )
-        "
-        move-class="transition-transform duration-300 motion-reduce:transition-none"
-      >
-        <Toast v-for="t in items" :key="t.id" :toast="t" />
-      </TransitionGroup>
-    </template>
-
-    <!-- Stacked mode (default) -->
-    <template v-else>
-      <!-- The positioning wrapper is a <div>, not the <ol>: a list may only
-           contain <li> children, and the stack needs its own sized box. -->
-      <div
-        v-for="[pos, items] in groups"
-        :key="pos"
-        :class="
-          cn(
-            'pointer-events-none fixed z-[100] flex w-full p-4 sm:max-w-[380px]',
-            POSITION_CLASSES[pos],
-          )
-        "
-      >
-        <ol
-          class="pointer-events-auto relative w-full transition-[height] duration-300 ease-out"
-          :style="{ height: containerHeight(items, pos) + 'px' }"
-          @mouseenter="expandedMap[pos] = true"
-          @mouseleave="expandedMap[pos] = false"
+        <TransitionGroup
+          v-for="[pos, items] in groups"
+          :key="pos"
+          tag="ol"
+          :class="
+            cn(
+              'pointer-events-none fixed z-[100] flex max-h-screen w-full flex-col gap-2 p-4 sm:max-w-[380px]',
+              POSITION_CLASSES[pos],
+            )
+          "
+          move-class="transition-transform duration-300 motion-reduce:transition-none"
         >
           <Toast
-            v-for="(t, i) in items"
+            v-for="t in items"
             :key="t.id"
             :toast="t"
-            stacked
-            :expanded="!!expandedMap[pos]"
-            :anchor-bottom="layoutFor(items, i, pos).anchorBottom"
-            :stack-y="layoutFor(items, i, pos).stackY"
-            :stack-scale="layoutFor(items, i, pos).stackScale"
-            :stack-opacity="layoutFor(items, i, pos).stackOpacity"
-            :stack-z="layoutFor(items, i, pos).stackZ"
-            :report-height="registerHeight"
+            :anchor-bottom="!pos.startsWith('top')"
           />
-        </ol>
-      </div>
-    </template>
+        </TransitionGroup>
+      </template>
+
+      <!-- Stacked mode (default) -->
+      <template v-else>
+        <!-- The positioning wrapper is a <div>, not the <ol>: a list may only
+           contain <li> children, and the stack needs its own sized box. -->
+        <div
+          v-for="[pos, items] in groups"
+          :key="pos"
+          :class="
+            cn(
+              'pointer-events-none fixed z-[100] flex w-full p-4 sm:max-w-[380px]',
+              POSITION_CLASSES[pos],
+            )
+          "
+        >
+          <ol
+            class="pointer-events-auto relative w-full transition-[height] duration-300 ease-out"
+            :style="{ height: containerHeight(items, pos) + 'px' }"
+            @mouseenter="expandedMap[pos] = true"
+            @mouseleave="expandedMap[pos] = false"
+          >
+            <Toast
+              v-for="(t, i) in items"
+              :key="t.id"
+              :toast="t"
+              stacked
+              :expanded="!!expandedMap[pos]"
+              :front="i === 0"
+              :anchor-bottom="layoutFor(items, i, pos).anchorBottom"
+              :stack-y="layoutFor(items, i, pos).stackY"
+              :stack-scale="layoutFor(items, i, pos).stackScale"
+              :stack-opacity="layoutFor(items, i, pos).stackOpacity"
+              :stack-z="layoutFor(items, i, pos).stackZ"
+              :report-height="registerHeight"
+            />
+          </ol>
+        </div>
+      </template>
+    </MotionConfig>
   </Teleport>
 </template>

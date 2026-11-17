@@ -15,6 +15,7 @@ import {
   TriangleAlert,
   X,
 } from "@lucide/vue";
+import { AnimatePresence, motion, type PanInfo } from "motion-v";
 
 import { cn } from "@/lib/utils";
 import {
@@ -22,6 +23,7 @@ import {
   type CloseReason,
   type ToastData,
   type ToastType,
+  type ToastVariant,
 } from "./useToast";
 
 const props = withDefaults(
@@ -29,6 +31,8 @@ const props = withDefaults(
     toast: ToastData;
     stacked?: boolean;
     expanded?: boolean;
+    /** Front-most toast of a stack. Cards behind it fold back into pills. */
+    front?: boolean;
     anchorBottom?: boolean;
     stackY?: number;
     stackScale?: number;
@@ -44,6 +48,7 @@ const props = withDefaults(
   {
     stacked: false,
     expanded: false,
+    front: true,
     anchorBottom: true,
     stackY: 0,
     stackScale: 1,
@@ -61,47 +66,103 @@ const ICONS: Record<ToastType, unknown> = {
   loading: Loader2,
 };
 
-// Squared icon tile — soft semantic wash with a hairline of the same hue.
-// This is where the type's color lives; the surface itself stays neutral.
-const TILE: Record<ToastType, string> = {
-  default: "bg-muted text-foreground border-border",
-  success: "bg-sapa-success/10 text-sapa-success border-sapa-success/25",
-  error: "bg-sapa-error/10 text-sapa-error border-sapa-error/25",
-  warning: "bg-sapa-warning/10 text-sapa-warning border-sapa-warning/25",
-  info: "bg-sapa-info/10 text-sapa-info border-sapa-info/25",
-  loading: "bg-muted text-muted-foreground border-border",
+// Each type sets a tone — its color and the text color that sits on it — as
+// two CSS variables. The variants below are written once against that tone,
+// so 3 variants × 6 types never turns into a table of 18 class lists.
+// default/loading have no semantic hue: their tone is the text color itself,
+// which reads as neutral grey in subtle and as an inverted chip in solid.
+const TONE: Record<ToastType, string> = {
+  default: "[--tone:var(--foreground)] [--tone-fg:var(--background)]",
+  success:
+    "[--tone:var(--sapa-success)] [--tone-fg:var(--sapa-success-foreground)]",
+  error: "[--tone:var(--sapa-error)] [--tone-fg:var(--sapa-error-foreground)]",
+  warning:
+    "[--tone:var(--sapa-warning)] [--tone-fg:var(--sapa-warning-foreground)]",
+  info: "[--tone:var(--sapa-info)] [--tone-fg:var(--sapa-info-foreground)]",
+  loading: "[--tone:var(--foreground)] [--tone-fg:var(--background)]",
 };
 
-// Bar colors, shared by the auto-dismiss timer and the determinate progress
-// bar — both ride the card's bottom edge. default/loading have no semantic hue,
-// so they fall back to the text color.
-const BAR: Record<ToastType, string> = {
-  default: "bg-foreground",
-  success: "bg-sapa-success",
-  error: "bg-sapa-error",
-  warning: "bg-sapa-warning",
-  info: "bg-sapa-info",
-  loading: "bg-foreground",
-};
-
-// Close button — revealed on hover so a resting toast stays quiet.
-const CLOSE =
-  "focus-visible:ring-ring rounded-full p-1 opacity-0 transition-opacity hover:bg-black/5 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70 dark:hover:bg-white/10";
-
-const SWIPE_THRESHOLD = 80;
-
-// Enter/exit slide direction based on the toast's anchor position.
-// `top-*` centered slide up, `bottom-*` centered slide down, corners slide sideways.
-function dirTransform(position: string = "bottom-right"): string {
-  if (position.endsWith("left")) return "translateX(-115%)";
-  if (position.endsWith("right")) return "translateX(115%)";
-  return position.startsWith("top") ? "translateY(-250%)" : "translateY(250%)";
+interface VariantSlots {
+  /** The bubble itself. */
+  surface: string;
+  /** Round icon tile. */
+  tile: string;
+  /** Countdown ring around the tile. */
+  ring: string;
+  /** Determinate progress: track + fill. */
+  track: string;
+  bar: string;
+  /** Primary and secondary buttons. */
+  action: string;
+  cancel: string;
 }
 
-/** Skip enter/exit/drag animations for users who prefer reduced motion. */
+const VARIANTS: Record<ToastVariant, VariantSlots> = {
+  // Neutral glass surface — the color lives on the icon only.
+  minimal: {
+    surface:
+      "bg-popover/90 text-popover-foreground border-border shadow-black/[0.06] backdrop-blur-xl",
+    tile: "bg-(--tone)/12 text-(--tone)",
+    ring: "stroke-(--tone)",
+    track: "bg-muted",
+    bar: "bg-(--tone)",
+    action: "bg-foreground text-background hover:opacity-90",
+    cancel: "border-border hover:bg-muted",
+  },
+  // An opaque wash of the tone — calm enough for light, dense interfaces.
+  subtle: {
+    surface:
+      "bg-[color-mix(in_oklab,var(--tone)_8%,var(--popover))] dark:bg-[color-mix(in_oklab,var(--tone)_14%,var(--popover))] text-popover-foreground border-(--tone)/20 shadow-(--tone)/[0.06]",
+    tile: "bg-(--tone)/15 text-(--tone)",
+    ring: "stroke-(--tone)",
+    track: "bg-(--tone)/15",
+    bar: "bg-(--tone)",
+    action: "bg-foreground text-background hover:opacity-90",
+    cancel: "border-(--tone)/25 hover:bg-(--tone)/10",
+  },
+  // Filled with the tone; everything inside switches to its foreground.
+  solid: {
+    surface:
+      "bg-(--tone) text-(--tone-fg) border-transparent shadow-(--tone)/25",
+    tile: "bg-(--tone-fg)/15 text-(--tone-fg)",
+    ring: "stroke-(--tone-fg)",
+    track: "bg-(--tone-fg)/20",
+    bar: "bg-(--tone-fg)",
+    action: "bg-(--tone-fg) text-(--tone) hover:opacity-90",
+    cancel: "border-(--tone-fg)/30 hover:bg-(--tone-fg)/10",
+  },
+};
+
+// Close button — revealed on hover so a resting toast stays quiet. currentColor
+// keeps its hover wash legible on every variant's surface.
+const CLOSE =
+  "focus-visible:ring-ring rounded-full p-0.5 opacity-0 transition-opacity hover:bg-current/10 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70";
+
+/** How long the bubble stays a pill before it opens up to show the body. */
+const EXPAND_DELAY = 450;
+
+const SWIPE_THRESHOLD = 80;
+const SWIPE_VELOCITY = 500;
+
+/** Corner radius of the bubble in each phase. */
+const RADIUS = { pill: 999, card: 22 } as const;
+
+// Springs — `bounce` keeps the pop lively without wobbling.
+const POP = { type: "spring", bounce: 0.3, duration: 0.5 } as const;
+const MORPH = { type: "spring", bounce: 0.18, duration: 0.55 } as const;
+const EXIT = { duration: 0.28, ease: [0.4, 0, 1, 1] } as const;
+
+/** Skip the pill phase and every animation for users who prefer reduced motion. */
 const reduceMotion =
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** Which side the bubble hugs inside its row. */
+function alignClass(position: string = "bottom-right"): string {
+  if (position.endsWith("left")) return "justify-start";
+  if (position.endsWith("right")) return "justify-end";
+  return "justify-center";
+}
 
 /** Clamped determinate progress (toast.progress), or null when not a progress toast. */
 const progressValue = computed(() =>
@@ -111,14 +172,26 @@ const progressValue = computed(() =>
 );
 
 const duration = computed(() => props.toast.duration ?? 4000);
+const variant = computed(() => props.toast.variant ?? "minimal");
+const v = computed(() => VARIANTS[variant.value]);
 const iconComp = computed(() => props.toast.icon ?? ICONS[props.toast.type]);
-// The auto-dismiss timer bar. A loading toast has no deadline to show, and a
-// real progress value beats a countdown for the same strip of pixels.
-const showProgress = computed(
+// The auto-dismiss countdown ring. A loading toast has no deadline to show,
+// and a real progress value beats a countdown.
+const showCountdown = computed(
   () =>
     Number.isFinite(duration.value) &&
     props.toast.type !== "loading" &&
     progressValue.value == null,
+);
+const showTile = computed(() => !!iconComp.value || showCountdown.value);
+
+// Anything below the header row. A title-only toast has none and stays a pill.
+const hasBody = computed(
+  () =>
+    props.toast.description != null ||
+    props.toast.action != null ||
+    props.toast.cancel != null ||
+    progressValue.value != null,
 );
 
 const vertical = computed(
@@ -127,22 +200,26 @@ const vertical = computed(
     props.toast.position === "bottom-center",
 );
 
-const dir = computed(() => dirTransform(props.toast.position));
-
-const rootEl = ref<HTMLLIElement | null>(null);
-const shown = ref(false);
+const rootEl = ref<{ $el: HTMLElement } | null>(null);
+const opened = ref(reduceMotion || props.toast.component != null);
 const paused = ref(false);
-const offset = ref(0);
-const dragging = ref(false);
+const swipe = ref<number | null>(null);
 const state = ref<"open" | "closing">("open");
-const exitTransform = ref(dir.value);
-let startX = 0;
-let startY = 0;
 let remaining = duration.value;
 let startedAt = Date.now();
 let timer: ReturnType<typeof setTimeout> | null = null;
 let closeTimeout: ReturnType<typeof setTimeout> | null = null;
+let expandTimeout: ReturnType<typeof setTimeout> | null = null;
 let ro: ResizeObserver | null = null;
+
+// Behind the front card of a collapsed stack, a toast folds back to a pill.
+const isOpen = computed(
+  () =>
+    props.toast.component != null ||
+    (opened.value &&
+      hasBody.value &&
+      (!props.stacked || props.front || props.expanded)),
+);
 
 function clearTimer() {
   if (timer) {
@@ -155,15 +232,11 @@ function clearTimer() {
  * Starts the exit animation and hands the removal over to the store, which
  * fires onDismiss (always) and onAutoClose (timeouts only) once it drops the
  * toast. Repeat calls are ignored so a swipe racing the timer closes once.
- * `swipe` is the drag offset (px): its sign picks the exit direction.
+ * `swipeOffset` is the drag offset (px): its sign picks the exit direction.
  */
-function close(reason: CloseReason, swipe?: number) {
+function close(reason: CloseReason, swipeOffset?: number) {
   if (state.value === "closing") return;
-  exitTransform.value = swipe
-    ? vertical.value
-      ? `translateY(${swipe > 0 ? 260 : -260}%)`
-      : `translateX(${swipe > 0 ? 130 : -130}%)`
-    : dir.value;
+  if (swipeOffset) swipe.value = swipeOffset;
   state.value = "closing";
   clearTimer();
   dismiss(props.toast.id, reason);
@@ -197,6 +270,24 @@ function resume() {
   startTimer();
 }
 
+function onMouseEnter() {
+  pause();
+  // A hovered pill doesn't make the reader wait for the delay.
+  opened.value = true;
+}
+
+// Pill first, then open up once there is something to show. Re-runs when a
+// promise toast resolves with a description it did not have while loading.
+watch(
+  [opened, hasBody],
+  ([isOpened, body]) => {
+    if (expandTimeout) clearTimeout(expandTimeout);
+    if (isOpened || !body) return;
+    expandTimeout = setTimeout(() => (opened.value = true), EXPAND_DELAY);
+  },
+  { immediate: true },
+);
+
 // Re-arm the auto-dismiss timer when the duration changes (e.g. a promise
 // toast transitions loading→success), matching the React useEffect([duration]).
 watch(duration, (d) => {
@@ -225,25 +316,16 @@ watch(
   },
 );
 
-function onPointerDown(e: PointerEvent) {
-  if ((e.target as HTMLElement).closest("button")) return;
-  dragging.value = true;
-  startX = e.clientX;
-  startY = e.clientY;
-  (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  pause();
-}
-function onPointerMove(e: PointerEvent) {
-  if (!dragging.value) return;
-  offset.value = vertical.value ? e.clientY - startY : e.clientX - startX;
-}
-function onPointerUp() {
-  if (!dragging.value) return;
-  dragging.value = false;
-  if (Math.abs(offset.value) > SWIPE_THRESHOLD) {
-    close("user", offset.value); // exit toward the swipe direction
+// --- swipe to dismiss ---
+function onDragEnd(_: PointerEvent, info: PanInfo) {
+  const offset = vertical.value ? info.offset.y : info.offset.x;
+  const velocity = vertical.value ? info.velocity.y : info.velocity.x;
+  if (
+    Math.abs(offset) > SWIPE_THRESHOLD ||
+    Math.abs(velocity) > SWIPE_VELOCITY
+  ) {
+    close("user", offset || velocity);
   } else {
-    offset.value = 0;
     resume();
   }
 }
@@ -257,59 +339,65 @@ function runCancel() {
   close("action");
 }
 
-// Combined transform/opacity — stack layout merged with drag + enter/exit.
-const stackStyle = computed(() => {
-  const dragged = dragging.value && offset.value !== 0;
-  const closing = state.value === "closing";
-  const transition =
-    dragged || reduceMotion
-      ? "none"
-      : "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease";
-  const dragTransform = vertical.value
-    ? `translateY(${offset.value}px)`
-    : `translateX(${offset.value}px)`;
-  const dragOpacity = Math.max(0, 1 - Math.abs(offset.value) / 200);
+// Enter pops in from the anchored edge; exit sinks back the same way.
+const nudge = computed(() => (props.anchorBottom ? 12 : -12));
 
-  if (!props.stacked) {
+const initial = reduceMotion
+  ? false
+  : {
+      opacity: 0,
+      scale: 0.6,
+      y: props.stackY + (props.anchorBottom ? 12 : -12),
+      filter: "blur(6px)",
+    };
+
+const liAnimate = computed(() => {
+  if (state.value !== "closing") {
     return {
-      touchAction: vertical.value ? "pan-x" : "pan-y",
-      transition,
-      transform: closing
-        ? exitTransform.value
-        : dragged
-          ? dragTransform
-          : shown.value
-            ? undefined
-            : "scale(0.96)",
-      opacity: closing ? 0 : dragged ? dragOpacity : shown.value ? 1 : 0,
-    } as CSSProperties;
+      opacity: props.stackOpacity,
+      scale: props.stackScale,
+      y: props.stackY,
+      filter: "blur(0px)",
+    };
   }
-
-  return {
-    zIndex: props.stackZ,
-    touchAction: vertical.value ? "pan-x" : "pan-y",
-    transition,
-    transform: closing
-      ? exitTransform.value
-      : dragged
-        ? dragTransform
-        : `translateY(${props.stackY}px) scale(${shown.value ? props.stackScale : 0.9})`,
-    opacity: closing
-      ? 0
-      : dragged
-        ? dragOpacity
-        : shown.value
-          ? props.stackOpacity
-          : 0,
-  } as CSSProperties;
+  return swipe.value != null
+    ? { opacity: 0, y: props.stackY, scale: props.stackScale }
+    : {
+        opacity: 0,
+        scale: 0.85,
+        y: props.stackY + nudge.value,
+        filter: "blur(4px)",
+      };
 });
+
+const liTransition = computed(() =>
+  reduceMotion ? { duration: 0 } : state.value === "closing" ? EXIT : POP,
+);
+
+const bubbleAnimate = computed(() => {
+  if (swipe.value == null) return undefined;
+  return vertical.value
+    ? { y: swipe.value > 0 ? "260%" : "-260%" }
+    : { x: swipe.value > 0 ? "130%" : "-130%" };
+});
+
+const liStyle = computed(
+  () =>
+    ({
+      zIndex: props.stacked ? props.stackZ : undefined,
+      transformOrigin: props.anchorBottom ? "bottom center" : "top center",
+    }) as CSSProperties,
+);
+
+const bodyTransition = reduceMotion
+  ? { duration: 0 }
+  : { duration: 0.3, ease: "easeOut", delay: 0.1, layout: MORPH };
 
 onMounted(() => {
   remaining = duration.value;
   startTimer();
-  requestAnimationFrame(() => (shown.value = true));
-  if (props.stacked && props.reportHeight && rootEl.value) {
-    const el = rootEl.value;
+  const el = rootEl.value?.$el;
+  if (props.stacked && props.reportHeight && el) {
     const report = () => props.reportHeight!(props.toast.id, el.offsetHeight);
     report();
     ro = new ResizeObserver(report);
@@ -319,138 +407,223 @@ onMounted(() => {
 onBeforeUnmount(() => {
   clearTimer();
   if (closeTimeout) clearTimeout(closeTimeout);
+  if (expandTimeout) clearTimeout(expandTimeout);
   ro?.disconnect();
 });
 </script>
 
 <template>
-  <li
+  <motion.li
     ref="rootEl"
     role="status"
     :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
     aria-atomic="true"
     :data-state="state"
     :data-type="toast.type"
-    :style="stackStyle"
+    :data-variant="variant"
+    :data-phase="isOpen ? 'card' : 'pill'"
+    :initial="initial"
+    :animate="liAnimate"
+    :transition="liTransition"
+    :style="liStyle"
     :class="
       cn(
-        'bg-popover/95 text-popover-foreground group pointer-events-auto flex w-full flex-col overflow-hidden rounded-[9px] border p-[14px] shadow-xl shadow-black/5 backdrop-blur',
+        'pointer-events-none flex w-full',
+        alignClass(toast.position),
         stacked
           ? cn('absolute inset-x-0', anchorBottom ? 'bottom-0' : 'top-0')
           : 'relative',
-        !dragging && 'cursor-grab active:cursor-grabbing',
       )
     "
-    @mouseenter="pause"
+    @mouseenter="onMouseEnter"
     @mouseleave="resume"
-    @pointerdown="onPointerDown"
-    @pointermove="onPointerMove"
-    @pointerup="onPointerUp"
   >
-    <!-- Custom content has no header row to hang the close button off, so it
-         keeps the absolute one — hence the padding reserved on the right. -->
-    <template v-if="toast.component">
-      <component :is="toast.component" class="pr-6" />
-      <button
-        type="button"
-        aria-label="Close"
-        :class="cn(CLOSE, 'absolute right-2.5 top-2.5')"
-        @click="close('user')"
-      >
-        <X class="size-4" />
-      </button>
-    </template>
-
-    <template v-else>
-      <!-- Header — the tile sits *beside* the title so the two read as one
-           object; everything below it gets the card's full width. -->
-      <div class="flex items-center gap-[10px]">
-        <span
-          v-if="iconComp"
-          :class="
-            cn(
-              'flex size-[30px] shrink-0 items-center justify-center rounded-[8px] border',
-              TILE[toast.type],
-            )
-          "
-        >
-          <component
-            :is="iconComp"
-            :class="cn('size-4', toast.type === 'loading' && 'animate-spin')"
-          />
-        </span>
-        <div
-          v-if="toast.title != null"
-          class="min-w-0 flex-1 text-sm font-semibold leading-tight"
-        >
-          {{ toast.title }}
-        </div>
+    <motion.div
+      data-slot="bubble"
+      :layout="!reduceMotion"
+      :drag="state === 'closing' ? false : vertical ? 'y' : 'x'"
+      drag-snap-to-origin
+      :drag-elastic="0.6"
+      :animate="bubbleAnimate"
+      :transition="{ layout: MORPH, default: EXIT }"
+      :style="{
+        borderRadius: `${isOpen ? RADIUS.card : RADIUS.pill}px`,
+        touchAction: vertical ? 'pan-x' : 'pan-y',
+      }"
+      :class="
+        cn(
+          'group pointer-events-auto relative flex cursor-grab flex-col overflow-hidden border shadow-lg transition-colors duration-300 active:cursor-grabbing',
+          TONE[toast.type],
+          v.surface,
+          isOpen ? 'w-full p-[14px]' : 'max-w-full py-1.5 pl-1.5 pr-2.5',
+          !showTile && !isOpen && 'pl-3.5',
+        )
+      "
+      @drag-start="pause"
+      @drag-end="onDragEnd"
+    >
+      <!-- Custom content has no header row to hang the close button off, so
+           it keeps the absolute one — hence the padding reserved on the right. -->
+      <template v-if="toast.component">
+        <component :is="toast.component" class="pr-6" />
         <button
           type="button"
           aria-label="Close"
-          :class="cn(CLOSE, '-mr-1 ml-auto shrink-0')"
+          :class="cn(CLOSE, 'absolute right-2.5 top-2.5')"
           @click="close('user')"
         >
           <X class="size-4" />
         </button>
-      </div>
+      </template>
 
-      <div
-        v-if="toast.description != null"
-        class="mt-[11px] text-sm opacity-90"
-      >
-        {{ toast.description }}
-      </div>
-
-      <div v-if="toast.action || toast.cancel" class="mt-[11px] flex gap-2">
-        <button
-          v-if="toast.action"
-          type="button"
-          class="bg-foreground text-background inline-flex h-7 items-center rounded-md px-2.5 text-xs font-medium transition-opacity hover:opacity-90"
-          @click="runAction"
+      <template v-else>
+        <!-- Header — the pill's whole content, and the card's first row.
+             layout="position" keeps the text from stretching mid-morph. -->
+        <motion.div
+          :layout="reduceMotion ? false : 'position'"
+          :transition="MORPH"
+          data-slot="header"
+          class="flex min-w-0 items-center gap-2.5"
         >
-          {{ toast.action.label }}
-        </button>
-        <button
-          v-if="toast.cancel"
-          type="button"
-          class="hover:bg-muted inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors"
-          @click="runCancel"
-        >
-          {{ toast.cancel.label }}
-        </button>
-      </div>
-    </template>
+          <span
+            v-if="showTile"
+            data-slot="icon"
+            :class="
+              cn(
+                'relative flex shrink-0 items-center justify-center rounded-full',
+                // No glyph: just the countdown ring, a touch smaller.
+                iconComp ? cn('size-[26px]', v.tile) : 'size-4',
+              )
+            "
+          >
+            <component
+              :is="iconComp"
+              v-if="iconComp"
+              :class="
+                cn('size-3.5', toast.type === 'loading' && 'animate-spin')
+              "
+            />
+            <svg
+              v-if="showCountdown"
+              aria-hidden="true"
+              viewBox="0 0 30 30"
+              class="absolute -inset-[2px] size-[calc(100%+4px)] -rotate-90"
+            >
+              <circle
+                :key="duration"
+                data-slot="countdown"
+                cx="15"
+                cy="15"
+                r="14"
+                fill="none"
+                :stroke-width="iconComp ? 1.5 : 2.5"
+                stroke-linecap="round"
+                path-length="100"
+                stroke-dasharray="100"
+                :class="v.ring"
+                :style="{
+                  animation: reduceMotion
+                    ? 'none'
+                    : `sapa-toast-ring ${duration}ms linear forwards`,
+                  animationPlayState: paused ? 'paused' : undefined,
+                }"
+              />
+            </svg>
+          </span>
+          <div
+            v-if="toast.title != null"
+            :class="
+              cn(
+                'min-w-0 flex-1 text-sm font-semibold leading-tight',
+                !isOpen && 'truncate',
+              )
+            "
+          >
+            {{ toast.title }}
+          </div>
+          <button
+            type="button"
+            aria-label="Close"
+            :class="cn(CLOSE, 'ml-auto shrink-0')"
+            @click="close('user')"
+          >
+            <X class="size-3.5" />
+          </button>
+        </motion.div>
 
-    <!-- Both bars ride the bottom edge; overflow-hidden on the root clips them
-         to the card's radius, so neither needs one of its own. -->
-    <div
-      v-if="progressValue != null"
-      role="progressbar"
-      :aria-valuenow="progressValue"
-      :aria-valuemin="0"
-      :aria-valuemax="100"
-      class="bg-muted absolute inset-x-0 bottom-0 h-[3px]"
-    >
-      <div
-        :class="
-          cn('h-full transition-[width] duration-300 ease-out', BAR[toast.type])
-        "
-        :style="{ width: `${progressValue}%` }"
-      />
-    </div>
+        <!-- Body — flows in once the bubble has started to open. -->
+        <AnimatePresence :initial="false">
+          <motion.div
+            v-if="isOpen && hasBody"
+            key="body"
+            :layout="reduceMotion ? false : 'position'"
+            data-slot="body"
+            :initial="{ opacity: 0, y: -4, filter: 'blur(4px)' }"
+            :animate="{ opacity: 1, y: 0, filter: 'blur(0px)' }"
+            :exit="{
+              opacity: 0,
+              filter: 'blur(4px)',
+              transition: { duration: 0.12 },
+            }"
+            :transition="bodyTransition"
+          >
+            <div
+              v-if="toast.description != null"
+              class="mt-2 text-sm opacity-80"
+            >
+              {{ toast.description }}
+            </div>
 
-    <span
-      v-if="showProgress"
-      :class="
-        cn('absolute inset-x-0 bottom-0 h-[3px] origin-left', BAR[toast.type])
-      "
-      :style="{
-        animation: reduceMotion
-          ? 'none'
-          : `sapa-toast-progress ${duration}ms linear forwards`,
-        animationPlayState: paused || dragging ? 'paused' : undefined,
-      }"
-    />
-  </li>
+            <div
+              v-if="progressValue != null"
+              role="progressbar"
+              :aria-valuenow="progressValue"
+              :aria-valuemin="0"
+              :aria-valuemax="100"
+              :class="cn('mt-3 h-1.5 overflow-hidden rounded-full', v.track)"
+            >
+              <div
+                :class="
+                  cn(
+                    'h-full rounded-full transition-[width] duration-300 ease-out',
+                    v.bar,
+                  )
+                "
+                :style="{ width: `${progressValue}%` }"
+              />
+            </div>
+
+            <div v-if="toast.action || toast.cancel" class="mt-3 flex gap-2">
+              <button
+                v-if="toast.action"
+                type="button"
+                :class="
+                  cn(
+                    'inline-flex h-7 items-center rounded-full px-3 text-xs font-medium transition-opacity',
+                    v.action,
+                  )
+                "
+                @click="runAction"
+              >
+                {{ toast.action.label }}
+              </button>
+              <button
+                v-if="toast.cancel"
+                type="button"
+                :class="
+                  cn(
+                    'inline-flex h-7 items-center rounded-full border px-3 text-xs font-medium transition-colors',
+                    v.cancel,
+                  )
+                "
+                @click="runCancel"
+              >
+                {{ toast.cancel.label }}
+              </button>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </template>
+    </motion.div>
+  </motion.li>
 </template>

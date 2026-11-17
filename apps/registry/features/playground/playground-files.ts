@@ -82,6 +82,7 @@ root.render(
 
 export const REACT_DEPENDENCIES: Record<string, string> = {
   "lucide-react": "latest",
+  motion: "latest",
   clsx: "latest",
   "tailwind-merge": "latest",
 };
@@ -185,6 +186,7 @@ createApp(App).mount("#app");
 
 export const VUE_DEPENDENCIES: Record<string, string> = {
   "@lucide/vue": "latest",
+  "motion-v": "latest",
   clsx: "latest",
   "tailwind-merge": "latest",
 };

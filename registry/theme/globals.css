@@ -113,12 +113,12 @@
   }
 }
 
-/* Toast auto-dismiss progress bar (used by both React & Vue toasts). */
-@keyframes sapa-toast-progress {
+/* Toast auto-dismiss countdown ring around the icon (React & Vue). */
+@keyframes sapa-toast-ring {
   from {
-    transform: scaleX(1);
+    stroke-dashoffset: 0;
   }
   to {
-    transform: scaleX(0);
+    stroke-dashoffset: 100;
   }
 }

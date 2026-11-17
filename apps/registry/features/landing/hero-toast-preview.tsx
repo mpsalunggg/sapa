@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
  *  - `createdAt` must be a constant, never Date.now(), or the server and client
  *    render different values and hydration mismatches. Nothing reads it.
  *  `duration: Infinity` keeps every card put: it skips the auto-dismiss timer
- *  and suppresses the thin timer bar along the bottom edge. */
+ *  and suppresses the countdown ring around the icon. */
 const HERO_TOASTS: ToastData[] = [
   {
     id: "hero-deploy",

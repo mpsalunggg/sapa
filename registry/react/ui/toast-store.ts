@@ -3,6 +3,13 @@ import type { ReactNode } from "react";
 export type ToastType =
   "default" | "success" | "error" | "warning" | "info" | "loading";
 
+/**
+ * How the type's color is carried: `minimal` keeps the surface neutral and
+ * tints only the icon, `subtle` washes the whole bubble in a light tint, and
+ * `solid` fills it with the color itself.
+ */
+export type ToastVariant = "solid" | "minimal" | "subtle";
+
 export type ToastPosition =
   | "top-left"
   | "top-center"
@@ -30,6 +37,8 @@ export interface ToastOptions {
   /** Auto-dismiss delay in ms. Use `Infinity` to keep it until dismissed. */
   duration?: number;
   position?: ToastPosition;
+  /** Color treatment; falls back to the <Toaster> variant, then "minimal". */
+  variant?: ToastVariant;
   icon?: ReactNode;
   action?: ToastAction;
   cancel?: ToastAction;

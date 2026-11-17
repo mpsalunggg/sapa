@@ -29,3 +29,11 @@ Object.defineProperty(window, "matchMedia", {
       dispatchEvent: () => false,
     }) as unknown as MediaQueryList,
 });
+
+// Motion drives the bubble's springs off its own frame loop; in jsdom we only
+// care about the end state, so let every animation jump straight to it.
+import { MotionGlobalConfig } from "motion/react";
+import { motionGlobalConfig } from "motion-v";
+
+MotionGlobalConfig.skipAnimations = true;
+motionGlobalConfig.skipAnimations = true;
