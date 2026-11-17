@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
 import { RotateCcw } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -10,9 +8,9 @@ import {
   buildCss,
   resolveVars,
   TOKEN_GROUPS,
-  type ThemeMode,
   type TokenOverrides,
 } from "@/features/theming/theme-tokens";
+import { useThemeMode } from "@/features/theming/theme-overrides-context";
 import { CopyButton } from "@/shared/components/copy-button";
 
 function Swatch({
@@ -49,11 +47,7 @@ export function ThemeCustomizer({
   overrides: TokenOverrides;
   onChange: (next: TokenOverrides) => void;
 }) {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  const mode: ThemeMode = resolvedTheme === "dark" ? "dark" : "light";
+  const mode = useThemeMode();
   const vars = resolveVars(overrides, mode);
 
   const setToken = (token: string, hex: string) => {
@@ -67,7 +61,7 @@ export function ThemeCustomizer({
     onChange({ ...overrides, [mode]: {} });
   };
 
-  const dirty = mounted && Object.keys(overrides[mode]).length > 0;
+  const dirty = Object.keys(overrides[mode]).length > 0;
 
   return (
     <div>
@@ -76,11 +70,10 @@ export function ThemeCustomizer({
           Rich colors
         </p>
         <span className="text-muted-foreground/60 text-[10px] font-medium uppercase tracking-wide">
-          {mounted ? mode : ""}
+          {mode}
         </span>
       </div>
 
-      {/* Header row labels for the two swatch columns. */}
       <div className="text-muted-foreground/60 mb-1 flex items-center justify-end gap-1.5 px-3 text-[10px]">
         <span className="w-7 text-center">Bg</span>
         <span className="w-7 text-center">Fg</span>
@@ -97,20 +90,16 @@ export function ThemeCustomizer({
             >
               <span className="text-sm">{g.label}</span>
               <div className="flex items-center gap-1.5">
-                {mounted && (
-                  <>
-                    <Swatch
-                      label={`${g.label} color`}
-                      value={oklchToHex(vars[colorToken])}
-                      onChange={(hex) => setToken(colorToken, hex)}
-                    />
-                    <Swatch
-                      label={`${g.label} foreground`}
-                      value={oklchToHex(vars[fgToken])}
-                      onChange={(hex) => setToken(fgToken, hex)}
-                    />
-                  </>
-                )}
+                <Swatch
+                  label={`${g.label} color`}
+                  value={oklchToHex(vars[colorToken])}
+                  onChange={(hex) => setToken(colorToken, hex)}
+                />
+                <Swatch
+                  label={`${g.label} foreground`}
+                  value={oklchToHex(vars[fgToken])}
+                  onChange={(hex) => setToken(fgToken, hex)}
+                />
               </div>
             </li>
           );

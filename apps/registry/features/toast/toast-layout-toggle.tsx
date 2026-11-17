@@ -14,15 +14,13 @@ export const TOAST_LAYOUT_OPTIONS: readonly SegmentedOption<ToastLayout>[] = [
   { value: "list", label: "List" },
 ];
 
-/** Segmented control to switch the global toaster between stacked and flat list. */
-export function ToastLayoutToggle({ className }: { className?: string }) {
+export function ToastLayoutToggle() {
   const { layout, setLayout } = useToastLayout();
   return (
     <SegmentedControl
       options={TOAST_LAYOUT_OPTIONS}
       value={layout}
       onChange={setLayout}
-      className={className}
     />
   );
 }

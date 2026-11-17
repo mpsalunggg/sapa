@@ -1,5 +1,3 @@
-"use client";
-
 import { CopyButton } from "@/shared/components/copy-button";
 import { FrameworkTabs } from "@/shared/framework/framework-tabs";
 

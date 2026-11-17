@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTheme } from "next-themes";
 import {
   SandpackProvider,
   SandpackLayout,
@@ -12,33 +11,35 @@ import {
 
 import { cn } from "@/lib/utils";
 import {
-  buildReactFiles,
-  buildVueFiles,
-  REACT_DEPENDENCIES,
-  VUE_DEPENDENCIES,
-  type RegistryFile,
+  buildPlaygroundFiles,
+  PLAYGROUND_DEPENDENCIES,
+  type FrameworkSources,
 } from "@/features/playground/playground-files";
 import { GradientLoader } from "@/features/playground/gradient-loader";
-import { useThemeOverrides } from "@/features/theming/theme-overrides-context";
+import {
+  useThemeMode,
+  useThemeOverrides,
+} from "@/features/theming/theme-overrides-context";
 import { resolveVars } from "@/features/theming/theme-tokens";
 import { TOAST_LAYOUT_OPTIONS } from "@/features/toast/toast-layout-toggle";
 import type { ToastLayout } from "@/features/toast/toast-layout-context";
 import { SegmentedControl } from "@/shared/components/segmented-control";
 import type { Framework } from "@/shared/framework/framework-context";
 import { FRAMEWORK_OPTIONS } from "@/shared/framework/framework-switch";
+import {
+  ActiveBar,
+  navItemClass,
+  SidebarLabel,
+} from "@/shared/components/sidebar";
 
-/** The editor + preview, with a gradient loading overlay until the Sandpack
- *  bundler finishes its first compile. Must render inside <SandpackProvider>. */
 function EditorArea() {
   const { listen } = useSandpack();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // The bundler emits "done" when the preview has compiled + rendered.
     const unsub = listen((msg) => {
       if (msg.type === "done") setLoading(false);
     });
-    // Safety net in case the "done" message is missed.
     const fallback = window.setTimeout(() => setLoading(false), 15000);
     return () => {
       unsub();
@@ -77,35 +78,22 @@ function EditorArea() {
 interface Variant {
   key: string;
   title: string;
-  description: string;
 }
 
 export interface PlaygroundProps {
-  variants: Variant[];
-  /** variant key → example source (react/toast-<key>). */
-  examples: Record<string, string>;
-  toasterFiles: RegistryFile[];
-  utilsFiles: RegistryFile[];
-  /** variant key → example source (vue/toast-<key>). */
-  vueExamples: Record<string, string>;
-  vueToasterFiles: RegistryFile[];
-  vueUtilsFiles: RegistryFile[];
-  /** Precompiled preview CSS (public/toast-preview.css). */
+  variants: readonly Variant[];
+  react: FrameworkSources;
+  vue: FrameworkSources;
   previewCss: string;
 }
 
 export function Playground({
   variants,
-  examples,
-  toasterFiles,
-  utilsFiles,
-  vueExamples,
-  vueToasterFiles,
-  vueUtilsFiles,
+  react,
+  vue,
   previewCss,
 }: PlaygroundProps) {
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+  const isDark = useThemeMode() === "dark";
   const [active, setActive] = useState(variants[0]?.key ?? "default");
   const [layout, setLayout] = useState<ToastLayout>("stack");
   const [framework, setFramework] = useState<Framework>("react");
@@ -116,40 +104,16 @@ export function Playground({
   isDarkRef.current = isDark;
 
   const built = useMemo(() => {
-    const expand = layout === "list";
-    return framework === "vue"
-      ? buildVueFiles({
-          example: vueExamples[active] ?? "",
-          toasterFiles: vueToasterFiles,
-          utilsFiles: vueUtilsFiles,
-          previewCss,
-          isDark: isDarkRef.current,
-          expand,
-        })
-      : buildReactFiles({
-          example: examples[active] ?? "",
-          toasterFiles,
-          utilsFiles,
-          previewCss,
-          isDark: isDarkRef.current,
-          expand,
-        });
-  }, [
-    framework,
-    active,
-    examples,
-    toasterFiles,
-    utilsFiles,
-    vueExamples,
-    vueToasterFiles,
-    vueUtilsFiles,
-    previewCss,
-    layout,
-  ]);
+    const sources = framework === "vue" ? vue : react;
+    return buildPlaygroundFiles(framework, {
+      example: sources.examples[active] ?? "",
+      libFiles: [...sources.toasterFiles, ...sources.utilsFiles],
+      previewCss,
+      isDark: isDarkRef.current,
+      expand: layout === "list",
+    });
+  }, [framework, active, react, vue, previewCss, layout]);
 
-  // Keep the preview iframe's `.dark` class and the customizer's rich-color
-  // overrides in sync via postMessage — no file rebuild, so edits survive the
-  // toggle and the color changes apply live.
   useEffect(() => {
     const vars = resolveVars(overrides, isDark ? "dark" : "light");
     const post = () => {
@@ -163,17 +127,14 @@ export function Playground({
         );
     };
     post();
-    const t = window.setTimeout(post, 500); // in case the iframe wasn't ready yet
+    const t = window.setTimeout(post, 500);
     return () => window.clearTimeout(t);
   }, [isDark, active, layout, framework, overrides]);
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
       <aside className="lg:w-56 lg:shrink-0">
-        {/* Framework switch — React / Vue */}
-        <p className="font-display text-muted-foreground mb-2 px-3 text-[0.95rem] italic">
-          Framework
-        </p>
+        <SidebarLabel>Framework</SidebarLabel>
         <SegmentedControl
           options={FRAMEWORK_OPTIONS}
           value={framework}
@@ -181,10 +142,7 @@ export function Playground({
           className="mb-6"
         />
 
-        {/* Layout switch — stack (default) vs flat list */}
-        <p className="font-display text-muted-foreground mb-2 px-3 text-[0.95rem] italic">
-          Layout
-        </p>
+        <SidebarLabel>Layout</SidebarLabel>
         <SegmentedControl
           options={TOAST_LAYOUT_OPTIONS}
           value={layout}
@@ -192,10 +150,7 @@ export function Playground({
           className="mb-6"
         />
 
-        {/* Variant picker */}
-        <p className="font-display text-muted-foreground mb-2 px-3 text-[0.95rem] italic">
-          Variants
-        </p>
+        <SidebarLabel>Variants</SidebarLabel>
         <ul className="flex flex-row flex-wrap gap-1 lg:flex-col">
           {variants.map((v) => (
             <li key={v.key}>
@@ -203,18 +158,11 @@ export function Playground({
                 type="button"
                 onClick={() => setActive(v.key)}
                 className={cn(
-                  "relative block w-full rounded-md px-3 py-1.5 text-left text-sm transition-colors",
-                  active === v.key
-                    ? "bg-linear-to-r from-sapa-warning/15 to-sapa-error/10 text-foreground font-medium"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                  navItemClass(active === v.key),
+                  "w-full text-left",
                 )}
               >
-                {active === v.key && (
-                  <span
-                    aria-hidden
-                    className="bg-linear-to-b from-sapa-warning to-sapa-error absolute inset-y-1 left-0 hidden w-0.5 rounded-full lg:block"
-                  />
-                )}
+                {active === v.key && <ActiveBar />}
                 {v.title}
               </button>
             </li>
@@ -233,8 +181,7 @@ export function Playground({
             visibleFiles: built.visibleFiles,
           }}
           customSetup={{
-            dependencies:
-              framework === "vue" ? VUE_DEPENDENCIES : REACT_DEPENDENCIES,
+            dependencies: PLAYGROUND_DEPENDENCIES[framework],
           }}
         >
           <EditorArea />

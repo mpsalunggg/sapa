@@ -7,8 +7,8 @@ import Toaster from "../../registry/vue/ui/Toaster.vue";
 import { clear, toast } from "../../registry/vue/ui/useToast";
 import { EXIT_MS, EXPAND_DELAY, useToastTimers } from "../helpers";
 
-// Teleported markup lives on document.body, so every wrapper has to be torn
-// down properly between tests.
+// Teleported markup lives on document.body, so each wrapper is unmounted
+// between tests.
 enableAutoUnmount(afterEach);
 
 beforeEach(() => {
@@ -20,14 +20,13 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-/** Advance timers and let Vue flush the resulting reactive updates. */
+/** Advances timers and lets Vue flush the reactive updates. */
 async function advance(ms: number) {
   vi.advanceTimersByTime(ms);
   await nextTick();
   await nextTick();
 }
 
-// <Toaster> teleports to body, so queries go through the document.
 const item = () => document.querySelector<HTMLElement>("li[role='status']");
 const bubble = () =>
   item()!.querySelector<HTMLElement>("[data-slot='bubble']")!;
@@ -42,11 +41,8 @@ async function mountToaster(props: Record<string, unknown> = {}) {
   await advance(0);
 }
 
-/**
- * Native mouseenter fires on every element of the entered chain, so a stacked
- * toast gets one pause() from its own handler and one from the group container.
- * jsdom does not synthesise that, so dispatch it on both.
- */
+// A real mouseenter fires on every element of the entered chain, so a stacked
+// toast gets two pause() calls. jsdom does not do this, so dispatch on both.
 function hoverStack(el: HTMLElement) {
   el.parentElement!.dispatchEvent(new MouseEvent("mouseenter"));
   el.dispatchEvent(new MouseEvent("mouseenter"));

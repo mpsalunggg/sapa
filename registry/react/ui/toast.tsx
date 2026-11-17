@@ -26,7 +26,7 @@ import {
   type ToastVariant,
 } from "./toast-store";
 
-// Built-in glyphs — spin is applied at render time for the loading type.
+// The loading glyph gets its spin at render time.
 const ICONS: Record<ToastType, React.ReactElement | null> = {
   default: null,
   success: <Check strokeWidth={2.5} />,
@@ -36,11 +36,10 @@ const ICONS: Record<ToastType, React.ReactElement | null> = {
   loading: <Loader2 />,
 };
 
-// Each type sets a tone — its color and the text color that sits on it — as
-// two CSS variables. The variants below are written once against that tone,
-// so 3 variants × 6 types never turns into a table of 18 class lists.
-// default/loading have no semantic hue: their tone is the text color itself,
-// which reads as neutral grey in subtle and as an inverted chip in solid.
+// Each type sets two CSS variables: its color (--tone) and the text color that
+// sits on it (--tone-fg). The variants are written once against them, so three
+// variants over six types need three class lists instead of eighteen. default
+// and loading use the text color as their tone: grey in subtle, inverted in solid.
 const TONE: Record<ToastType, string> = {
   default: "[--tone:var(--foreground)] [--tone-fg:var(--background)]",
   success:
@@ -53,22 +52,17 @@ const TONE: Record<ToastType, string> = {
 };
 
 interface VariantSlots {
-  /** The bubble itself. */
   surface: string;
-  /** Round icon tile. */
   tile: string;
-  /** Countdown ring around the tile. */
   ring: string;
-  /** Determinate progress: track + fill. */
   track: string;
   bar: string;
-  /** Primary and secondary buttons. */
   action: string;
   cancel: string;
 }
 
 const VARIANTS: Record<ToastVariant, VariantSlots> = {
-  // Neutral glass surface — the color lives on the icon only.
+  // Neutral glass surface; only the icon carries color.
   minimal: {
     surface:
       "bg-popover/90 text-popover-foreground border-border shadow-black/[0.06] backdrop-blur-xl",
@@ -79,7 +73,7 @@ const VARIANTS: Record<ToastVariant, VariantSlots> = {
     action: "bg-foreground text-background hover:opacity-90",
     cancel: "border-border hover:bg-muted",
   },
-  // An opaque wash of the tone — calm enough for light, dense interfaces.
+  // An opaque tint of the tone, made for light, dense interfaces.
   subtle: {
     surface:
       "bg-[color-mix(in_oklab,var(--tone)_8%,var(--popover))] dark:bg-[color-mix(in_oklab,var(--tone)_14%,var(--popover))] text-popover-foreground border-(--tone)/20 shadow-(--tone)/[0.06]",
@@ -90,7 +84,7 @@ const VARIANTS: Record<ToastVariant, VariantSlots> = {
     action: "bg-foreground text-background hover:opacity-90",
     cancel: "border-(--tone)/25 hover:bg-(--tone)/10",
   },
-  // Filled with the tone; everything inside switches to its foreground.
+  // Filled with the tone; the content switches to its foreground.
   solid: {
     surface:
       "bg-(--tone) text-(--tone-fg) border-transparent shadow-(--tone)/25",
@@ -103,26 +97,25 @@ const VARIANTS: Record<ToastVariant, VariantSlots> = {
   },
 };
 
-// Close button — revealed on hover so a resting toast stays quiet. currentColor
-// keeps its hover wash legible on every variant's surface.
+// The close button shows on hover so a resting toast stays quiet. bg-current
+// keeps its hover wash visible on every variant's surface.
 const CLOSE =
   "focus-visible:ring-ring rounded-full p-0.5 opacity-0 transition-opacity hover:bg-current/10 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70";
 
-/** How long the bubble stays a pill before it opens up to show the body. */
+/** How long the bubble stays a pill before it opens to show the body. */
 export const EXPAND_DELAY = 450;
 
 const SWIPE_THRESHOLD = 80;
 const SWIPE_VELOCITY = 500;
 
-/** Corner radius of the bubble in each phase. */
 const RADIUS = { pill: 999, card: 22 } as const;
 
-// Springs — `bounce` keeps the pop lively without wobbling.
+// `bounce` keeps the pop lively without wobbling.
 const POP: Transition = { type: "spring", bounce: 0.3, duration: 0.5 };
 const MORPH: Transition = { type: "spring", bounce: 0.18, duration: 0.55 };
 const EXIT: Transition = { duration: 0.28, ease: [0.4, 0, 1, 1] };
 
-/** Safe on the client only — Toast renders after the Toaster has mounted. */
+// Client-only. Toast renders after the Toaster has mounted.
 function prefersReducedMotion(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -130,7 +123,6 @@ function prefersReducedMotion(): boolean {
   );
 }
 
-/** Which side the bubble hugs inside its row. */
 function alignClass(position: ToastPosition = "bottom-right"): string {
   if (position.endsWith("left")) return "justify-start";
   if (position.endsWith("right")) return "justify-end";
@@ -139,10 +131,10 @@ function alignClass(position: ToastPosition = "bottom-right"): string {
 
 export interface ToastProps {
   toast: ToastData;
-  /** Stacking layout (Sonner-style), driven by <Toaster>. */
+  /** Stacked layout, driven by <Toaster>. */
   stacked?: boolean;
   expanded?: boolean;
-  /** Front-most toast of a stack. Cards behind it fold back into pills. */
+  /** Front toast of a stack. Toasts behind it fold back into pills. */
   front?: boolean;
   anchorBottom?: boolean;
   stackY?: number;
@@ -151,8 +143,8 @@ export interface ToastProps {
   stackZ?: number;
   onHeight?: (id: string | number, height: number) => void;
   /**
-   * Fired once the exit animation is over. Works even when <Toast> is rendered
-   * on its own, outside the store — unlike the store's onDismiss/onAutoClose.
+   * Fires after the exit animation. Unlike the store's onDismiss/onAutoClose,
+   * it also works for a <Toast> rendered on its own.
    */
   onClosed?: (reason: CloseReason) => void;
 }
@@ -174,7 +166,7 @@ export function Toast({
   const variant = toast.variant ?? "minimal";
   const v = VARIANTS[variant];
 
-  // Resolve the leading icon; built-in glyphs are sized to fit the 26px tile.
+  // Built-in glyphs are sized to fit the 26px tile.
   const rawIcon = icon ?? ICONS[type];
   const iconNode = React.isValidElement<{ className?: string }>(rawIcon)
     ? React.cloneElement(rawIcon, {
@@ -186,14 +178,13 @@ export function Toast({
       })
     : rawIcon;
 
-  // Skip the pill phase and every animation for users who prefer reduced motion.
+  // Reduced motion skips the pill phase and every animation.
   const reduceMotion = prefersReducedMotion();
 
-  /** Clamped determinate progress, or null when this isn't a progress toast. */
   const pct =
     toast.progress == null ? null : Math.min(100, Math.max(0, toast.progress));
 
-  // Anything below the header row. A title-only toast has none and stays a pill.
+  // A title-only toast has no body and stays a pill.
   const hasBody =
     toast.description != null ||
     toast.action != null ||
@@ -210,19 +201,17 @@ export function Toast({
   const exitTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const rootRef = React.useRef<HTMLLIElement>(null);
 
-  // `paused` and `state` are mirrored in refs because both guards are read more
-  // than once per tick — one hover reaches this toast *and* its stack container,
-  // and a setState value is not visible until the next render.
+  // Mirrored in refs: one hover reaches both this toast and its stack container
+  // in the same tick, and a setState value is not visible until the next render.
   const pausedRef = React.useRef(false);
   const closingRef = React.useRef(false);
 
-  // Kept in a ref so `close` stays referentially stable: <Toaster> hands down a
-  // fresh toast object on every render, and an unstable `close` would re-arm the
-  // auto-dismiss timer each time.
+  // A ref keeps `close` stable. <Toaster> passes a new toast object on every
+  // render, and an unstable `close` would re-arm the auto-dismiss timer.
   const onClosedRef = React.useRef(onClosed);
   onClosedRef.current = onClosed;
 
-  // Centered top/bottom toasts are swiped vertically; others horizontally.
+  // Centered toasts swipe vertically, corner toasts horizontally.
   const vertical =
     toast.position === "top-center" || toast.position === "bottom-center";
 
@@ -238,11 +227,9 @@ export function Toast({
     }
   }, []);
 
-  /**
-   * Starts the exit animation and hands the removal over to the store, which
-   * fires onDismiss (always) and onAutoClose (timeouts only) once it drops the
-   * toast. Repeat calls are ignored so a swipe racing the timer closes once.
-   */
+  // Starts the exit animation and hands removal to the store, which fires
+  // onDismiss (always) and onAutoClose (timeouts only). Repeat calls are ignored
+  // so a swipe racing the timer closes once.
   const close = React.useCallback(
     (reason: CloseReason, swipeOffset?: number) => {
       if (closingRef.current) return;
@@ -261,14 +248,14 @@ export function Toast({
     [id, reduceMotion, clearTimer],
   );
 
-  // A dismiss from application code only flags the toast in the store; mirror
-  // that here so it animates out instead of vanishing.
+  // A dismiss from app code only flags the toast in the store. Mirroring it here
+  // makes the toast animate out instead of vanishing.
   React.useEffect(() => {
     if (toast.closing) close("programmatic");
   }, [toast.closing, close]);
 
-  // Pill first, then open up once there is something to show. Re-runs when a
-  // promise toast resolves with a description it did not have while loading.
+  // Opens the pill once it has a body. Re-runs when a promise toast resolves
+  // with a description it lacked while loading.
   React.useEffect(() => {
     if (opened || !hasBody) return;
     const t = setTimeout(() => setOpened(true), EXPAND_DELAY);
@@ -282,7 +269,7 @@ export function Toast({
     [],
   );
 
-  // Report the measured height so the Toaster can lay out the stack.
+  // The Toaster needs each height to lay out the stack.
   React.useEffect(() => {
     if (!stacked || !onHeight) return;
     const el = rootRef.current;
@@ -303,16 +290,14 @@ export function Toast({
 
   React.useEffect(() => {
     remaining.current = duration;
-    // Don't restart a hovered toast: a promise resolving under the cursor must
-    // not undo the pause.
+    // A promise resolving under the cursor must not undo the pause.
     if (!pausedRef.current) startTimer();
     return clearTimer;
-    // Re-arm when the duration changes (e.g. promise resolves).
   }, [duration, startTimer, clearTimer]);
 
   const pause = React.useCallback(() => {
-    // Without this guard the elapsed time is subtracted once per caller, and a
-    // stacked toast gets two calls per hover — draining the remaining time.
+    // A stacked toast gets two calls per hover. Without this guard the elapsed
+    // time would be subtracted twice.
     if (pausedRef.current || closingRef.current) return;
     pausedRef.current = true;
     setPaused(true);
@@ -331,7 +316,7 @@ export function Toast({
     startTimer();
   }, [startTimer]);
 
-  // Pause every toast in the group while the stack is expanded (hovered).
+  // A hovered, expanded stack pauses every toast in it.
   React.useEffect(() => {
     if (!stacked) return;
     if (expanded) pause();
@@ -340,11 +325,10 @@ export function Toast({
 
   const onMouseEnter = () => {
     pause();
-    // A hovered pill doesn't make the reader wait for the delay.
+    // Hovering a pill opens it without waiting for the delay.
     setOpened(true);
   };
 
-  // --- swipe to dismiss ---
   const onDragEnd = (_: unknown, info: PanInfo) => {
     const offset = vertical ? info.offset.y : info.offset.x;
     const velocity = vertical ? info.velocity.y : info.velocity.x;
@@ -358,14 +342,13 @@ export function Toast({
     }
   };
 
-  // The auto-dismiss countdown ring. A loading toast has no deadline to show,
-  // and a real progress value beats a countdown.
+  // A loading toast has no deadline, and a progress value replaces the countdown.
   const showCountdown =
     Number.isFinite(duration) && type !== "loading" && pct == null;
   const showTile = iconNode != null || showCountdown;
 
   const closing = state === "closing";
-  // Enter pops in from the anchored edge; exit sinks back the same way.
+  // Enter pops in from the anchored edge and exit leaves the same way.
   const nudge = anchorBottom ? 12 : -12;
 
   return (
@@ -449,8 +432,8 @@ export function Toast({
         )}
       >
         {jsx ? (
-          // Custom content has no header row to hang the close button off, so
-          // it keeps the absolute one — hence the padding reserved on the right.
+          // Custom content has no header row, so the close button is absolute
+          // and the content keeps room for it on the right.
           <>
             <div className="pr-6">{jsx}</div>
             <button
@@ -464,8 +447,7 @@ export function Toast({
           </>
         ) : (
           <>
-            {/* Header — the pill's whole content, and the card's first row.
-                layout="position" keeps the text from stretching mid-morph. */}
+            {/* layout="position" keeps the header from stretching mid-morph. */}
             <motion.div
               layout={reduceMotion ? false : "position"}
               transition={MORPH}
@@ -477,7 +459,7 @@ export function Toast({
                   data-slot="icon"
                   className={cn(
                     "relative flex shrink-0 items-center justify-center rounded-full",
-                    // No glyph: just the countdown ring, a touch smaller.
+                    // Without a glyph the tile is only the ring, a bit smaller.
                     iconNode != null ? cn("size-[26px]", v.tile) : "size-4",
                   )}
                 >
@@ -531,13 +513,11 @@ export function Toast({
               </button>
             </motion.div>
 
-            {/* Body — flows in once the bubble has started to open. */}
             <AnimatePresence initial={false}>
               {isOpen && hasBody && (
                 <motion.div
                   key="body"
-                  // Counter-scaled while the bubble morphs, so the text
-                  // never squashes mid-animation.
+                  // Position-only layout so the text never squashes mid-morph.
                   layout={reduceMotion ? false : "position"}
                   data-slot="body"
                   initial={{ opacity: 0, y: -4, filter: "blur(4px)" }}

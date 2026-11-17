@@ -13,8 +13,8 @@ import {
   type ToastVariant,
 } from "./toast-store";
 
-// Stable reference for SSR: getServerSnapshot must return the same value every
-// call, otherwise useSyncExternalStore re-renders forever.
+// getServerSnapshot must return the same value on every call, or
+// useSyncExternalStore re-renders forever.
 const EMPTY: ToastData[] = [];
 
 const POSITION_CLASSES: Record<ToastPosition, string> = {
@@ -27,7 +27,6 @@ const POSITION_CLASSES: Record<ToastPosition, string> = {
   "bottom-right": "bottom-0 right-0 flex-col-reverse sm:items-end",
 };
 
-// Sonner-style stack tuning.
 const PEEK = 14; // px each card behind peeks out when collapsed
 const GAP = 14; // px between cards when expanded
 const SCALE_STEP = 0.05; // scale reduction per card behind
@@ -74,7 +73,6 @@ export function Toaster({
 
   if (!mounted) return null;
 
-  // Group toasts by their effective position.
   const groups = new Map<ToastPosition, ToastData[]>();
   for (const t of toasts) {
     const pos = t.position ?? position;
@@ -87,7 +85,6 @@ export function Toaster({
   const stacked = !expand;
 
   return createPortal(
-    // Honors prefers-reduced-motion for every spring inside the bubbles.
     <MotionConfig reducedMotion="user">
       {[...groups.entries()].map(([pos, items]) => {
         if (!stacked) {
@@ -110,7 +107,6 @@ export function Toaster({
           );
         }
 
-        // --- Stacked layout ---
         const anchorBottom = !pos.startsWith("top");
         const dir = pos.startsWith("top") ? 1 : -1;
         const groupExpanded = !!expandedMap[pos];
@@ -124,8 +120,8 @@ export function Toaster({
           : frontHeight + visibleBehind * PEEK;
 
         return (
-          // The positioning wrapper is a <div>, not the <ol>: a list may only
-          // contain <li> children, and the stack needs its own sized box.
+          // The stack's sized box is a <div> because an <ol> may only contain
+          // <li> children.
           <div
             key={pos}
             className={cn(

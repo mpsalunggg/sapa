@@ -5,7 +5,7 @@ import { toast } from "@/components/ui/sapa-toast/toaster";
 function fakeUpload(): Promise<{ name: string }> {
   return new Promise((resolve, reject) =>
     setTimeout(() => {
-      // Randomly resolve/reject to show both branches.
+      // Resolves or rejects at random to show both branches.
       if (Math.round(Date.now() / 1000) % 2 === 0) {
         resolve({ name: "avatar.png" });
       } else {

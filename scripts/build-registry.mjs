@@ -1,10 +1,7 @@
-// Sapa — registry builder.
-// Reads registry.json, inlines each file's content, rewrites intra-registry
-// registryDependencies (names) into absolute URLs, and emits one JSON per item
-// under apps/registry/public/r/<name>.json (+ an index at r/registry.json).
+// Builds apps/registry/public/r/<name>.json for every item in registry.json,
+// plus an index at r/registry.json. File contents are inlined and bare
+// registryDependencies become absolute URLs.
 //
-// Usage:
-//   node scripts/build-registry.mjs
 //   SAPA_BASE_URL=https://sapa.example.com node scripts/build-registry.mjs
 
 import { promises as fs } from "node:fs";
@@ -14,7 +11,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const OUT_DIR = path.join(ROOT, "apps", "registry", "public", "r");
-// Base URL priority: explicit override → Vercel production domain → localhost.
+// SAPA_BASE_URL, then the Vercel production domain, then localhost.
 const BASE_URL = (
   process.env.SAPA_BASE_URL ||
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
@@ -24,7 +21,6 @@ const BASE_URL = (
 
 const itemUrl = (name) => `${BASE_URL}/r/${name}.json`;
 
-/** Turn a bare item name into an absolute URL; leave real URLs untouched. */
 const resolveDep = (dep) => (/^https?:\/\//.test(dep) ? dep : itemUrl(dep));
 
 async function readFileSafe(relPath) {
@@ -42,9 +38,8 @@ async function build() {
   for (const item of registry.items) {
     const files = [];
     for (const file of item.files ?? []) {
-      // `src` is the on-disk source (what we read); `path` is the CLI-facing
-      // output hint. Keeping `path` flat (registry/sapa/<basename>) makes both
-      // the shadcn (React) and shadcn-vue CLIs place files at components/ui/<basename>.
+      // `src` is the file on disk and `path` is what the CLI sees. A flat `path`
+      // makes both the shadcn and shadcn-vue CLIs write to components/ui/<basename>.
       const diskPath = file.src ?? file.path;
       files.push({
         path: file.path,

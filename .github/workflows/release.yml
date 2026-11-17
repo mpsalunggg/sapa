@@ -44,8 +44,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Repeated from CI on purpose: a tag has to be proven green at the exact
-      # commit it points to, not inherit trust from the branch it came off.
+      # Repeated from CI so the tagged commit itself is proven green.
       - name: Format check
         run: pnpm format:check
 
@@ -70,10 +69,9 @@ jobs:
           ' CHANGELOG.md > notes.md
           cat notes.md
 
-      # public/r is gitignored, so a versioned snapshot is the only way to pin a
-      # release without building it yourself. SAPA_BASE_URL matters: without it
-      # build-registry.mjs falls back to localhost:3000 and every URL inside the
-      # JSON would be useless.
+      # public/r is gitignored, so this snapshot is the only way to pin a release
+      # without building it. Without SAPA_BASE_URL every URL inside the JSON
+      # would point at localhost:3000.
       - name: Package the registry snapshot
         env:
           SAPA_BASE_URL: https://sapa-registry.vercel.app

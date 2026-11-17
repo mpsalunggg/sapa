@@ -7,17 +7,13 @@ import { cn } from "@/lib/utils";
 import { ThemeCustomizer } from "@/features/theming/theme-customizer";
 import { useThemeOverrides } from "@/features/theming/theme-overrides-context";
 import { GradientDot } from "@/shared/components/gradient-dot";
+import { ghostIconButton } from "@/shared/lib/styles";
 
-/** Global floating "live theme" editor. A palette button pinned to the
- *  center-right of the viewport opens a popover that drives the rich-color
- *  tokens for every real toast on the page. The palette icon itself carries a
- *  red → green → blue gradient stroke (sapa error / success / info tokens). */
 export function ThemeDock() {
   const { overrides, setOverrides } = useThemeOverrides();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  // Close on Escape or a click outside the dock.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -38,7 +34,6 @@ export function ThemeDock() {
 
   return (
     <div ref={rootRef} className="fixed right-4 top-1/2 z-40 -translate-y-1/2">
-      {/* Hidden defs: red → green → blue gradient for the palette icon stroke. */}
       <svg aria-hidden="true" width="0" height="0" className="absolute">
         <defs>
           <linearGradient id="sapa-rgb-icon" x1="0" y1="0" x2="1" y2="1">
@@ -64,7 +59,7 @@ export function ThemeDock() {
               type="button"
               aria-label="Close theme editor"
               onClick={() => setOpen(false)}
-              className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex size-7 items-center justify-center rounded-md transition-colors"
+              className={ghostIconButton}
             >
               <X className="size-4" />
             </button>

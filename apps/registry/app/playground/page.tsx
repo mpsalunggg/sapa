@@ -1,122 +1,69 @@
-import { BookOpen } from "lucide-react";
-
-import {
-  BASE_URL,
-  getSource,
-  getItemFiles,
-  getPreviewCss,
-} from "@/shared/lib/registry";
+import { getItemFiles, getPreviewCss, getSource } from "@/shared/lib/registry";
 import { Playground } from "@/features/playground/playground";
-import { NavLinkButton } from "@/shared/components/link-button";
+import type { FrameworkSources } from "@/features/playground/playground-files";
+import { DocsLink } from "@/shared/components/nav-links";
 import { SiteFooter } from "@/shared/components/site-footer";
 import { SiteHeader } from "@/shared/components/site-header";
 import { HeroWaves } from "@/shared/components/hero-waves";
-import { getLatestVersion } from "@/features/changelog/changelog";
+import type { Framework } from "@/shared/framework/framework-context";
 
 export const metadata = {
-  title: "Sapa — Playground",
+  title: "Sapa · Playground",
   description: "Live, editable playground for the Sapa toast components.",
 };
 
 const VARIANTS = [
-  { key: "default", title: "Default", description: "A plain toast." },
-  {
-    key: "types",
-    title: "Types · rich colors",
-    description: "Semantic colors + icons.",
-  },
-  {
-    key: "variants",
-    title: "Variants",
-    description: "Solid, minimal, subtle.",
-  },
-  {
-    key: "description",
-    title: "Title + description",
-    description: "Headline + detail line.",
-  },
-  {
-    key: "action",
-    title: "Action + cancel",
-    description: "Inline action buttons.",
-  },
-  { key: "promise", title: "Promise", description: "Loading → success/error." },
-  {
-    key: "progress",
-    title: "Progress",
-    description: "Determinate progress bar.",
-  },
-  {
-    key: "custom",
-    title: "Custom content",
-    description: "Any JSX inside the toast.",
-  },
-  {
-    key: "positions",
-    title: "Positions",
-    description: "Six anchor positions.",
-  },
-  {
-    key: "stack",
-    title: "Stack",
-    description: "Collapsible stack; hover to expand.",
-  },
+  { key: "default", title: "Default" },
+  { key: "types", title: "Types · rich colors" },
+  { key: "variants", title: "Variants" },
+  { key: "description", title: "Title + description" },
+  { key: "action", title: "Action + cancel" },
+  { key: "promise", title: "Promise" },
+  { key: "progress", title: "Progress" },
+  { key: "custom", title: "Custom content" },
+  { key: "positions", title: "Positions" },
+  { key: "stack", title: "Stack" },
 ] as const;
 
-export default async function PlaygroundPage() {
-  const version = await getLatestVersion();
-  const [entries, vueEntries] = await Promise.all([
+async function loadSources(framework: Framework): Promise<FrameworkSources> {
+  const [examples, toasterFiles, utilsFiles] = await Promise.all([
     Promise.all(
       VARIANTS.map(
-        async (v) => [v.key, await getSource(`react/toast-${v.key}`)] as const,
+        async (v) =>
+          [v.key, await getSource(`${framework}/toast-${v.key}`)] as const,
       ),
-    ),
-    Promise.all(
-      VARIANTS.map(
-        async (v) => [v.key, await getSource(`vue/toast-${v.key}`)] as const,
-      ),
-    ),
+    ).then(Object.fromEntries),
+    getItemFiles(`${framework}/toaster`),
+    getItemFiles(`${framework}/utils`),
   ]);
-  const examples = Object.fromEntries(entries);
-  const vueExamples = Object.fromEntries(vueEntries);
-  const [toasterFiles, utilsFiles, vueToasterFiles, vueUtilsFiles, previewCss] =
-    await Promise.all([
-      getItemFiles("react/toaster"),
-      getItemFiles("react/utils"),
-      getItemFiles("vue/toaster"),
-      getItemFiles("vue/utils"),
-      getPreviewCss(),
-    ]);
+  return { examples, toasterFiles, utilsFiles };
+}
+
+export default async function PlaygroundPage() {
+  const [react, vue, previewCss] = await Promise.all([
+    loadSources("react"),
+    loadSources("vue"),
+    getPreviewCss(),
+  ]);
 
   return (
     <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px]">
-        <HeroWaves />
-      </div>
+      <HeroWaves className="h-[480px]" />
       <div className="relative z-10 mx-auto max-w-5xl px-4 py-8">
         <SiteHeader
           title="Playground"
-          subtitle="Edit the code — the preview updates live."
-          actions={
-            <NavLinkButton href="/docs">
-              <BookOpen className="size-3.5" />
-              Docs
-            </NavLinkButton>
-          }
+          subtitle="Edit the code and the preview updates live."
+          actions={<DocsLink />}
         />
 
         <Playground
-          variants={VARIANTS.map((v) => ({ ...v }))}
-          examples={examples}
-          toasterFiles={toasterFiles}
-          utilsFiles={utilsFiles}
-          vueExamples={vueExamples}
-          vueToasterFiles={vueToasterFiles}
-          vueUtilsFiles={vueUtilsFiles}
+          variants={VARIANTS}
+          react={react}
+          vue={vue}
           previewCss={previewCss}
         />
 
-        <SiteFooter baseUrl={BASE_URL} version={version} />
+        <SiteFooter />
       </div>
     </div>
   );

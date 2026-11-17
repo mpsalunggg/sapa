@@ -1,6 +1,7 @@
-import { Play } from "lucide-react";
+import type { ComponentType, ReactNode } from "react";
 
-import { BASE_URL, getSource, itemUrl } from "@/shared/lib/registry";
+import { cn } from "@/lib/utils";
+import { getSource, itemUrl } from "@/shared/lib/registry";
 import { highlight } from "@/features/docs/highlight";
 import { FrameworkProvider } from "@/shared/framework/framework-context";
 import { InstallCommand } from "@/shared/components/install-command";
@@ -13,7 +14,7 @@ import {
   type PropRow,
   type TokenRow,
 } from "@/features/docs/reference-table";
-import { GradientLinkButton } from "@/shared/components/link-button";
+import { PlaygroundLink } from "@/shared/components/nav-links";
 import { SiteFooter } from "@/shared/components/site-footer";
 import { SiteHeader } from "@/shared/components/site-header";
 import { HeroWaves } from "@/shared/components/hero-waves";
@@ -29,28 +30,48 @@ import ToastProgress from "@/registry/react/examples/toast-progress";
 import ToastCustom from "@/registry/react/examples/toast-custom";
 import ToastPositions from "@/registry/react/examples/toast-positions";
 import ToastStack from "@/registry/react/examples/toast-stack";
-import { getLatestVersion } from "@/features/changelog/changelog";
+import {
+  buildCss,
+  BASE_TOKENS,
+  EMPTY_OVERRIDES,
+} from "@/features/theming/theme-tokens";
 
 export const metadata = {
-  title: "Sapa — Documentation",
+  title: "Sapa · Documentation",
   description:
-    "How to install and use the Sapa toast — one API, both React and Vue.",
+    "How to install and use the Sapa toast, with one API for React and Vue.",
 };
 
-// Examples shown with a live preview + install command + real registry source.
-const EXAMPLES = [
+interface Example {
+  key: string;
+  title: string;
+  description: ReactNode;
+  Preview: ComponentType;
+  extra?: ReactNode;
+}
+
+const POSITIONS = [
+  "top-left",
+  "top-center",
+  "top-right",
+  "bottom-left",
+  "bottom-center",
+  "bottom-right",
+];
+
+const EXAMPLES: Example[] = [
   {
     key: "types",
     title: "Types & rich colors",
     description:
-      "Success, error, warning and info — each with a semantic color + icon.",
+      "Success, error, warning and info, each with its own color and icon.",
     Preview: ToastTypes,
   },
   {
     key: "variants",
     title: "Variants",
     description:
-      "Solid, minimal and subtle — three ways to carry the type's color.",
+      "Solid, minimal and subtle: three ways to carry the type's color.",
     Preview: ToastVariants,
   },
   {
@@ -75,13 +96,13 @@ const EXAMPLES = [
     key: "progress",
     title: "Progress",
     description:
-      "A determinate progress bar — update it in place, then finish as success.",
+      "A determinate progress bar. Update it in place, then finish as success.",
     Preview: ToastProgress,
   },
   {
     key: "custom",
     title: "Custom content",
-    description: "Render any markup — JSX in React, a component in Vue.",
+    description: "Render any markup: JSX in React, a component in Vue.",
     Preview: ToastCustom,
   },
   {
@@ -89,14 +110,32 @@ const EXAMPLES = [
     title: "Positions",
     description: "Six anchor positions, set per-toast or globally.",
     Preview: ToastPositions,
+    extra: (
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {POSITIONS.map((p) => (
+          <code
+            key={p}
+            className="bg-muted/40 text-muted-foreground rounded-md border px-2 py-1 font-mono text-xs"
+          >
+            {p}
+          </code>
+        ))}
+      </div>
+    ),
   },
   {
     key: "stack",
     title: "Stack",
     description: "Toasts collapse into a pile; hover to expand.",
     Preview: ToastStack,
+    extra: (
+      <div className="text-muted-foreground mt-3 flex items-center gap-2 text-sm">
+        <span>Try it:</span>
+        <ToastLayoutToggle />
+      </div>
+    ),
   },
-] as const;
+];
 
 const TOC_GROUPS: TocGroup[] = [
   {
@@ -125,7 +164,6 @@ const TOC_GROUPS: TocGroup[] = [
   },
 ];
 
-// Hand-written snippets for concepts that have no registry example file.
 const SNIPPETS: Record<string, { react: string; vue: string }> = {
   setup: {
     react: `import { Toaster } from "@/components/ui/sapa-toast/toaster"
@@ -169,24 +207,8 @@ toast.dismiss()                      // dismiss every toast
   },
 };
 
-// Framework-agnostic — the same CSS overrides the toast colors in React and Vue.
-const THEMING_CSS = `/* globals.css — override Sapa's rich colors */
-:root {
-  --sapa-success: oklch(0.62 0.17 149);
-  --sapa-error: oklch(0.58 0.22 27);
-  --sapa-warning: oklch(0.75 0.16 78);
-  --sapa-info: oklch(0.6 0.13 240);
-}
+const THEMING_CSS = buildCss(EMPTY_OVERRIDES, BASE_TOKENS);
 
-.dark {
-  --sapa-success: oklch(0.7 0.16 150);
-  --sapa-error: oklch(0.7 0.19 22);
-  --sapa-warning: oklch(0.82 0.16 82);
-  --sapa-info: oklch(0.68 0.14 240);
-}`;
-
-// The four semantic tokens the toast reads, one per type. The theme item also
-// ships a `-foreground` pair for each; the toast no longer uses them.
 const SAPA_TOKENS: TokenRow[] = [
   {
     name: "--sapa-success",
@@ -207,7 +229,7 @@ const OPTIONS: PropRow[] = [
   {
     name: "title",
     type: "ReactNode",
-    desc: "Main message — the first argument of toast().",
+    desc: "The main message, passed as the first argument of toast().",
   },
   {
     name: "description",
@@ -222,12 +244,12 @@ const OPTIONS: PropRow[] = [
   {
     name: "position",
     type: "ToastPosition",
-    desc: "One of the six anchors — overrides the Toaster default.",
+    desc: "One of the six anchors. Overrides the Toaster default.",
   },
   {
     name: "variant",
     type: '"solid" | "minimal" | "subtle"',
-    desc: "Color treatment — overrides the Toaster default.",
+    desc: "Color treatment. Overrides the Toaster default.",
   },
   {
     name: "icon",
@@ -237,7 +259,7 @@ const OPTIONS: PropRow[] = [
   {
     name: "progress",
     type: "number",
-    desc: "0–100 — a determinate bar inside the card (see toast.progress).",
+    desc: "A value from 0 to 100, shown as a determinate bar inside the card (see toast.progress).",
   },
   {
     name: "action",
@@ -252,7 +274,7 @@ const OPTIONS: PropRow[] = [
   {
     name: "id",
     type: "string | number",
-    desc: "Stable id — reuse it to update a toast in place.",
+    desc: "Stable id. Reuse it to update a toast in place.",
   },
   {
     name: "onDismiss",
@@ -262,7 +284,7 @@ const OPTIONS: PropRow[] = [
   {
     name: "onAutoClose",
     type: "(toast) => void",
-    desc: "Called only when the duration ran out — not on close, swipe or action.",
+    desc: "Called only when the duration runs out. Closing, swiping or an action button doesn't trigger it.",
   },
 ];
 
@@ -284,98 +306,153 @@ const TOASTER_PROPS: PropRow[] = [
   },
 ];
 
-const POSITIONS = [
-  "top-left",
-  "top-center",
-  "top-right",
-  "bottom-left",
-  "bottom-center",
-  "bottom-right",
-];
+type HighlightedPair = {
+  react: string;
+  vue: string;
+  reactHtml: string;
+  vueHtml: string;
+};
+
+async function highlightPair(
+  react: string,
+  vue: string,
+): Promise<HighlightedPair> {
+  const [reactHtml, vueHtml] = await Promise.all([
+    highlight(react, "tsx"),
+    highlight(vue, "vue"),
+  ]);
+  return { react, vue, reactHtml, vueHtml };
+}
+
+function DocsSection({
+  id,
+  title,
+  intro,
+  className = "py-8",
+  introClassName,
+  children,
+}: {
+  id: string;
+  title: ReactNode;
+  intro: ReactNode;
+  className?: string;
+  introClassName?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section id={id} className={cn("scroll-mt-6", className)}>
+      <h2 className="text-xl font-bold tracking-tight">{title}</h2>
+      <p className={cn("text-muted-foreground mt-2 text-sm", introClassName)}>
+        {intro}
+      </p>
+      {children}
+    </section>
+  );
+}
+
+function PreviewBox({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "bg-linear-to-b from-muted/50 to-muted/20 flex min-h-28 items-center justify-center rounded-xl border border-dashed p-4",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function ExampleSection({
+  id,
+  sourceKey,
+  title,
+  description,
+  Preview,
+  extra,
+  source,
+}: Omit<Example, "key"> & {
+  id: string;
+  sourceKey: string;
+  source: HighlightedPair;
+}) {
+  return (
+    <DocsSection id={id} title={title} intro={description}>
+      {extra}
+      <PreviewBox className="mt-4">
+        <Preview />
+      </PreviewBox>
+      <div className="mt-4">
+        <InstallCommand
+          reactUrl={itemUrl(`react/toast-${sourceKey}`)}
+          vueUrl={itemUrl(`vue/toast-${sourceKey}`)}
+        />
+      </div>
+      <div className="mt-4">
+        <FrameworkCodeFrame
+          react={{ code: source.react, html: source.reactHtml }}
+          vue={{ code: source.vue, html: source.vueHtml }}
+          collapsible
+        />
+      </div>
+    </DocsSection>
+  );
+}
 
 export default async function DocsPage() {
-  const version = await getLatestVersion();
-  // Real registry sources for every example (default + examples), highlighted server-side.
-  const exampleKeys = ["default", ...EXAMPLES.map((e) => e.key)];
-  const sourceEntries = await Promise.all(
-    exampleKeys.map(async (key) => {
-      const react = await getSource(`react/toast-${key}`);
-      const vue = await getSource(`vue/toast-${key}`);
-      return [
-        key,
-        {
-          react,
-          vue,
-          reactHtml: await highlight(react, "tsx"),
-          vueHtml: await highlight(vue, "vue"),
-        },
-      ] as const;
-    }),
-  );
-  const src = Object.fromEntries(sourceEntries);
+  const [sources, snippets, themingHtml] = await Promise.all([
+    Promise.all(
+      ["default", ...EXAMPLES.map((e) => e.key)].map(async (key) => {
+        const [react, vue] = await Promise.all([
+          getSource(`react/toast-${key}`),
+          getSource(`vue/toast-${key}`),
+        ]);
+        return [key, await highlightPair(react, vue)] as const;
+      }),
+    ).then((entries) => Object.fromEntries(entries)),
+    Promise.all(
+      Object.entries(SNIPPETS).map(
+        async ([key, s]) => [key, await highlightPair(s.react, s.vue)] as const,
+      ),
+    ).then((entries) => Object.fromEntries(entries)),
+    highlight(THEMING_CSS, "css"),
+  ]);
 
-  // Hand-written concept snippets (setup, loading).
-  const snippetEntries = await Promise.all(
-    Object.entries(SNIPPETS).map(
-      async ([key, s]) =>
-        [
-          key,
-          {
-            react: s.react,
-            vue: s.vue,
-            reactHtml: await highlight(s.react, "tsx"),
-            vueHtml: await highlight(s.vue, "vue"),
-          },
-        ] as const,
-    ),
-  );
-  const hl = Object.fromEntries(snippetEntries);
-
-  // Theming snippet — a single CSS block, identical for React and Vue.
-  const themingHtml = await highlight(THEMING_CSS, "css");
-
-  // A hand-written snippet, labelled with the file it belongs in.
-  const docCode = (
+  const snippet = (
     key: string,
     reactFilename?: string,
     vueFilename?: string,
   ) => (
     <FrameworkCodeFrame
       react={{
-        code: hl[key].react,
-        html: hl[key].reactHtml,
+        code: snippets[key].react,
+        html: snippets[key].reactHtml,
         filename: reactFilename,
       }}
-      vue={{ code: hl[key].vue, html: hl[key].vueHtml, filename: vueFilename }}
-    />
-  );
-
-  // A real registry source — long, so it starts collapsed behind "Show code".
-  const sourceTabs = (key: string) => (
-    <FrameworkCodeFrame
-      react={{ code: src[key].react, html: src[key].reactHtml }}
-      vue={{ code: src[key].vue, html: src[key].vueHtml }}
-      collapsible
+      vue={{
+        code: snippets[key].vue,
+        html: snippets[key].vueHtml,
+        filename: vueFilename,
+      }}
     />
   );
 
   return (
     <FrameworkProvider>
       <div className="relative">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px] overflow-hidden">
-          <HeroWaves />
-        </div>
+        <HeroWaves className="h-[480px]" />
 
         <div className="relative z-10 mx-auto max-w-5xl px-4 py-8">
           <SiteHeader
             title="Documentation"
             subtitle="One API, both React and Vue. Copy, paste, own it."
-            actions={
-              <GradientLinkButton href="/playground">
-                <Play className="size-3.5" />
-                Playground
-              </GradientLinkButton>
-            }
+            actions={<PlaygroundLink />}
           />
 
           <div className="flex flex-col gap-8 lg:flex-row">
@@ -384,153 +461,123 @@ export default async function DocsPage() {
             </aside>
 
             <main className="divide-border flex min-w-0 flex-1 flex-col divide-y">
-              {/* Installation */}
-              <section id="installation" className="scroll-mt-6 pb-8">
-                <h2 className="text-xl font-bold tracking-tight">
-                  Installation
-                </h2>
-                <p className="text-muted-foreground mt-2 text-sm">
-                  The registry is served as JSON. Add it with the shadcn CLI —
-                  the files land in <Chip>components/ui/sapa-toast/</Chip>.
-                </p>
+              <DocsSection
+                id="installation"
+                title="Installation"
+                className="pb-8"
+                intro={
+                  <>
+                    The registry is served as JSON. Add it with the shadcn CLI
+                    and the files land in <Chip>components/ui/sapa-toast/</Chip>
+                    .
+                  </>
+                }
+              >
                 <div className="mt-4 w-full">
                   <InstallCommand
                     reactUrl={itemUrl("react/toaster")}
                     vueUrl={itemUrl("vue/toaster")}
                   />
                 </div>
-              </section>
+              </DocsSection>
 
-              {/* Mount the Toaster */}
-              <section id="setup" className="scroll-mt-6 py-8">
-                <h2 className="text-xl font-bold tracking-tight">
-                  Mount the Toaster
-                </h2>
-                <p className="text-muted-foreground mt-2 text-sm">
-                  Render <Chip>&lt;Toaster /&gt;</Chip> once, near the root of
-                  your app. After that you can call <Chip>toast()</Chip> from
-                  anywhere.
-                </p>
+              <DocsSection
+                id="setup"
+                title="Mount the Toaster"
+                intro={
+                  <>
+                    Render <Chip>&lt;Toaster /&gt;</Chip> once, near the root of
+                    your app. After that you can call <Chip>toast()</Chip> from
+                    anywhere.
+                  </>
+                }
+              >
                 <div className="mt-4">
-                  {docCode("setup", "app/layout.tsx", "App.vue")}
+                  {snippet("setup", "app/layout.tsx", "App.vue")}
                 </div>
-              </section>
+              </DocsSection>
 
-              {/* Basic usage */}
-              <section id="basic" className="scroll-mt-6 py-8">
-                <h2 className="text-xl font-bold tracking-tight">
-                  Basic usage
-                </h2>
-                <p className="text-muted-foreground mt-2 text-sm">
-                  Call <Chip>toast()</Chip> with a message. Everything else is
-                  optional.
-                </p>
-                <div className="bg-linear-to-b from-muted/50 to-muted/20 mt-4 flex min-h-28 items-center justify-center rounded-xl border border-dashed p-4">
-                  <ToastDefault />
-                </div>
-                <div className="mt-4">
-                  <InstallCommand
-                    reactUrl={itemUrl("react/toast-default")}
-                    vueUrl={itemUrl("vue/toast-default")}
-                  />
-                </div>
-                <div className="mt-4">{sourceTabs("default")}</div>
-              </section>
+              <ExampleSection
+                id="basic"
+                sourceKey="default"
+                title="Basic usage"
+                description={
+                  <>
+                    Call <Chip>toast()</Chip> with a message. Everything else is
+                    optional.
+                  </>
+                }
+                Preview={ToastDefault}
+                source={sources.default}
+              />
 
-              {/* Loading & dismiss */}
-              <section id="loading" className="scroll-mt-6 py-8">
-                <h2 className="text-xl font-bold tracking-tight">
-                  Loading &amp; dismiss
-                </h2>
-                <p className="text-muted-foreground mt-2 text-sm">
-                  <Chip>toast.loading()</Chip> persists until you dismiss or
-                  replace it. Every call returns an id you can pass to{" "}
-                  <Chip>toast.dismiss()</Chip>.
-                </p>
-                <div className="mt-4">{docCode("loading")}</div>
-              </section>
+              <DocsSection
+                id="loading"
+                title="Loading & dismiss"
+                intro={
+                  <>
+                    <Chip>toast.loading()</Chip> persists until you dismiss or
+                    replace it. Every call returns an id you can pass to{" "}
+                    <Chip>toast.dismiss()</Chip>.
+                  </>
+                }
+              >
+                <div className="mt-4">{snippet("loading")}</div>
+              </DocsSection>
 
-              {/* Examples */}
-              {EXAMPLES.map(({ key, title, description, Preview }) => (
-                <section key={key} id={key} className="scroll-mt-6 py-8">
-                  <h2 className="text-xl font-bold tracking-tight">{title}</h2>
-                  <p className="text-muted-foreground mt-2 text-sm">
-                    {description}
-                  </p>
-
-                  {key === "positions" && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {POSITIONS.map((p) => (
-                        <code
-                          key={p}
-                          className="bg-muted/40 text-muted-foreground rounded-md border px-2 py-1 font-mono text-xs"
-                        >
-                          {p}
-                        </code>
-                      ))}
-                    </div>
-                  )}
-
-                  {key === "stack" && (
-                    <div className="text-muted-foreground mt-3 flex items-center gap-2 text-sm">
-                      <span>Try it:</span>
-                      <ToastLayoutToggle />
-                    </div>
-                  )}
-
-                  <div className="bg-linear-to-b from-muted/50 to-muted/20 mt-4 flex min-h-28 items-center justify-center rounded-xl border border-dashed p-4">
-                    <Preview />
-                  </div>
-                  <div className="mt-4">
-                    <InstallCommand
-                      reactUrl={itemUrl(`react/toast-${key}`)}
-                      vueUrl={itemUrl(`vue/toast-${key}`)}
-                    />
-                  </div>
-                  <div className="mt-4">{sourceTabs(key)}</div>
-                </section>
+              {EXAMPLES.map(({ key, ...example }) => (
+                <ExampleSection
+                  key={key}
+                  id={key}
+                  sourceKey={key}
+                  source={sources[key]}
+                  {...example}
+                />
               ))}
 
-              {/* Options */}
-              <section id="options" className="scroll-mt-6 py-8">
-                <h2 className="text-xl font-bold tracking-tight">Options</h2>
-                <p className="text-muted-foreground mb-4 mt-2 text-sm">
-                  The second argument of every <Chip>toast()</Chip> call.
-                  Identical in React and Vue.
-                </p>
+              <DocsSection
+                id="options"
+                title="Options"
+                introClassName="mb-4"
+                intro={
+                  <>
+                    The second argument of every <Chip>toast()</Chip> call. It
+                    works the same in React and Vue.
+                  </>
+                }
+              >
                 <ReferenceTable rows={OPTIONS} />
-              </section>
+              </DocsSection>
 
-              {/* Toaster props */}
-              <section id="toaster-props" className="scroll-mt-6 py-8">
-                <h2 className="text-xl font-bold tracking-tight">
-                  &lt;Toaster&gt; props
-                </h2>
-                <p className="text-muted-foreground mb-4 mt-2 text-sm">
-                  Defaults for the mounted toaster.
-                </p>
+              <DocsSection
+                id="toaster-props"
+                title="<Toaster> props"
+                introClassName="mb-4"
+                intro="Defaults for the mounted toaster."
+              >
                 <ReferenceTable rows={TOASTER_PROPS} />
-              </section>
+              </DocsSection>
 
-              {/* Theming — custom colors */}
-              <section id="theming" className="scroll-mt-6 pb-96 pt-8">
-                <h2 className="text-xl font-bold tracking-tight">
-                  Custom colors
-                </h2>
-                <p className="text-muted-foreground mt-2 text-sm">
-                  The rich colors come from four semantic CSS variables —{" "}
-                  <Chip>--sapa-success</Chip>, <Chip>--sapa-error</Chip>,{" "}
-                  <Chip>--sapa-warning</Chip> and <Chip>--sapa-info</Chip>. The
-                  toast&apos;s <Chip>type</Chip> picks one, and it does two
-                  jobs: it tints the round icon tile — a soft wash and the glyph
-                  — and it paints the thin countdown ring around that tile, or
-                  the bar inside the card when you pass a <Chip>progress</Chip>{" "}
-                  value. The <Chip>theme</Chip> registry item installs them into
-                  your project on setup; to re-brand the toast, just override
-                  them in your own <Chip>globals.css</Chip> — no component
-                  changes needed.
-                </p>
-
+              <DocsSection
+                id="theming"
+                title="Custom colors"
+                className="pb-96 pt-8"
+                intro={
+                  <>
+                    The rich colors come from four semantic CSS variables:{" "}
+                    <Chip>--sapa-success</Chip>, <Chip>--sapa-error</Chip>,{" "}
+                    <Chip>--sapa-warning</Chip> and <Chip>--sapa-info</Chip>.
+                    The toast&apos;s <Chip>type</Chip> picks one and uses it
+                    twice. It tints the round icon tile (a soft wash plus the
+                    glyph), and it paints the thin countdown ring around that
+                    tile, or the bar inside the card when you pass a{" "}
+                    <Chip>progress</Chip> value. The <Chip>theme</Chip> registry
+                    item installs the variables into your project on setup. To
+                    re-brand the toast, override them in your own{" "}
+                    <Chip>globals.css</Chip>. The components stay as they are.
+                  </>
+                }
+              >
                 <div className="mt-4">
                   <TokenTable rows={SAPA_TOKENS} />
                 </div>
@@ -555,16 +602,16 @@ export default async function DocsPage() {
                 />
 
                 <p className="text-muted-foreground mb-4 mt-6 text-sm">
-                  The result — flip the theme to see both palettes:
+                  Flip the theme to see both palettes:
                 </p>
-                <div className="bg-linear-to-b from-muted/50 to-muted/20 flex min-h-28 items-center justify-center rounded-xl border border-dashed p-4">
+                <PreviewBox>
                   <ToastTypes />
-                </div>
-              </section>
+                </PreviewBox>
+              </DocsSection>
             </main>
           </div>
 
-          <SiteFooter baseUrl={BASE_URL} version={version} />
+          <SiteFooter />
         </div>
       </div>
     </FrameworkProvider>

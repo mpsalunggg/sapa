@@ -10,33 +10,26 @@ export const BASE_URL = (
 
 export const itemUrl = (name: string) => `${BASE_URL}/r/${name}.json`;
 
-interface RegistryFile {
+export interface RegistryFile {
   path: string;
   content: string;
 }
 
-/** Read a built registry item (from public/r) and return its first file's source. */
-export async function getSource(name: string): Promise<string> {
-  const p = path.join(process.cwd(), "public", "r", `${name}.json`);
-  const item = JSON.parse(await fs.readFile(p, "utf8")) as {
-    files: RegistryFile[];
-  };
-  return item.files?.[0]?.content ?? "";
-}
+const publicPath = (...segments: string[]) =>
+  path.join(process.cwd(), "public", ...segments);
 
-/** Read the precompiled playground preview stylesheet (public/toast-preview.css). */
-export async function getPreviewCss(): Promise<string> {
-  const p = path.join(process.cwd(), "public", "toast-preview.css");
-  return fs.readFile(p, "utf8");
-}
-
-/** Read a built registry item and return ALL of its files (path + content). */
-export async function getItemFiles(
-  name: string,
-): Promise<{ path: string; content: string }[]> {
-  const p = path.join(process.cwd(), "public", "r", `${name}.json`);
-  const item = JSON.parse(await fs.readFile(p, "utf8")) as {
-    files: RegistryFile[];
-  };
+export async function getItemFiles(name: string): Promise<RegistryFile[]> {
+  const item = JSON.parse(
+    await fs.readFile(publicPath("r", `${name}.json`), "utf8"),
+  ) as { files?: RegistryFile[] };
   return (item.files ?? []).map((f) => ({ path: f.path, content: f.content }));
+}
+
+export async function getSource(name: string): Promise<string> {
+  const [file] = await getItemFiles(name);
+  return file?.content ?? "";
+}
+
+export function getPreviewCss(): Promise<string> {
+  return fs.readFile(publicPath("toast-preview.css"), "utf8");
 }

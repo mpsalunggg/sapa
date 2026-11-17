@@ -5,9 +5,8 @@ export type ToastType =
   "default" | "success" | "error" | "warning" | "info" | "loading";
 
 /**
- * How the type's color is carried: `minimal` keeps the surface neutral and
- * tints only the icon, `subtle` washes the whole bubble in a light tint, and
- * `solid` fills it with the color itself.
+ * How the type's color is carried. `minimal` tints only the icon, `subtle`
+ * tints the whole bubble lightly, and `solid` fills it with the color.
  */
 export type ToastVariant = "solid" | "minimal" | "subtle";
 
@@ -24,10 +23,7 @@ export interface ToastAction {
   onClick?: () => void;
 }
 
-/**
- * Why a toast is going away. Only `"timeout"` counts as an auto-close;
- * everything else is a deliberate dismissal.
- */
+/** Why a toast is going away. Only `"timeout"` counts as an auto-close. */
 export type CloseReason = "timeout" | "user" | "action" | "programmatic";
 
 export interface ToastOptions {
@@ -42,11 +38,10 @@ export interface ToastOptions {
   variant?: ToastVariant;
   action?: ToastAction;
   cancel?: ToastAction;
-  /** Override the leading icon with a custom component. */
   icon?: Component;
-  /** Fully custom content — a Vue component rendered instead of title/description. */
+  /** Custom content rendered instead of the title and description. */
   component?: Component;
-  /** 0–100 — renders a determinate progress bar under the content. */
+  /** 0 to 100. Shows a determinate progress bar under the content. */
   progress?: number;
   /** Called for every removal, whatever triggered it. */
   onDismiss?: (toast: ToastData) => void;
@@ -67,9 +62,8 @@ const DEFAULT_DURATION = 4000;
 /** Matches the transition duration on <Toast>. */
 const EXIT_MS = 320;
 
-// This queue is module state, so on the server it would be shared by every
-// request. Toasts are a client-only concern, so the store simply does nothing
-// while rendering on the server rather than accumulating cross-request leftovers.
+// The queue is module state, so on the server every request would share it.
+// The store does nothing during SSR instead of collecting toasts across requests.
 const isBrowser = () => typeof window !== "undefined";
 
 function exitDelay(): number {
@@ -83,10 +77,8 @@ export const toasts = reactive<ToastData[]>([]);
 let counter = 0;
 const exitTimers = new Map<string | number, ReturnType<typeof setTimeout>>();
 
-/**
- * Auto-ids must never land on an id the caller has already claimed, so a
- * numeric explicit id pushes the counter past itself.
- */
+// An explicit numeric id pushes the counter past it, so auto-ids never
+// collide with an id the caller already used.
 function nextId(explicit?: string | number): string | number {
   if (explicit == null) return ++counter;
   if (typeof explicit === "number" && explicit > counter) counter = explicit;
@@ -117,8 +109,8 @@ function add(options: ToastOptions): string | number {
   };
 
   if (existing > -1) {
-    // Update in place (used by toast.promise transitions). An update revives
-    // a toast that was already animating out.
+    // Updated in place by toast.promise. An update revives a toast that was
+    // already animating out.
     cancelExit(id);
     toasts[existing] = { ...toasts[existing], ...data };
   } else {
@@ -127,11 +119,9 @@ function add(options: ToastOptions): string | number {
   return id;
 }
 
-/**
- * Flags the toast as closing so <Toast> can play its exit animation, then
- * removes it once that animation is over. Dismissing an already-closing toast
- * is a no-op, so the callbacks fire exactly once per toast.
- */
+// Flags the toast as closing so <Toast> can play its exit animation, then
+// removes it. Dismissing a closing toast is a no-op, so the callbacks fire
+// once per toast.
 export function dismiss(
   id?: string | number,
   reason: CloseReason = "programmatic",
@@ -152,7 +142,6 @@ export function dismiss(
   }
 }
 
-/** Drop a closing toast and fire its callbacks. */
 function remove(id: string | number, reason: CloseReason) {
   exitTimers.delete(id);
   const index = toasts.findIndex((t) => t.id === id);
@@ -163,7 +152,7 @@ function remove(id: string | number, reason: CloseReason) {
   toast.onDismiss?.(toast);
 }
 
-/** Wipe the queue with no animation and no callbacks (reset / teardown). */
+/** Empties the queue with no animation and no callbacks. */
 export function clear() {
   for (const timer of exitTimers.values()) clearTimeout(timer);
   exitTimers.clear();
@@ -202,7 +191,7 @@ export const toast = Object.assign(
     info: make("info"),
     loading: (title: string, options?: ToastOptions) =>
       add({ duration: Infinity, ...options, title, type: "loading" }),
-    /** Determinate progress toast — re-call with the same `id` to update `value`. */
+    /** Call again with the same `id` to update `value`. */
     progress: (title: string, options?: ToastOptions & { value?: number }) => {
       const { value, ...rest } = options ?? {};
       return add({
@@ -250,7 +239,6 @@ export const toast = Object.assign(
   },
 );
 
-/** Optional composable form, mirroring the React import ergonomics. */
 export function useToast() {
   return { toast, toasts, dismiss, clear };
 }

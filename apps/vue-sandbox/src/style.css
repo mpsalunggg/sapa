@@ -1,4 +1,3 @@
-/* Shared Sapa tokens (also pulls in Tailwind + tw-animate-css). */
 @import "../../../registry/theme/globals.css";
 
 @source "../../../registry/vue";

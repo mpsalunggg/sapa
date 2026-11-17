@@ -1,7 +1,5 @@
-/* Sapa — shared design tokens (framework-agnostic).
- * Works identically for the React and Vue registry items.
- * Base tokens follow shadcn "new-york" / slate; the --sapa-* tokens power
- * the toast "rich colors" (success / error / warning / info / loading). */
+/* Sapa design tokens, shared by the React and Vue registry items. Base tokens
+ * follow shadcn "new-york" / slate; the --sapa-* tokens color the toast types. */
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -29,7 +27,6 @@
   --input: oklch(0.929 0.013 255.508);
   --ring: oklch(0.704 0.04 256.788);
 
-  /* Sapa toast semantic tokens (rich colors) */
   --sapa-success: oklch(0.62 0.17 149);
   --sapa-success-foreground: oklch(0.98 0.02 150);
   --sapa-error: oklch(0.58 0.22 27);
@@ -113,7 +110,7 @@
   }
 }
 
-/* Toast auto-dismiss countdown ring around the icon (React & Vue). */
+/* Drains the countdown ring around the toast icon. */
 @keyframes sapa-toast-ring {
   from {
     stroke-dashoffset: 0;

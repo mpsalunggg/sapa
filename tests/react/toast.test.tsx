@@ -22,13 +22,12 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-/** Advance timers inside act() so React flushes the resulting state updates. */
+/** Advances timers inside act() so React flushes the state updates. */
 const advance = (ms: number) =>
   act(() => {
     vi.advanceTimersByTime(ms);
   });
 
-/** Mount the toaster and let the enter animation frame run. */
 function mountToaster(props: Parameters<typeof Toaster>[0] = {}) {
   render(<Toaster {...props} />);
   advance(0);
@@ -38,12 +37,9 @@ const item = () => screen.queryByRole("status");
 const bubble = () =>
   item()!.querySelector<HTMLElement>("[data-slot='bubble']")!;
 
-/**
- * React implements onMouseEnter/onMouseLeave on top of mouseover/mouseout, and
- * dispatches them to every element in the entered chain — which is exactly why
- * a stacked toast receives two pause() calls per hover (its own handler plus
- * the group container's). fireEvent.mouseEnter would only hit one element.
- */
+// React builds onMouseEnter on top of mouseover and fires it on every element
+// in the entered chain, so a stacked toast gets two pause() calls per hover.
+// fireEvent.mouseEnter would only reach one element.
 const hover = (el: Element) =>
   fireEvent.mouseOver(el, { relatedTarget: document.body });
 const unhover = (el: Element) =>
@@ -59,7 +55,7 @@ describe("hover pauses the auto-dismiss timer", () => {
     advance(3000); // 1000 ms left on the clock
     const el = item()!;
     hover(el);
-    advance(2000); // paused — must not eat into the remaining 1000 ms
+    advance(2000); // paused, so the remaining 1000 ms is untouched
     unhover(el);
 
     advance(900);
@@ -161,7 +157,7 @@ describe("programmatic dismiss", () => {
       toast.dismiss(id);
     });
 
-    // Still mounted, but marked closing so the transition can run.
+    // Still mounted, marked closing so the exit animation can run.
     expect(item()).not.toBeNull();
     expect(item()!.dataset.state).toBe("closing");
     expect(item()!.style.opacity).toBe("0");
@@ -172,8 +168,8 @@ describe("programmatic dismiss", () => {
 
   it("calls onClosed with the reason for a standalone toast outside the store", () => {
     const onClosed = vi.fn();
-    // The landing hero renders <Toast> directly, without ever adding it to the
-    // store — the exit callback has to work there too.
+    // The landing hero renders <Toast> without the store, and the exit callback
+    // has to work there too.
     render(
       <Toast
         toast={{

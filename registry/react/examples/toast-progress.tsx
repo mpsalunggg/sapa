@@ -19,8 +19,8 @@ function startUpload() {
 
     if (value >= 100) {
       clearInterval(timer);
-      // Transition the same toast in place once the work is done —
-      // clearing `progress` removes the bar from the success toast.
+      // Same id, so the toast updates in place. Clearing `progress` removes
+      // the bar from the success toast.
       toast.success("avatar.png uploaded", {
         id,
         description: undefined,
