@@ -4,9 +4,8 @@ export type ToastType =
   "default" | "success" | "error" | "warning" | "info" | "loading";
 
 /**
- * How the type's color is carried: `minimal` keeps the surface neutral and
- * tints only the icon, `subtle` washes the whole bubble in a light tint, and
- * `solid` fills it with the color itself.
+ * How the type's color is carried. `minimal` tints only the icon, `subtle`
+ * tints the whole bubble lightly, and `solid` fills it with the color.
  */
 export type ToastVariant = "solid" | "minimal" | "subtle";
 
@@ -23,10 +22,7 @@ export interface ToastAction {
   onClick?: () => void;
 }
 
-/**
- * Why a toast is going away. Only `"timeout"` counts as an auto-close;
- * everything else is a deliberate dismissal.
- */
+/** Why a toast is going away. Only `"timeout"` counts as an auto-close. */
 export type CloseReason = "timeout" | "user" | "action" | "programmatic";
 
 export interface ToastOptions {
@@ -42,9 +38,9 @@ export interface ToastOptions {
   icon?: ReactNode;
   action?: ToastAction;
   cancel?: ToastAction;
-  /** Fully custom content — bypasses title/description rendering. */
+  /** Custom content rendered instead of the title and description. */
   jsx?: ReactNode;
-  /** 0–100 — renders a determinate progress bar under the content. */
+  /** 0 to 100. Shows a determinate progress bar under the content. */
   progress?: number;
   /** Called for every removal, whatever triggered it. */
   onDismiss?: (toast: ToastData) => void;
@@ -97,10 +93,8 @@ class ToastStore {
     for (const listener of this.listeners) listener(this.toasts);
   }
 
-  /**
-   * Auto-ids must never land on an id the caller has already claimed, so a
-   * numeric explicit id pushes the counter past itself.
-   */
+  // An explicit numeric id pushes the counter past it, so auto-ids never
+  // collide with an id the caller already used.
   private nextId(explicit?: string | number): string | number {
     if (explicit == null) return ++this.counter;
     if (typeof explicit === "number" && explicit > this.counter) {
@@ -131,8 +125,8 @@ class ToastStore {
     };
 
     if (existingIndex > -1) {
-      // Update in place (used by toast.promise transitions). An update revives
-      // a toast that was already animating out.
+      // Updated in place by toast.promise. An update revives a toast that was
+      // already animating out.
       this.cancelExit(id);
       const next = this.toasts.slice();
       next[existingIndex] = { ...next[existingIndex], ...base };
@@ -144,11 +138,9 @@ class ToastStore {
     return id;
   }
 
-  /**
-   * Flags the toast as closing so <Toast> can play its exit animation, then
-   * removes it once that animation is over. Dismissing an already-closing toast
-   * is a no-op, so the callbacks fire exactly once per toast.
-   */
+  // Flags the toast as closing so <Toast> can play its exit animation, then
+  // removes it. Dismissing a closing toast is a no-op, so the callbacks fire
+  // once per toast.
   dismiss(id?: string | number, reason: CloseReason = "programmatic") {
     const targets = (
       id != null ? this.toasts.filter((t) => t.id === id) : this.toasts
@@ -170,7 +162,6 @@ class ToastStore {
     this.emit();
   }
 
-  /** Drop a closing toast and fire its callbacks. */
   private remove(id: string | number, reason: CloseReason) {
     this.exitTimers.delete(id);
     const toast = this.toasts.find((t) => t.id === id);
@@ -182,7 +173,7 @@ class ToastStore {
     this.emit();
   }
 
-  /** Wipe the queue with no animation and no callbacks (reset / teardown). */
+  /** Empties the queue with no animation and no callbacks. */
   clear() {
     for (const timer of this.exitTimers.values()) clearTimeout(timer);
     this.exitTimers.clear();
@@ -217,7 +208,7 @@ interface ToastApi extends ToastFn {
   warning: ToastFn;
   info: ToastFn;
   loading: ToastFn;
-  /** Determinate progress toast — re-call with the same `id` to update `value`. */
+  /** Call again with the same `id` to update `value`. */
   progress: (
     title: ReactNode,
     options?: ToastOptions & { value?: number },

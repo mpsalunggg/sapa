@@ -31,7 +31,7 @@ const props = withDefaults(
     toast: ToastData;
     stacked?: boolean;
     expanded?: boolean;
-    /** Front-most toast of a stack. Cards behind it fold back into pills. */
+    /** Front toast of a stack. Toasts behind it fold back into pills. */
     front?: boolean;
     anchorBottom?: boolean;
     stackY?: number;
@@ -40,8 +40,8 @@ const props = withDefaults(
     stackZ?: number;
     reportHeight?: (id: string | number, height: number) => void;
     /**
-     * Fired once the exit animation is over. Works even when <Toast> is
-     * rendered on its own, outside the store — unlike onDismiss/onAutoClose.
+     * Fires after the exit animation. Unlike the store's onDismiss/onAutoClose,
+     * it also works for a <Toast> rendered on its own.
      */
     onClosed?: (reason: CloseReason) => void;
   }>(),
@@ -66,11 +66,10 @@ const ICONS: Record<ToastType, unknown> = {
   loading: Loader2,
 };
 
-// Each type sets a tone — its color and the text color that sits on it — as
-// two CSS variables. The variants below are written once against that tone,
-// so 3 variants × 6 types never turns into a table of 18 class lists.
-// default/loading have no semantic hue: their tone is the text color itself,
-// which reads as neutral grey in subtle and as an inverted chip in solid.
+// Each type sets two CSS variables: its color (--tone) and the text color that
+// sits on it (--tone-fg). The variants are written once against them, so three
+// variants over six types need three class lists instead of eighteen. default
+// and loading use the text color as their tone: grey in subtle, inverted in solid.
 const TONE: Record<ToastType, string> = {
   default: "[--tone:var(--foreground)] [--tone-fg:var(--background)]",
   success:
@@ -83,22 +82,17 @@ const TONE: Record<ToastType, string> = {
 };
 
 interface VariantSlots {
-  /** The bubble itself. */
   surface: string;
-  /** Round icon tile. */
   tile: string;
-  /** Countdown ring around the tile. */
   ring: string;
-  /** Determinate progress: track + fill. */
   track: string;
   bar: string;
-  /** Primary and secondary buttons. */
   action: string;
   cancel: string;
 }
 
 const VARIANTS: Record<ToastVariant, VariantSlots> = {
-  // Neutral glass surface — the color lives on the icon only.
+  // Neutral glass surface; only the icon carries color.
   minimal: {
     surface:
       "bg-popover/90 text-popover-foreground border-border shadow-black/[0.06] backdrop-blur-xl",
@@ -109,7 +103,7 @@ const VARIANTS: Record<ToastVariant, VariantSlots> = {
     action: "bg-foreground text-background hover:opacity-90",
     cancel: "border-border hover:bg-muted",
   },
-  // An opaque wash of the tone — calm enough for light, dense interfaces.
+  // An opaque tint of the tone, made for light, dense interfaces.
   subtle: {
     surface:
       "bg-[color-mix(in_oklab,var(--tone)_8%,var(--popover))] dark:bg-[color-mix(in_oklab,var(--tone)_14%,var(--popover))] text-popover-foreground border-(--tone)/20 shadow-(--tone)/[0.06]",
@@ -120,7 +114,7 @@ const VARIANTS: Record<ToastVariant, VariantSlots> = {
     action: "bg-foreground text-background hover:opacity-90",
     cancel: "border-(--tone)/25 hover:bg-(--tone)/10",
   },
-  // Filled with the tone; everything inside switches to its foreground.
+  // Filled with the tone; the content switches to its foreground.
   solid: {
     surface:
       "bg-(--tone) text-(--tone-fg) border-transparent shadow-(--tone)/25",
@@ -133,38 +127,35 @@ const VARIANTS: Record<ToastVariant, VariantSlots> = {
   },
 };
 
-// Close button — revealed on hover so a resting toast stays quiet. currentColor
-// keeps its hover wash legible on every variant's surface.
+// The close button shows on hover so a resting toast stays quiet. bg-current
+// keeps its hover wash visible on every variant's surface.
 const CLOSE =
   "focus-visible:ring-ring rounded-full p-0.5 opacity-0 transition-opacity hover:bg-current/10 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-70";
 
-/** How long the bubble stays a pill before it opens up to show the body. */
+/** How long the bubble stays a pill before it opens to show the body. */
 const EXPAND_DELAY = 450;
 
 const SWIPE_THRESHOLD = 80;
 const SWIPE_VELOCITY = 500;
 
-/** Corner radius of the bubble in each phase. */
 const RADIUS = { pill: 999, card: 22 } as const;
 
-// Springs — `bounce` keeps the pop lively without wobbling.
+// `bounce` keeps the pop lively without wobbling.
 const POP = { type: "spring", bounce: 0.3, duration: 0.5 } as const;
 const MORPH = { type: "spring", bounce: 0.18, duration: 0.55 } as const;
 const EXIT = { duration: 0.28, ease: [0.4, 0, 1, 1] } as const;
 
-/** Skip the pill phase and every animation for users who prefer reduced motion. */
+// Reduced motion skips the pill phase and every animation.
 const reduceMotion =
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Which side the bubble hugs inside its row. */
 function alignClass(position: string = "bottom-right"): string {
   if (position.endsWith("left")) return "justify-start";
   if (position.endsWith("right")) return "justify-end";
   return "justify-center";
 }
 
-/** Clamped determinate progress (toast.progress), or null when not a progress toast. */
 const progressValue = computed(() =>
   props.toast.progress == null
     ? null
@@ -175,8 +166,7 @@ const duration = computed(() => props.toast.duration ?? 4000);
 const variant = computed(() => props.toast.variant ?? "minimal");
 const v = computed(() => VARIANTS[variant.value]);
 const iconComp = computed(() => props.toast.icon ?? ICONS[props.toast.type]);
-// The auto-dismiss countdown ring. A loading toast has no deadline to show,
-// and a real progress value beats a countdown.
+// A loading toast has no deadline, and a progress value replaces the countdown.
 const showCountdown = computed(
   () =>
     Number.isFinite(duration.value) &&
@@ -185,7 +175,7 @@ const showCountdown = computed(
 );
 const showTile = computed(() => !!iconComp.value || showCountdown.value);
 
-// Anything below the header row. A title-only toast has none and stays a pill.
+// A title-only toast has no body and stays a pill.
 const hasBody = computed(
   () =>
     props.toast.description != null ||
@@ -228,12 +218,10 @@ function clearTimer() {
   }
 }
 
-/**
- * Starts the exit animation and hands the removal over to the store, which
- * fires onDismiss (always) and onAutoClose (timeouts only) once it drops the
- * toast. Repeat calls are ignored so a swipe racing the timer closes once.
- * `swipeOffset` is the drag offset (px): its sign picks the exit direction.
- */
+// Starts the exit animation and hands removal to the store, which fires
+// onDismiss (always) and onAutoClose (timeouts only). Repeat calls are ignored
+// so a swipe racing the timer closes once. The sign of `swipeOffset` picks the
+// exit direction.
 function close(reason: CloseReason, swipeOffset?: number) {
   if (state.value === "closing") return;
   if (swipeOffset) swipe.value = swipeOffset;
@@ -254,9 +242,8 @@ function startTimer() {
 }
 
 function pause() {
-  // Without the `paused` guard the elapsed time is subtracted once per caller,
-  // and a stacked toast gets two calls per hover (its own handler plus the
-  // group container's) — draining the remaining time.
+  // A stacked toast gets two calls per hover, its own and the stack's. Without
+  // this guard the elapsed time would be subtracted twice.
   if (paused.value || state.value === "closing") return;
   paused.value = true;
   if (!Number.isFinite(remaining)) return;
@@ -272,12 +259,12 @@ function resume() {
 
 function onMouseEnter() {
   pause();
-  // A hovered pill doesn't make the reader wait for the delay.
+  // Hovering a pill opens it without waiting for the delay.
   opened.value = true;
 }
 
-// Pill first, then open up once there is something to show. Re-runs when a
-// promise toast resolves with a description it did not have while loading.
+// Opens the pill once it has a body. Re-runs when a promise toast resolves
+// with a description it lacked while loading.
 watch(
   [opened, hasBody],
   ([isOpened, body]) => {
@@ -288,17 +275,15 @@ watch(
   { immediate: true },
 );
 
-// Re-arm the auto-dismiss timer when the duration changes (e.g. a promise
-// toast transitions loading→success), matching the React useEffect([duration]).
+// Re-arms the timer when the duration changes, as when a promise resolves.
 watch(duration, (d) => {
   remaining = d;
-  // Don't restart a hovered toast: a promise resolving under the cursor must
-  // not undo the pause.
+  // A promise resolving under the cursor must not undo the pause.
   if (!paused.value) startTimer();
 });
 
-// A dismiss from application code only flags the toast in the store; mirror
-// that here so it animates out instead of vanishing.
+// A dismiss from app code only flags the toast in the store. Mirroring it here
+// makes the toast animate out instead of vanishing.
 watch(
   () => props.toast.closing,
   (closing) => {
@@ -306,7 +291,7 @@ watch(
   },
 );
 
-// Pause the whole group while the stack is expanded (hovered).
+// A hovered, expanded stack pauses every toast in it.
 watch(
   () => props.expanded,
   (val) => {
@@ -316,7 +301,6 @@ watch(
   },
 );
 
-// --- swipe to dismiss ---
 function onDragEnd(_: PointerEvent, info: PanInfo) {
   const offset = vertical.value ? info.offset.y : info.offset.x;
   const velocity = vertical.value ? info.velocity.y : info.velocity.x;
@@ -339,7 +323,7 @@ function runCancel() {
   close("action");
 }
 
-// Enter pops in from the anchored edge; exit sinks back the same way.
+// Enter pops in from the anchored edge and exit leaves the same way.
 const nudge = computed(() => (props.anchorBottom ? 12 : -12));
 
 const initial = reduceMotion
@@ -462,8 +446,8 @@ onBeforeUnmount(() => {
       @drag-start="pause"
       @drag-end="onDragEnd"
     >
-      <!-- Custom content has no header row to hang the close button off, so
-           it keeps the absolute one — hence the padding reserved on the right. -->
+      <!-- Custom content has no header row, so the close button is absolute
+           and the content keeps room for it on the right. -->
       <template v-if="toast.component">
         <component :is="toast.component" class="pr-6" />
         <button
@@ -477,8 +461,7 @@ onBeforeUnmount(() => {
       </template>
 
       <template v-else>
-        <!-- Header — the pill's whole content, and the card's first row.
-             layout="position" keeps the text from stretching mid-morph. -->
+        <!-- layout="position" keeps the header from stretching mid-morph. -->
         <motion.div
           :layout="reduceMotion ? false : 'position'"
           :transition="MORPH"
@@ -491,7 +474,7 @@ onBeforeUnmount(() => {
             :class="
               cn(
                 'relative flex shrink-0 items-center justify-center rounded-full',
-                // No glyph: just the countdown ring, a touch smaller.
+                // Without a glyph the tile is only the ring, a bit smaller.
                 iconComp ? cn('size-[26px]', v.tile) : 'size-4',
               )
             "
@@ -551,7 +534,6 @@ onBeforeUnmount(() => {
           </button>
         </motion.div>
 
-        <!-- Body — flows in once the bubble has started to open. -->
         <AnimatePresence :initial="false">
           <motion.div
             v-if="isOpen && hasBody"

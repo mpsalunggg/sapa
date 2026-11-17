@@ -35,7 +35,6 @@ const POSITION_CLASSES: Record<ToastPosition, string> = {
   "bottom-right": "bottom-0 right-0 flex-col-reverse sm:items-end",
 };
 
-// Sonner-style stack tuning.
 const PEEK = 14;
 const GAP = 14;
 const SCALE_STEP = 0.05;
@@ -91,12 +90,10 @@ function layoutFor(items: ToastData[], i: number, pos: ToastPosition) {
 
 <template>
   <Teleport to="body">
-    <!-- Honors prefers-reduced-motion for every spring inside the bubbles. -->
     <MotionConfig reduced-motion="user">
-      <!-- Flat-list mode -->
       <template v-if="expand">
-        <!-- Enter/exit are self-managed inside <Toast> (mirrors React); the
-           TransitionGroup only FLIP-animates siblings reflowing on removal. -->
+        <!-- <Toast> animates its own enter and exit. TransitionGroup only
+           slides the siblings that reflow after a removal. -->
         <TransitionGroup
           v-for="[pos, items] in groups"
           :key="pos"
@@ -118,10 +115,9 @@ function layoutFor(items: ToastData[], i: number, pos: ToastPosition) {
         </TransitionGroup>
       </template>
 
-      <!-- Stacked mode (default) -->
       <template v-else>
-        <!-- The positioning wrapper is a <div>, not the <ol>: a list may only
-           contain <li> children, and the stack needs its own sized box. -->
+        <!-- The stack's sized box is a <div> because an <ol> may only contain
+           <li> children. -->
         <div
           v-for="[pos, items] in groups"
           :key="pos"

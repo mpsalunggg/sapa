@@ -19,11 +19,9 @@ export default tseslint.config(
     ],
   },
 
-  // Base JS + TypeScript (non-type-checked) recommended rules.
   js.configs.recommended,
   ...tseslint.configs.recommended,
 
-  // Shared settings for all TS/TSX + React hooks rules.
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -35,24 +33,22 @@ export default tseslint.config(
     },
   },
 
-  // Next.js rules, scoped to the Next app.
   {
     files: ["apps/registry/**/*.{ts,tsx}"],
     plugins: { "@next/next": nextPlugin },
     rules: {
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs["core-web-vitals"].rules,
-      // App Router has no `pages/` dir — this rule only applies to the Pages Router.
+      // Pages Router rule; the app uses the App Router.
       "@next/next/no-html-link-for-pages": "off",
     },
   },
 
-  // Node scripts.
   {
     files: ["scripts/**/*.{js,mjs,cjs}", "**/*.config.{js,mjs,cjs}"],
     languageOptions: { globals: { ...globals.node } },
   },
 
-  // Turn off stylistic rules that conflict with Prettier (keep last).
+  // Must stay last.
   prettier,
 );

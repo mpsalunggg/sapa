@@ -7,7 +7,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
   resolve: {
-    // Order matters: the most specific aliases must come first.
+    // The most specific aliases must come first.
     alias: [
       {
         find: "@/components/ui/sapa-toast",
