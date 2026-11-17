@@ -6,7 +6,7 @@
     {
       "name": "theme",
       "type": "registry:style",
-      "description": "Sapa design tokens (light/dark) incl. semantic toast rich colors + countdown ring keyframes.",
+      "description": "Sapa design tokens for light and dark themes, with the semantic toast colors and the countdown ring keyframes.",
       "dependencies": ["tailwindcss", "tw-animate-css"],
       "cssVars": {
         "theme": {
@@ -67,7 +67,7 @@
       "name": "react/toaster",
       "type": "registry:ui",
       "title": "Toaster (React)",
-      "description": "Custom-built bubble toast system: store + <Toaster/> + <Toast/>, animated with Motion. No sonner.",
+      "description": "Bubble toast for React: a store, <Toaster/> and <Toast/>, animated with Motion. Written from scratch without sonner.",
       "dependencies": ["lucide-react", "motion", "clsx", "tailwind-merge"],
       "registryDependencies": ["theme", "react/utils"],
       "files": [
@@ -227,7 +227,7 @@
       "name": "vue/toaster",
       "type": "registry:ui",
       "title": "Toaster (Vue)",
-      "description": "Custom-built bubble toast system: reactive store + Toaster.vue + Toast.vue, animated with motion-v. No vue-sonner.",
+      "description": "Bubble toast for Vue: a reactive store, Toaster.vue and Toast.vue, animated with motion-v. Written from scratch without vue-sonner.",
       "dependencies": ["@lucide/vue", "motion-v", "clsx", "tailwind-merge"],
       "registryDependencies": ["theme", "vue/utils"],
       "files": [
