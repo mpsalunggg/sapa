@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Toast } from "../../registry/react/ui/toast";
 import { toast, toastStore } from "../../registry/react/ui/toast-store";
 import { Toaster } from "../../registry/react/ui/toaster";
-import { EXIT_MS, useToastTimers } from "../helpers";
+import { EXIT_MS, EXPAND_DELAY, useToastTimers } from "../helpers";
 
 beforeEach(() => {
   useToastTimers();
@@ -35,6 +35,8 @@ function mountToaster(props: Parameters<typeof Toaster>[0] = {}) {
 }
 
 const item = () => screen.queryByRole("status");
+const bubble = () =>
+  item()!.querySelector<HTMLElement>("[data-slot='bubble']")!;
 
 /**
  * React implements onMouseEnter/onMouseLeave on top of mouseover/mouseout, and
@@ -136,6 +138,7 @@ describe("close paths", () => {
     act(() => {
       toast("hi", { action: { label: "Undo", onClick }, onAutoClose });
     });
+    advance(EXPAND_DELAY); // the action lives in the body
 
     fireEvent.click(screen.getByRole("button", { name: "Undo" }));
     advance(EXIT_MS + 10);
@@ -190,23 +193,59 @@ describe("programmatic dismiss", () => {
   });
 });
 
-describe("square layout", () => {
-  it("renders the description as a sibling of the header, not inside it", () => {
+describe("bubble layout", () => {
+  const phase = () => item()!.dataset.phase;
+  const body = () => item()!.querySelector<HTMLElement>("[data-slot='body']");
+
+  it("shows the title as a pill first, then opens up for the description", () => {
     mountToaster();
     act(() => {
       toast("Backup completed", { description: "1,248 records archived" });
     });
 
-    const root = item()!;
-    const title = screen.getByText("Backup completed");
+    expect(phase()).toBe("pill");
+    expect(screen.getByText("Backup completed")).toBeTruthy();
+    expect(screen.queryByText("1,248 records archived")).toBeNull();
+
+    advance(EXPAND_DELAY);
+    expect(phase()).toBe("card");
+    expect(screen.getByText("1,248 records archived")).toBeTruthy();
+  });
+
+  it("opens a pill right away when it is hovered", () => {
+    mountToaster();
+    act(() => {
+      toast("Backup completed", { description: "1,248 records archived" });
+    });
+
+    hover(item()!);
+    expect(phase()).toBe("card");
+  });
+
+  it("keeps a title-only toast as a pill", () => {
+    mountToaster();
+    act(() => {
+      toast("Copied");
+    });
+
+    advance(EXPAND_DELAY * 2);
+    expect(phase()).toBe("pill");
+    expect(body()).toBeNull();
+  });
+
+  it("renders the description in the body, below the header row", () => {
+    mountToaster();
+    act(() => {
+      toast("Backup completed", { description: "1,248 records archived" });
+    });
+    advance(EXPAND_DELAY);
+
+    const header = item()!.querySelector("[data-slot='header']")!;
     const description = screen.getByText("1,248 records archived");
 
-    // The header holds the tile + title; the description sits below it at the
-    // card's full width. If it ever lands back inside the header row it would
-    // be indented under the icon again.
-    expect(description.parentElement).toBe(root);
-    expect(title.parentElement).not.toBe(root);
-    expect(title.parentElement!.contains(description)).toBe(false);
+    expect(header.contains(screen.getByText("Backup completed"))).toBe(true);
+    expect(header.contains(description)).toBe(false);
+    expect(body()!.contains(description)).toBe(true);
   });
 
   it("colors the icon tile from the toast type", () => {
@@ -215,28 +254,29 @@ describe("square layout", () => {
       toast.error("Connection lost");
     });
 
-    const tile = item()!.querySelector("span.rounded-\\[8px\\]")!;
-    expect(tile.className).toContain("bg-sapa-error/10");
-    expect(tile.className).toContain("text-sapa-error");
+    const tile = item()!.querySelector("[data-slot='icon']")!;
+    expect(item()!.dataset.variant).toBe("minimal");
+    expect(bubble().className).toContain("[--tone:var(--sapa-error)]");
+    expect(tile.className).toContain("text-(--tone)");
   });
 });
 
-describe("bottom-edge bars", () => {
-  /** Every bar — countdown or determinate — is a direct child of the <li>. */
-  const bars = () =>
-    [...item()!.children].filter((el) =>
-      el.className.includes("bottom-0"),
-    ) as HTMLElement[];
+describe("countdown ring and progress bar", () => {
+  const ring = () =>
+    item()!.querySelector<SVGElement>("[data-slot='countdown']");
+  const ringClass = () => ring()!.getAttribute("class") ?? "";
 
-  it("pins the determinate bar to the card's bottom edge, not the content flow", () => {
+  it("puts the determinate bar inside the card body", () => {
     mountToaster();
     act(() => {
       toast.progress("Uploading…", { value: 62 });
     });
+    advance(EXPAND_DELAY);
 
     const track = screen.getByRole("progressbar");
-    expect(track.parentElement).toBe(item());
-    expect(track.className).toContain("bottom-0");
+    expect(item()!.querySelector("[data-slot='body']")!.contains(track)).toBe(
+      true,
+    );
     expect(track.getAttribute("aria-valuenow")).toBe("62");
     expect((track.firstElementChild as HTMLElement).style.width).toBe("62%");
   });
@@ -246,43 +286,77 @@ describe("bottom-edge bars", () => {
     act(() => {
       toast.progress("Uploading…", { value: 140 });
     });
+    advance(EXPAND_DELAY);
 
     const track = screen.getByRole("progressbar");
     expect(track.getAttribute("aria-valuenow")).toBe("100");
     expect((track.firstElementChild as HTMLElement).style.width).toBe("100%");
   });
 
-  it("colors the countdown bar from the toast type", () => {
+  it("colors the countdown ring from the toast type", () => {
     mountToaster();
     act(() => {
       toast.success("Saved", { duration: 4000 });
     });
 
-    const [bar, ...rest] = bars();
-    expect(rest).toHaveLength(0);
-    expect(bar.className).toContain("bg-sapa-success");
-    expect(bar.className).toContain("origin-left");
+    expect(bubble().className).toContain("[--tone:var(--sapa-success)]");
+    expect(ringClass()).toContain("stroke-(--tone)");
+    expect(ring()!.style.animation).toContain("sapa-toast-ring");
   });
 
-  it("falls back to a neutral bar for types with no semantic hue", () => {
+  it("falls back to a neutral ring for types with no semantic hue", () => {
     mountToaster();
     act(() => {
       toast("Copied", { duration: 4000 });
     });
 
-    expect(bars()[0].className).toContain("bg-foreground");
+    expect(bubble().className).toContain("[--tone:var(--foreground)]");
+    expect(ringClass()).toContain("stroke-(--tone)");
   });
 
-  it("hides the countdown bar when a progress value owns the strip", () => {
+  it("hides the countdown ring when a progress value is shown", () => {
     mountToaster();
     act(() => {
-      // Both are set, so the two bars would otherwise stack on the same pixels.
       toast.progress("Uploading…", { value: 40, duration: 4000 });
     });
 
-    const drawn = bars();
-    expect(drawn).toHaveLength(1);
-    expect(drawn[0]).toBe(screen.getByRole("progressbar"));
+    expect(ring()).toBeNull();
+  });
+});
+
+describe("color variants", () => {
+  it("fills the bubble with the tone for solid", () => {
+    mountToaster();
+    act(() => {
+      toast.success("Saved", { variant: "solid" });
+    });
+
+    expect(item()!.dataset.variant).toBe("solid");
+    expect(bubble().className).toContain("bg-(--tone)");
+    expect(bubble().className).toContain("text-(--tone-fg)");
+  });
+
+  it("washes the bubble in an opaque tint for subtle", () => {
+    mountToaster();
+    act(() => {
+      toast.warning("Heads up", { variant: "subtle" });
+    });
+
+    expect(item()!.dataset.variant).toBe("subtle");
+    expect(bubble().className).toContain("color-mix");
+  });
+
+  it("uses the Toaster default, which a toast can override", () => {
+    mountToaster({ variant: "subtle" });
+    act(() => {
+      toast("From the toaster");
+      toast("Own choice", { variant: "solid" });
+    });
+
+    const variants = screen
+      .getAllByRole("status")
+      .map((el) => (el as HTMLElement).dataset.variant);
+    expect(variants.sort()).toEqual(["solid", "subtle"]);
   });
 });
 

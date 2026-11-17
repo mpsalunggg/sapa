@@ -6,7 +6,7 @@
     {
       "name": "theme",
       "type": "registry:style",
-      "description": "Sapa design tokens (light/dark) incl. semantic toast rich colors + progress keyframes.",
+      "description": "Sapa design tokens (light/dark) incl. semantic toast rich colors + countdown ring keyframes.",
       "dependencies": ["tailwindcss", "tw-animate-css"],
       "cssVars": {
         "theme": {
@@ -41,12 +41,12 @@
         }
       },
       "css": {
-        "@keyframes sapa-toast-progress": {
+        "@keyframes sapa-toast-ring": {
           "from": {
-            "transform": "scaleX(1)"
+            "stroke-dashoffset": "0"
           },
           "to": {
-            "transform": "scaleX(0)"
+            "stroke-dashoffset": "100"
           }
         }
       }
@@ -67,8 +67,8 @@
       "name": "react/toaster",
       "type": "registry:ui",
       "title": "Toaster (React)",
-      "description": "Custom-built toast system: store + <Toaster/> + <Toast/>. No sonner.",
-      "dependencies": ["lucide-react", "clsx", "tailwind-merge"],
+      "description": "Custom-built bubble toast system: store + <Toaster/> + <Toast/>, animated with Motion. No sonner.",
+      "dependencies": ["lucide-react", "motion", "clsx", "tailwind-merge"],
       "registryDependencies": ["theme", "react/utils"],
       "files": [
         {
@@ -112,6 +112,18 @@
           "path": "toast-types.tsx",
           "type": "registry:example",
           "src": "registry/react/examples/toast-types.tsx"
+        }
+      ]
+    },
+    {
+      "name": "react/toast-variants",
+      "type": "registry:example",
+      "registryDependencies": ["react/toaster"],
+      "files": [
+        {
+          "path": "toast-variants.tsx",
+          "type": "registry:example",
+          "src": "registry/react/examples/toast-variants.tsx"
         }
       ]
     },
@@ -215,8 +227,8 @@
       "name": "vue/toaster",
       "type": "registry:ui",
       "title": "Toaster (Vue)",
-      "description": "Custom-built toast system: reactive store + Toaster.vue + Toast.vue. No vue-sonner.",
-      "dependencies": ["@lucide/vue", "clsx", "tailwind-merge"],
+      "description": "Custom-built bubble toast system: reactive store + Toaster.vue + Toast.vue, animated with motion-v. No vue-sonner.",
+      "dependencies": ["@lucide/vue", "motion-v", "clsx", "tailwind-merge"],
       "registryDependencies": ["theme", "vue/utils"],
       "files": [
         {
@@ -257,6 +269,18 @@
           "path": "ToastTypes.vue",
           "type": "registry:example",
           "src": "registry/vue/examples/ToastTypes.vue"
+        }
+      ]
+    },
+    {
+      "name": "vue/toast-variants",
+      "type": "registry:example",
+      "registryDependencies": ["vue/toaster"],
+      "files": [
+        {
+          "path": "ToastVariants.vue",
+          "type": "registry:example",
+          "src": "registry/vue/examples/ToastVariants.vue"
         }
       ]
     },

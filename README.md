@@ -12,8 +12,8 @@ _Copy, paste, own it. Same design, two frameworks._
 
 - **Cross-framework** — one registry, two authored sources (`.tsx` + `.vue`).
 - **Custom-built** — written from scratch on framework primitives (no `sonner` / `vue-sonner`).
-- **Rich colors** — semantic success / error / warning / info, carried by a squared icon tile.
-- **One shape** — a single squared card: icon tile beside the header, description on its own full-width line.
+- **Rich colors** — semantic success / error / warning / info, in three variants: `solid`, `minimal` (default) and `subtle`.
+- **Bubble motion** — every toast pops in as a pill (icon + title), then morphs into a card to reveal the description and actions. Springs powered by [Motion](https://motion.dev) (`motion` for React, `motion-v` for Vue).
 - **Directional motion** — toasts exit toward their anchor; swipe to dismiss (sideways for corners, up/down for centered).
 - **Examples** — default, types, description, action, promise, progress, custom content, positions.
 - **Theme-aware** — light & dark via CSS variables.
@@ -64,15 +64,23 @@ import { toast } from "@/components/ui/sapa-toast/useToast";
 `toast.promise(p, { loading, success, error })` ·
 `toast.custom(node/component)` · `toast.dismiss(id?)`
 
-**Options:** `title`, `description`, `duration` (`Infinity` to persist), `position`,
+**Options:** `title`, `description`, `duration` (`Infinity` to persist), `position`, `variant`,
 `action`, `cancel`, `icon`, `progress` (0–100).
 
-Every toast is the same squared card — there is no `variant` or `size` to pick.
-The only visual axis is `type`, which pulls a color from the `--sapa-*` tokens
-and uses it twice: a soft wash with a hairline of the same hue on the icon tile,
-and a solid 3px bar along the card's bottom edge — either the auto-dismiss
-countdown or, when you pass `progress`, the determinate fill.
-`<Toaster>` takes `position` and `expand`.
+Every toast is the same bubble — there is no `size` to pick. It
+appears as a pill holding the icon and title, and after ~450 ms (or right away
+on hover) opens into a card for the description, actions and progress bar. A
+title-only toast stays a pill. The only visual axis is `type`, which pulls a
+color from the `--sapa-*` tokens and uses it on the round icon tile and the thin
+countdown ring around it — or, when you pass `progress`, the determinate fill.
+`variant` picks how that color is carried — set it per toast or as a
+`<Toaster variant>` default:
+
+- `minimal` _(default)_ — neutral glass surface; color only on the icon and ring.
+- `subtle` — the whole bubble takes a light, opaque tint of the type's color; made for light, dense UIs.
+- `solid` — the bubble is filled with the color, and text, icon and buttons switch to its foreground.
+
+`<Toaster>` takes `position`, `expand` and `variant`.
 
 ## Repository layout
 

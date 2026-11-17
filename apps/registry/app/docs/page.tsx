@@ -21,6 +21,7 @@ import { ToastLayoutToggle } from "@/features/toast/toast-layout-toggle";
 
 import ToastDefault from "@/registry/react/examples/toast-default";
 import ToastTypes from "@/registry/react/examples/toast-types";
+import ToastVariants from "@/registry/react/examples/toast-variants";
 import ToastDescription from "@/registry/react/examples/toast-description";
 import ToastAction from "@/registry/react/examples/toast-action";
 import ToastPromise from "@/registry/react/examples/toast-promise";
@@ -44,6 +45,13 @@ const EXAMPLES = [
     description:
       "Success, error, warning and info — each with a semantic color + icon.",
     Preview: ToastTypes,
+  },
+  {
+    key: "variants",
+    title: "Variants",
+    description:
+      "Solid, minimal and subtle — three ways to carry the type's color.",
+    Preview: ToastVariants,
   },
   {
     key: "description",
@@ -180,10 +188,19 @@ const THEMING_CSS = `/* globals.css — override Sapa's rich colors */
 // The four semantic tokens the toast reads, one per type. The theme item also
 // ships a `-foreground` pair for each; the toast no longer uses them.
 const SAPA_TOKENS: TokenRow[] = [
-  { name: "--sapa-success", desc: "Success tile and bottom-edge bar." },
-  { name: "--sapa-error", desc: "Error tile and bottom-edge bar." },
-  { name: "--sapa-warning", desc: "Warning tile and bottom-edge bar." },
-  { name: "--sapa-info", desc: "Info tile and bottom-edge bar." },
+  {
+    name: "--sapa-success",
+    desc: "Success tile, countdown ring and progress bar.",
+  },
+  {
+    name: "--sapa-error",
+    desc: "Error tile, countdown ring and progress bar.",
+  },
+  {
+    name: "--sapa-warning",
+    desc: "Warning tile, countdown ring and progress bar.",
+  },
+  { name: "--sapa-info", desc: "Info tile, countdown ring and progress bar." },
 ];
 
 const OPTIONS: PropRow[] = [
@@ -208,6 +225,11 @@ const OPTIONS: PropRow[] = [
     desc: "One of the six anchors — overrides the Toaster default.",
   },
   {
+    name: "variant",
+    type: '"solid" | "minimal" | "subtle"',
+    desc: "Color treatment — overrides the Toaster default.",
+  },
+  {
     name: "icon",
     type: "ReactNode",
     desc: "Custom leading icon; falls back to the type's default.",
@@ -215,7 +237,7 @@ const OPTIONS: PropRow[] = [
   {
     name: "progress",
     type: "number",
-    desc: "0–100 — a determinate bar along the bottom edge (see toast.progress).",
+    desc: "0–100 — a determinate bar inside the card (see toast.progress).",
   },
   {
     name: "action",
@@ -254,6 +276,11 @@ const TOASTER_PROPS: PropRow[] = [
     name: "expand",
     type: "boolean",
     desc: "Show toasts as a flat list instead of a collapsible stack (default false).",
+  },
+  {
+    name: "variant",
+    type: '"solid" | "minimal" | "subtle"',
+    desc: 'Default color treatment for toasts that don\'t set their own (default "minimal").',
   },
 ];
 
@@ -495,14 +522,13 @@ export default async function DocsPage() {
                   <Chip>--sapa-success</Chip>, <Chip>--sapa-error</Chip>,{" "}
                   <Chip>--sapa-warning</Chip> and <Chip>--sapa-info</Chip>. The
                   toast&apos;s <Chip>type</Chip> picks one, and it does two
-                  jobs: it tints the icon tile — a soft wash, a hairline of the
-                  same hue, and the glyph — and it paints the bar along the
-                  card&apos;s bottom edge, whether that bar is counting down the
-                  auto-dismiss or tracking a <Chip>progress</Chip> value. The{" "}
-                  <Chip>theme</Chip> registry item installs them into your
-                  project on setup; to re-brand the toast, just override them in
-                  your own <Chip>globals.css</Chip> — no component changes
-                  needed.
+                  jobs: it tints the round icon tile — a soft wash and the glyph
+                  — and it paints the thin countdown ring around that tile, or
+                  the bar inside the card when you pass a <Chip>progress</Chip>{" "}
+                  value. The <Chip>theme</Chip> registry item installs them into
+                  your project on setup; to re-brand the toast, just override
+                  them in your own <Chip>globals.css</Chip> — no component
+                  changes needed.
                 </p>
 
                 <div className="mt-4">

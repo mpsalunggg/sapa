@@ -109,11 +109,11 @@
   }
 }
 
-@keyframes sapa-toast-progress {
+@keyframes sapa-toast-ring {
   from {
-    transform: scaleX(1);
+    stroke-dashoffset: 0;
   }
   to {
-    transform: scaleX(0);
+    stroke-dashoffset: 100;
   }
 }

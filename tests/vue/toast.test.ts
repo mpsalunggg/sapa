@@ -5,7 +5,7 @@ import { nextTick } from "vue";
 import Toast from "../../registry/vue/ui/Toast.vue";
 import Toaster from "../../registry/vue/ui/Toaster.vue";
 import { clear, toast } from "../../registry/vue/ui/useToast";
-import { EXIT_MS, useToastTimers } from "../helpers";
+import { EXIT_MS, EXPAND_DELAY, useToastTimers } from "../helpers";
 
 // Teleported markup lives on document.body, so every wrapper has to be torn
 // down properly between tests.
@@ -29,6 +29,8 @@ async function advance(ms: number) {
 
 // <Toaster> teleports to body, so queries go through the document.
 const item = () => document.querySelector<HTMLElement>("li[role='status']");
+const bubble = () =>
+  item()!.querySelector<HTMLElement>("[data-slot='bubble']")!;
 const button = (label: string) =>
   [...document.querySelectorAll("button")].find(
     (b) =>
@@ -121,7 +123,8 @@ describe("close paths", () => {
     const onClick = vi.fn();
     await mountToaster();
     toast("hi", { action: { label: "Undo", onClick }, onAutoClose });
-    await advance(0);
+    await advance(0); // mount first, so the expand timer is armed
+    await advance(EXPAND_DELAY); // the action lives in the body
 
     button("Undo").click();
     await advance(EXIT_MS + 10);
@@ -171,28 +174,54 @@ describe("programmatic dismiss", () => {
   });
 });
 
-describe("square layout", () => {
-  it("renders the description as a sibling of the header, not inside it", async () => {
+describe("bubble layout", () => {
+  const phase = () => item()!.dataset.phase;
+  const body = () => item()!.querySelector<HTMLElement>("[data-slot='body']");
+  const hasText = (text: string) => !!item()!.textContent?.includes(text);
+
+  it("shows the title as a pill first, then opens up for the description", async () => {
     await mountToaster();
     toast("Backup completed", { description: "1,248 records archived" });
     await advance(0);
 
-    const root = item()!;
-    // The header row's textContent equals the title too (the tile holds no
-    // text), so take the *last* match — the innermost element in tree order.
-    const byText = (text: string) =>
-      [...root.querySelectorAll("div")]
-        .filter((d) => d.textContent?.trim() === text)
-        .pop()!;
-    const title = byText("Backup completed");
-    const description = byText("1,248 records archived");
+    expect(phase()).toBe("pill");
+    expect(hasText("Backup completed")).toBe(true);
+    expect(hasText("1,248 records archived")).toBe(false);
 
-    // The header holds the tile + title; the description sits below it at the
-    // card's full width. If it ever lands back inside the header row it would
-    // be indented under the icon again.
-    expect(description.parentElement).toBe(root);
-    expect(title.parentElement).not.toBe(root);
-    expect(title.parentElement!.contains(description)).toBe(false);
+    await advance(EXPAND_DELAY);
+    expect(phase()).toBe("card");
+    expect(hasText("1,248 records archived")).toBe(true);
+  });
+
+  it("opens a pill right away when it is hovered", async () => {
+    await mountToaster();
+    toast("Backup completed", { description: "1,248 records archived" });
+    await advance(0);
+
+    item()!.dispatchEvent(new MouseEvent("mouseenter"));
+    await advance(0);
+    expect(phase()).toBe("card");
+  });
+
+  it("keeps a title-only toast as a pill", async () => {
+    await mountToaster();
+    toast("Copied");
+    await advance(EXPAND_DELAY * 2);
+
+    expect(phase()).toBe("pill");
+    expect(body()).toBeNull();
+  });
+
+  it("renders the description in the body, below the header row", async () => {
+    await mountToaster();
+    toast("Backup completed", { description: "1,248 records archived" });
+    await advance(0);
+    await advance(EXPAND_DELAY);
+
+    const header = item()!.querySelector("[data-slot='header']")!;
+    expect(header.textContent).toContain("Backup completed");
+    expect(header.textContent).not.toContain("1,248 records archived");
+    expect(body()!.textContent).toContain("1,248 records archived");
   });
 
   it("colors the icon tile from the toast type", async () => {
@@ -200,28 +229,29 @@ describe("square layout", () => {
     toast.error("Connection lost");
     await advance(0);
 
-    const tile = item()!.querySelector("span.rounded-\\[8px\\]")!;
-    expect(tile.className).toContain("bg-sapa-error/10");
-    expect(tile.className).toContain("text-sapa-error");
+    const tile = item()!.querySelector("[data-slot='icon']")!;
+    expect(item()!.dataset.variant).toBe("minimal");
+    expect(bubble().className).toContain("[--tone:var(--sapa-error)]");
+    expect(tile.className).toContain("text-(--tone)");
   });
 });
 
-describe("bottom-edge bars", () => {
-  /** Every bar — countdown or determinate — is a direct child of the <li>. */
-  const bars = () =>
-    [...item()!.children].filter((el) =>
-      el.className.includes("bottom-0"),
-    ) as HTMLElement[];
+describe("countdown ring and progress bar", () => {
+  const ring = () =>
+    item()!.querySelector<SVGElement>("[data-slot='countdown']");
+  const ringClass = () => ring()!.getAttribute("class") ?? "";
   const track = () =>
     document.querySelector<HTMLElement>("[role='progressbar']")!;
 
-  it("pins the determinate bar to the card's bottom edge, not the content flow", async () => {
+  it("puts the determinate bar inside the card body", async () => {
     await mountToaster();
     toast.progress("Uploading…", { value: 62 });
     await advance(0);
+    await advance(EXPAND_DELAY);
 
-    expect(track().parentElement).toBe(item());
-    expect(track().className).toContain("bottom-0");
+    expect(item()!.querySelector("[data-slot='body']")!.contains(track())).toBe(
+      true,
+    );
     expect(track().getAttribute("aria-valuenow")).toBe("62");
     expect((track().firstElementChild as HTMLElement).style.width).toBe("62%");
   });
@@ -230,39 +260,70 @@ describe("bottom-edge bars", () => {
     await mountToaster();
     toast.progress("Uploading…", { value: 140 });
     await advance(0);
+    await advance(EXPAND_DELAY);
 
     expect(track().getAttribute("aria-valuenow")).toBe("100");
     expect((track().firstElementChild as HTMLElement).style.width).toBe("100%");
   });
 
-  it("colors the countdown bar from the toast type", async () => {
+  it("colors the countdown ring from the toast type", async () => {
     await mountToaster();
     toast.success("Saved", { duration: 4000 });
     await advance(0);
 
-    const [bar, ...rest] = bars();
-    expect(rest).toHaveLength(0);
-    expect(bar.className).toContain("bg-sapa-success");
-    expect(bar.className).toContain("origin-left");
+    expect(bubble().className).toContain("[--tone:var(--sapa-success)]");
+    expect(ringClass()).toContain("stroke-(--tone)");
+    expect(ring()!.style.animation).toContain("sapa-toast-ring");
   });
 
-  it("falls back to a neutral bar for types with no semantic hue", async () => {
+  it("falls back to a neutral ring for types with no semantic hue", async () => {
     await mountToaster();
     toast("Copied", { duration: 4000 });
     await advance(0);
 
-    expect(bars()[0].className).toContain("bg-foreground");
+    expect(bubble().className).toContain("[--tone:var(--foreground)]");
+    expect(ringClass()).toContain("stroke-(--tone)");
   });
 
-  it("hides the countdown bar when a progress value owns the strip", async () => {
+  it("hides the countdown ring when a progress value is shown", async () => {
     await mountToaster();
-    // Both are set, so the two bars would otherwise stack on the same pixels.
     toast.progress("Uploading…", { value: 40, duration: 4000 });
     await advance(0);
 
-    const drawn = bars();
-    expect(drawn).toHaveLength(1);
-    expect(drawn[0]).toBe(track());
+    expect(ring()).toBeNull();
+  });
+});
+
+describe("color variants", () => {
+  it("fills the bubble with the tone for solid", async () => {
+    await mountToaster();
+    toast.success("Saved", { variant: "solid" });
+    await advance(0);
+
+    expect(item()!.dataset.variant).toBe("solid");
+    expect(bubble().className).toContain("bg-(--tone)");
+    expect(bubble().className).toContain("text-(--tone-fg)");
+  });
+
+  it("washes the bubble in an opaque tint for subtle", async () => {
+    await mountToaster();
+    toast.warning("Heads up", { variant: "subtle" });
+    await advance(0);
+
+    expect(item()!.dataset.variant).toBe("subtle");
+    expect(bubble().className).toContain("color-mix");
+  });
+
+  it("uses the Toaster default, which a toast can override", async () => {
+    await mountToaster({ variant: "subtle" });
+    toast("From the toaster");
+    toast("Own choice", { variant: "solid" });
+    await advance(0);
+
+    const variants = [
+      ...document.querySelectorAll<HTMLElement>("li[role='status']"),
+    ].map((el) => el.dataset.variant);
+    expect(variants.sort()).toEqual(["solid", "subtle"]);
   });
 });
 

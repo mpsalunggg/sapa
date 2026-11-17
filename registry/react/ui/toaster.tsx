@@ -2,10 +2,16 @@
 
 import * as React from "react";
 import { createPortal } from "react-dom";
+import { MotionConfig } from "motion/react";
 
 import { cn } from "@/lib/utils";
 import { Toast } from "./toast";
-import { toastStore, type ToastData, type ToastPosition } from "./toast-store";
+import {
+  toastStore,
+  type ToastData,
+  type ToastPosition,
+  type ToastVariant,
+} from "./toast-store";
 
 // Stable reference for SSR: getServerSnapshot must return the same value every
 // call, otherwise useSyncExternalStore re-renders forever.
@@ -32,11 +38,14 @@ export interface ToasterProps {
   position?: ToastPosition;
   /** Show toasts as a flat list instead of a collapsible stack. */
   expand?: boolean;
+  /** Default color variant for toasts that don't set their own. */
+  variant?: ToastVariant;
 }
 
 export function Toaster({
   position = "bottom-right",
   expand = false,
+  variant = "minimal",
 }: ToasterProps) {
   const toasts = React.useSyncExternalStore(
     toastStore.subscribe,
@@ -70,13 +79,16 @@ export function Toaster({
   for (const t of toasts) {
     const pos = t.position ?? position;
     if (!groups.has(pos)) groups.set(pos, []);
-    groups.get(pos)!.push({ ...t, position: pos });
+    groups
+      .get(pos)!
+      .push({ ...t, position: pos, variant: t.variant ?? variant });
   }
 
   const stacked = !expand;
 
   return createPortal(
-    <>
+    // Honors prefers-reduced-motion for every spring inside the bubbles.
+    <MotionConfig reducedMotion="user">
       {[...groups.entries()].map(([pos, items]) => {
         if (!stacked) {
           return (
@@ -88,7 +100,11 @@ export function Toaster({
               )}
             >
               {items.map((t) => (
-                <Toast key={t.id} toast={t} />
+                <Toast
+                  key={t.id}
+                  toast={t}
+                  anchorBottom={!pos.startsWith("top")}
+                />
               ))}
             </ol>
           );
@@ -98,7 +114,7 @@ export function Toaster({
         const anchorBottom = !pos.startsWith("top");
         const dir = pos.startsWith("top") ? 1 : -1;
         const groupExpanded = !!expandedMap[pos];
-        const h = (id: string | number) => heights[id] ?? 76;
+        const h = (id: string | number) => heights[id] ?? 40;
 
         const frontHeight = items[0] ? h(items[0].id) : 0;
         const visibleBehind = Math.min(items.length - 1, MAX_VISIBLE - 1);
@@ -142,6 +158,7 @@ export function Toaster({
                     toast={t}
                     stacked
                     expanded={groupExpanded}
+                    front={i === 0}
                     anchorBottom={anchorBottom}
                     stackY={stackY}
                     stackScale={stackScale}
@@ -155,7 +172,7 @@ export function Toaster({
           </div>
         );
       })}
-    </>,
+    </MotionConfig>,
     document.body,
   );
 }

@@ -26,6 +26,11 @@ const VARIANTS = [
     description: "Semantic colors + icons.",
   },
   {
+    key: "variants",
+    title: "Variants",
+    description: "Solid, minimal, subtle.",
+  },
+  {
     key: "description",
     title: "Title + description",
     description: "Headline + detail line.",
