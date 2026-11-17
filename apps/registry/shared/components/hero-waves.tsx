@@ -1,8 +1,13 @@
-export function HeroWaves() {
+import { cn } from "@/lib/utils";
+
+export function HeroWaves({ className }: { className?: string }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden"
+      className={cn(
+        "pointer-events-none absolute inset-x-0 top-0 overflow-hidden",
+        className,
+      )}
     >
       <svg
         className="absolute inset-0 h-full w-full"

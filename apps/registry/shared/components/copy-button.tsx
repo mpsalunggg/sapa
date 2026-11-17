@@ -4,6 +4,7 @@ import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { ghostIconButton } from "@/shared/lib/styles";
 
 export function CopyButton({
   value,
@@ -23,10 +24,7 @@ export function CopyButton({
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       }}
-      className={cn(
-        "text-muted-foreground hover:bg-muted hover:text-foreground inline-flex size-7 items-center justify-center rounded-md transition-colors",
-        className,
-      )}
+      className={cn(ghostIconButton, className)}
     >
       {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
     </button>

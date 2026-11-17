@@ -14,11 +14,9 @@ export interface TokenRow {
 interface Column<R> {
   header: string;
   cell: (row: R) => React.ReactNode;
-  /** Extra classes for this column's cells (colour, wrapping, font). */
   className?: string;
 }
 
-/** The bordered reference table shared by the API and theming sections. */
 function DocsTable<R>({
   columns,
   rows,
@@ -56,7 +54,6 @@ function DocsTable<R>({
   );
 }
 
-/** Prop / type / description — used for toast options and <Toaster> props. */
 export function ReferenceTable({ rows }: { rows: PropRow[] }) {
   return (
     <DocsTable
@@ -84,7 +81,6 @@ export function ReferenceTable({ rows }: { rows: PropRow[] }) {
   );
 }
 
-/** CSS variable / what it colors — used for the rich-color tokens. */
 export function TokenTable({ rows }: { rows: TokenRow[] }) {
   return (
     <DocsTable

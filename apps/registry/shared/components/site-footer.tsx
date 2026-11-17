@@ -1,24 +1,22 @@
-import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-export function SiteFooter({
-  baseUrl,
-  version,
-  className,
-}: {
-  baseUrl: string;
-  version?: string | null;
-  className?: string;
-}) {
+import { cn } from "@/lib/utils";
+import { getLatestVersion } from "@/features/changelog/changelog";
+import { BASE_URL } from "@/shared/lib/registry";
+
+export async function SiteFooter({ className }: { className?: string }) {
+  const version = await getLatestVersion();
+
   return (
     <footer
       className={cn(
-        "text-muted-foreground mt-16 flex flex-wrap items-center gap-x-2 gap-y-2 border-t pt-6 text-sm",
+        "text-muted-foreground mt-16 flex flex-wrap items-center gap-2 border-t pt-6 text-sm",
         className,
       )}
     >
       <span>
-        Sapa · registry served from <code className="text-xs">{baseUrl}/r</code>
+        Sapa · registry served from{" "}
+        <code className="text-xs">{BASE_URL}/r</code>
       </span>
       {version && (
         <Link

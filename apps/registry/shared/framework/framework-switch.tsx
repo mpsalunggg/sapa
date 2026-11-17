@@ -14,15 +14,13 @@ export const FRAMEWORK_OPTIONS: readonly SegmentedOption<Framework>[] = [
   { value: "vue", label: "Vue" },
 ];
 
-/** The single React/Vue switch that drives every framework-aware block. */
-export function FrameworkSwitch({ className }: { className?: string }) {
+export function FrameworkSwitch() {
   const { framework, setFramework } = useFramework();
   return (
     <SegmentedControl
       options={FRAMEWORK_OPTIONS}
       value={framework}
       onChange={setFramework}
-      className={className}
     />
   );
 }

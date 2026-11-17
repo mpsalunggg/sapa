@@ -1,12 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export function GradientLoader({
-  label = "Loading playground…",
-  className,
-}: {
-  label?: string;
-  className?: string;
-}) {
+export function GradientLoader({ className }: { className?: string }) {
   return (
     <div
       className={cn(
@@ -31,7 +25,6 @@ export function GradientLoader({
             </linearGradient>
           </defs>
 
-          {/* wave belakang, lebih lambat */}
           <g
             className="animate-loader-wave"
             style={{ animationDuration: "3.2s" }}
@@ -43,7 +36,6 @@ export function GradientLoader({
             />
           </g>
 
-          {/* wave depan, lebih cepat & fase berbeda */}
           <g
             className="animate-loader-wave"
             style={{ animationDuration: "1.8s" }}
@@ -56,25 +48,12 @@ export function GradientLoader({
           </g>
         </svg>
 
-        {/* ring tipis biar batas lingkaran tetap kelihatan rapi */}
         <div className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]" />
       </div>
 
       <span className="bg-linear-to-r from-sapa-warning to-sapa-error animate-pulse bg-clip-text text-sm font-medium text-transparent">
-        {label}
+        Loading playground…
       </span>
-
-      <style>{`
-        @keyframes loader-wave-x {
-          from { transform: translateX(0); }
-          to { transform: translateX(-100px); }
-        }
-        .animate-loader-wave {
-          animation-name: loader-wave-x;
-          animation-timing-function: linear;
-          animation-iteration-count: infinite;
-        }
-      `}</style>
     </div>
   );
 }

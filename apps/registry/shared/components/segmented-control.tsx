@@ -7,21 +7,16 @@ export interface SegmentedOption<T extends string> {
   label: React.ReactNode;
 }
 
-/** The one small pill-shaped switch used for every either/or choice in the
- *  showcase — framework (React/Vue), toast layout (stack/list), and the
- *  playground's own copies of both. */
 export function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
   className,
-  itemClassName,
 }: {
   options: readonly SegmentedOption<T>[];
   value: T;
   onChange: (v: T) => void;
   className?: string;
-  itemClassName?: string;
 }) {
   return (
     <div
@@ -40,7 +35,6 @@ export function SegmentedControl<T extends string>({
             value === o.value
               ? "bg-linear-to-br from-sapa-warning to-sapa-error text-white shadow-sm"
               : "text-muted-foreground hover:text-foreground",
-            itemClassName,
           )}
         >
           {o.label}

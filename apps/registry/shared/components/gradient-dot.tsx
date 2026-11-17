@@ -1,8 +1,5 @@
-/** The warm-to-red gradient full stop that ends every Sapa wordmark/heading. */
+import { gradientText } from "@/shared/lib/styles";
+
 export function GradientDot() {
-  return (
-    <span className="bg-linear-to-br from-sapa-warning to-sapa-error bg-clip-text text-transparent">
-      .
-    </span>
-  );
+  return <span className={gradientText}>.</span>;
 }

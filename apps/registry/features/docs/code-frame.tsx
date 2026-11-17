@@ -7,16 +7,11 @@ import { CopyButton } from "@/shared/components/copy-button";
 import { FrameworkTabs } from "@/shared/framework/framework-tabs";
 
 export interface CodeSnippet {
-  /** Raw source, used for the copy button. */
   code: string;
-  /** Shiki-highlighted HTML of the same source. */
   html: string;
   filename?: string;
 }
 
-/** One highlighted code block. Its header shows a Show/Hide toggle when
- *  `collapsible` is set (long registry sources), and the filename otherwise
- *  (short hand-written snippets). */
 export function CodeFrame({
   code,
   html,
@@ -54,7 +49,6 @@ export function CodeFrame({
   );
 }
 
-/** The same block, but showing whichever framework the reader has selected. */
 export function FrameworkCodeFrame({
   react,
   vue,

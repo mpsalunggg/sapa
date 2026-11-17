@@ -10,7 +10,7 @@ export function TryToasts() {
         aria-label="Say hi"
         onClick={() =>
           toast("Halo 👋", {
-            description: "That was Sapa — a toast you own.",
+            description: "That was Sapa, a toast you own.",
           })
         }
         className="origin-bottom-right cursor-pointer text-4xl leading-none transition-transform duration-300 hover:-rotate-12 hover:scale-110"

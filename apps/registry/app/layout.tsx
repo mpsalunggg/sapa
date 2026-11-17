@@ -26,7 +26,7 @@ const fontDisplay = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Sapa — Toast Registry",
+  title: "Sapa · Toast Registry",
   description:
     "A custom-built, cross-framework (React + Vue) toast registry. Copy, paste, own it.",
 };

@@ -1,31 +1,13 @@
-/**
- * Minimal, dependency-free sRGB ↔ OKLCH conversion.
- *
- * The Sapa design tokens are authored in `oklch(L C H)` (see
- * registry/theme/globals.css), but the theme customizer drives them with a
- * native `<input type="color">`, which only speaks 6-digit hex. These helpers
- * bridge the two: `oklchToHex` seeds the picker from a token's default value,
- * and `hexToOklch` turns the picked color back into the oklch string we apply
- * live and export.
- *
- * Math follows Björn Ottosson's OKLab reference
- * (https://bottosson.github.io/posts/oklab/). Alpha is ignored — the pickers
- * only deal with opaque colors.
- */
-
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
-/** sRGB channel (0–1) → linear-light. */
 function toLinear(c: number): number {
   return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 }
 
-/** linear-light channel (0–1) → sRGB. */
 function toGamma(c: number): number {
   return c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
 }
 
-/** "#rrggbb" | "#rgb" → [r, g, b] in 0–1. Falls back to black on bad input. */
 function parseHex(hex: string): [number, number, number] {
   let h = hex.trim().replace(/^#/, "");
   if (h.length === 3) {
@@ -45,12 +27,10 @@ function toHex2(n: number): string {
     .padStart(2, "0");
 }
 
-/** Round to at most `p` decimals, dropping trailing zeros. */
 function round(n: number, p: number): number {
   return Number(n.toFixed(p));
 }
 
-/** Convert a hex color to an `oklch(L C H)` string (L as 0–1, matching tokens). */
 export function hexToOklch(hex: string): string {
   const [sr, sg, sb] = parseHex(hex);
   const r = toLinear(sr);
@@ -73,18 +53,16 @@ export function hexToOklch(hex: string): string {
   let H = (Math.atan2(bb, a) * 180) / Math.PI;
   if (H < 0) H += 360;
 
-  // Neutral colors have no meaningful hue — pin to 0 for a stable string.
   if (C < 1e-4) H = 0;
 
   return `oklch(${round(L, 4)} ${round(C, 4)} ${round(H, 3)})`;
 }
 
-/** Parse `oklch(L C H)` (ignoring any alpha) into [L, C, H]. */
 function parseOklch(value: string): [number, number, number] | null {
   const m = value.match(/oklch\(\s*([^)]+)\)/i);
   if (!m) return null;
   const parts = m[1]
-    .replace(/\//g, " ") // drop the alpha separator
+    .replace(/\//g, " ")
     .trim()
     .split(/[\s,]+/);
   if (parts.length < 3) return null;
@@ -97,7 +75,6 @@ function parseOklch(value: string): [number, number, number] | null {
   return [L, C, H];
 }
 
-/** Convert an `oklch(L C H)` string to "#rrggbb", clamped into sRGB gamut. */
 export function oklchToHex(value: string): string {
   const parsed = parseOklch(value);
   if (!parsed) return "#000000";

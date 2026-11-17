@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState } from "react";
 
-/** How the global toaster stacks its toasts: a collapsible pile, or a flat list. */
 export type ToastLayout = "stack" | "list";
 
 const ToastLayoutContext = createContext<{

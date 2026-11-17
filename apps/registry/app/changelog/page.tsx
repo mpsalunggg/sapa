@@ -1,17 +1,16 @@
-import { BookOpen } from "lucide-react";
 import Markdown from "react-markdown";
 import type { Components } from "react-markdown";
 
 import { getReleases } from "@/features/changelog/changelog";
 import { Chip } from "@/features/docs/chip";
 import { HeroWaves } from "@/shared/components/hero-waves";
-import { NavLinkButton } from "@/shared/components/link-button";
+import { DocsLink } from "@/shared/components/nav-links";
 import { SiteFooter } from "@/shared/components/site-footer";
 import { SiteHeader } from "@/shared/components/site-header";
-import { BASE_URL } from "@/shared/lib/registry";
+import { GradientBullet } from "@/shared/components/sidebar";
 
 export const metadata = {
-  title: "Sapa — Changelog",
+  title: "Sapa · Changelog",
   description:
     "Every release of the Sapa toast registry, and the files each one touched.",
 };
@@ -20,10 +19,7 @@ const COMPONENTS: Components = {
   h3: ({ children }) => (
     <h3 className="font-display text-muted-foreground mt-7 flex items-center gap-1.5 text-[0.95rem] italic">
       {children}
-      <span
-        aria-hidden
-        className="bg-linear-to-br from-sapa-warning to-sapa-error size-1.5 rounded-full"
-      />
+      <GradientBullet />
     </h3>
   ),
   p: ({ children }) => (
@@ -62,20 +58,13 @@ export default async function ChangelogPage() {
 
   return (
     <div className="relative">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px] overflow-hidden">
-        <HeroWaves />
-      </div>
+      <HeroWaves className="h-[480px]" />
 
       <div className="relative z-10 mx-auto max-w-3xl px-4 py-8">
         <SiteHeader
           title="Changelog"
           subtitle="Every release, and the files it touched."
-          actions={
-            <NavLinkButton href="/docs">
-              <BookOpen className="size-3.5" />
-              Docs
-            </NavLinkButton>
-          }
+          actions={<DocsLink />}
         />
 
         <main className="divide-border flex flex-col divide-y">
@@ -103,7 +92,7 @@ export default async function ChangelogPage() {
           ))}
         </main>
 
-        <SiteFooter baseUrl={BASE_URL} version={releases[0]?.version} />
+        <SiteFooter />
       </div>
     </div>
   );
