@@ -67,7 +67,7 @@ import { toast } from "@/components/ui/sapa-toast/useToast";
 **Options:** `title`, `description`, `duration` (`Infinity` to persist), `position`, `variant`,
 `action`, `cancel`, `icon`, `progress` (0–100).
 
-Every toast is the same bubble — there is no `variant` or `size` to pick. It
+Every toast is the same bubble — there is no `size` to pick. It
 appears as a pill holding the icon and title, and after ~450 ms (or right away
 on hover) opens into a card for the description, actions and progress bar. A
 title-only toast stays a pill. The only visual axis is `type`, which pulls a

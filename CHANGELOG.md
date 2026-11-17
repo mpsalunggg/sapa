@@ -8,6 +8,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Sapa is a copy-paste registry, not an npm package — updating means re-copying the
 files that changed, so every entry names them.
 
+## [2.1.0] - 2026-11-17
+
+The toast becomes a bubble. It appears as a pill holding the icon and title,
+then opens into a card for the description, actions and progress — springs
+powered by [Motion](https://motion.dev). Color is back as a choice: `variant`
+picks how the type's color is carried, without bringing back the old matrix of
+shapes and sizes.
+
+> **Heads-up.** The toaster now depends on `motion` (React) / `motion-v` (Vue),
+> and the theme keyframe `sapa-toast-progress` is renamed to `sapa-toast-ring`.
+> Re-copy the theme together with the toaster files and install the new package.
+
+Re-copy: `globals.css` (theme), `toast-store.ts`, `toast.tsx`, `toaster.tsx`
+(React) and `useToast.ts`, `Toast.vue`, `Toaster.vue` (Vue).
+
+### Added
+
+- **`variant`** — `minimal` _(default)_, `subtle` or `solid`, per toast or as a
+  `<Toaster variant>` default. `minimal` keeps a neutral glass surface with color
+  only on the icon and ring; `subtle` tints the whole bubble with a light, opaque
+  wash of the type's color; `solid` fills it with the color and switches text,
+  icon and buttons to its foreground. Exported as the `ToastVariant` type.
+  (`toast-store.ts`, `toast.tsx`, `toaster.tsx`, `useToast.ts`, `Toast.vue`,
+  `Toaster.vue`)
+- **`react/toast-variants`, `vue/toast-variants`** — registry examples showing
+  the three variants side by side.
+
+### Changed
+
+- **Bubble motion.** Every toast pops in as a pill (icon + title) and, after
+  ~450 ms or right away on hover, morphs into a card to reveal the description,
+  actions and progress. A title-only toast stays a pill. (`toast.tsx`,
+  `Toast.vue`)
+- **The countdown is a ring around the icon.** The 3px bar along the bottom
+  edge is replaced by a thin ring in the type's color that drains around the
+  round icon tile; a `progress` value fills the same ring instead.
+  (`toast.tsx`, `Toast.vue`, `globals.css`)
+- **New dependency** — `motion` for React, `motion-v` for Vue, declared on the
+  `react/toaster` and `vue/toaster` registry items.
+- **Theme keyframe renamed** — `sapa-toast-progress` (scaleX) is now
+  `sapa-toast-ring` (stroke-dashoffset). (`globals.css`)
+
 ## [2.0.0] - 2026-08-03
 
 One shape instead of many. The toast is now a single squared card — the icon
